@@ -1,0 +1,383 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E00000000000000000000001 /* FreshAlertApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000001 /* FreshAlertApp.swift */; };
+		E00000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000002 /* ContentView.swift */; };
+		E00000000000000000000003 /* FoodItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000003 /* FoodItem.swift */; };
+		E00000000000000000000004 /* StorageLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000004 /* StorageLocation.swift */; };
+		E00000000000000000000005 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000005 /* DashboardView.swift */; };
+		E00000000000000000000006 /* FoodItemCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000006 /* FoodItemCardView.swift */; };
+		E00000000000000000000007 /* BarcodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000007 /* BarcodeScannerView.swift */; };
+		E00000000000000000000008 /* AddFoodItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000008 /* AddFoodItemView.swift */; };
+		E00000000000000000000009 /* StorageLocationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000009 /* StorageLocationsView.swift */; };
+		E0000000000000000000000A /* AddStorageLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000000A /* AddStorageLocationView.swift */; };
+		E0000000000000000000000B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000000B /* SettingsView.swift */; };
+		E0000000000000000000000C /* OpenFoodFactsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000000C /* OpenFoodFactsService.swift */; };
+		E0000000000000000000000D /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000000D /* NotificationService.swift */; };
+		E0000000000000000000000E /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000000E /* AppViewModel.swift */; };
+		E0000000000000000000000F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000000F /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		D00000000000000000000001 /* FreshAlertApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreshAlertApp.swift; sourceTree = "<group>"; };
+		D00000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		D00000000000000000000003 /* FoodItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodItem.swift; sourceTree = "<group>"; };
+		D00000000000000000000004 /* StorageLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageLocation.swift; sourceTree = "<group>"; };
+		D00000000000000000000005 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		D00000000000000000000006 /* FoodItemCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodItemCardView.swift; sourceTree = "<group>"; };
+		D00000000000000000000007 /* BarcodeScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerView.swift; sourceTree = "<group>"; };
+		D00000000000000000000008 /* AddFoodItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddFoodItemView.swift; sourceTree = "<group>"; };
+		D00000000000000000000009 /* StorageLocationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageLocationsView.swift; sourceTree = "<group>"; };
+		D0000000000000000000000A /* AddStorageLocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddStorageLocationView.swift; sourceTree = "<group>"; };
+		D0000000000000000000000B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		D0000000000000000000000C /* OpenFoodFactsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenFoodFactsService.swift; sourceTree = "<group>"; };
+		D0000000000000000000000D /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		D0000000000000000000000E /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
+		D0000000000000000000000F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D00000000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D00000000000000000000011 /* FreshAlert.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FreshAlert.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C00000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A00000000000000000000001 /* = */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000003 /* FreshAlert */,
+				A00000000000000000000002 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A00000000000000000000002 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D00000000000000000000011 /* FreshAlert.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000003 /* FreshAlert */ = {
+			isa = PBXGroup;
+			children = (
+				D00000000000000000000001 /* FreshAlertApp.swift */,
+				D00000000000000000000002 /* ContentView.swift */,
+				A00000000000000000000004 /* Models */,
+				A00000000000000000000005 /* Views */,
+				A0000000000000000000000A /* Services */,
+				A0000000000000000000000B /* ViewModels */,
+				D0000000000000000000000F /* Assets.xcassets */,
+				D00000000000000000000010 /* Info.plist */,
+			);
+			path = FreshAlert;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000004 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				D00000000000000000000003 /* FoodItem.swift */,
+				D00000000000000000000004 /* StorageLocation.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000005 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000006 /* Dashboard */,
+				A00000000000000000000007 /* Scanner */,
+				A00000000000000000000008 /* StorageLocations */,
+				A00000000000000000000009 /* Settings */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000006 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				D00000000000000000000005 /* DashboardView.swift */,
+				D00000000000000000000006 /* FoodItemCardView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000007 /* Scanner */ = {
+			isa = PBXGroup;
+			children = (
+				D00000000000000000000007 /* BarcodeScannerView.swift */,
+				D00000000000000000000008 /* AddFoodItemView.swift */,
+			);
+			path = Scanner;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000008 /* StorageLocations */ = {
+			isa = PBXGroup;
+			children = (
+				D00000000000000000000009 /* StorageLocationsView.swift */,
+				D0000000000000000000000A /* AddStorageLocationView.swift */,
+			);
+			path = StorageLocations;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000009 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				D0000000000000000000000B /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000A /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				D0000000000000000000000C /* OpenFoodFactsService.swift */,
+				D0000000000000000000000D /* NotificationService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000B /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				D0000000000000000000000E /* AppViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B00000000000000000000002 /* FreshAlert */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F00000000000000000000002 /* Build configuration list for PBXNativeTarget "FreshAlert" */;
+			buildPhases = (
+				C00000000000000000000001 /* Sources */,
+				C00000000000000000000002 /* Frameworks */,
+				C00000000000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FreshAlert;
+			productName = FreshAlert;
+			productReference = D00000000000000000000011 /* FreshAlert.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B00000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					B00000000000000000000002 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = F00000000000000000000001 /* Build configuration list for PBXProject "FreshAlert" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = de;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				de,
+				en,
+				Base,
+			);
+			mainGroup = A00000000000000000000001;
+			productRefGroup = A00000000000000000000002 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B00000000000000000000002 /* FreshAlert */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C00000000000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E0000000000000000000000F /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C00000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E00000000000000000000001 /* FreshAlertApp.swift in Sources */,
+				E00000000000000000000002 /* ContentView.swift in Sources */,
+				E00000000000000000000003 /* FoodItem.swift in Sources */,
+				E00000000000000000000004 /* StorageLocation.swift in Sources */,
+				E00000000000000000000005 /* DashboardView.swift in Sources */,
+				E00000000000000000000006 /* FoodItemCardView.swift in Sources */,
+				E00000000000000000000007 /* BarcodeScannerView.swift in Sources */,
+				E00000000000000000000008 /* AddFoodItemView.swift in Sources */,
+				E00000000000000000000009 /* StorageLocationsView.swift in Sources */,
+				E0000000000000000000000A /* AddStorageLocationView.swift in Sources */,
+				E0000000000000000000000B /* SettingsView.swift in Sources */,
+				E0000000000000000000000C /* OpenFoodFactsService.swift in Sources */,
+				E0000000000000000000000D /* NotificationService.swift in Sources */,
+				E0000000000000000000000E /* AppViewModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		F00000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F00000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		F00000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = FreshAlert/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		F00000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = FreshAlert/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F00000000000000000000001 /* Build configuration list for PBXProject "FreshAlert" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F00000000000000000000003 /* Debug */,
+				F00000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F00000000000000000000002 /* Build configuration list for PBXNativeTarget "FreshAlert" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F00000000000000000000005 /* Debug */,
+				F00000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B00000000000000000000001 /* Project object */;
+}
