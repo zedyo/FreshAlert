@@ -84,7 +84,7 @@ struct DashboardView: View {
                                             Label("Löschen", systemImage: "trash")
                                         }
                                         Button {
-                                            Task { await viewModel.decrementQuantity(item) }
+                                            viewModel.decrementQuantity(item)
                                         } label: {
                                             Label("1 verbraucht", systemImage: "minus.circle")
                                         }
