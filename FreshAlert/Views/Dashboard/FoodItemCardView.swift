@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct FoodItemCardView: View {
     let item: FoodItem
@@ -118,6 +119,7 @@ struct FoodItemCardView: View {
 // MARK: - Detail Sheet
 struct FoodItemDetailView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var viewModel: AppViewModel
     let item: FoodItem
 
@@ -127,8 +129,7 @@ struct FoodItemDetailView: View {
     @State private var editedQuantity: Int = 1
     @State private var editedReminderDays: Int? = nil
     @State private var editedLocation: StorageLocation? = nil
-
-    @Query(sort: \StorageLocation.sortOrder) private var locations: [StorageLocation]
+    @State private var locations: [StorageLocation] = []
 
     var body: some View {
         NavigationStack {
@@ -160,8 +161,16 @@ struct FoodItemDetailView: View {
                     .fontWeight(.semibold)
                 }
             }
+            .task {
+                await loadLocations()
+            }
         }
         .presentationDetents([.medium, .large])
+    }
+    
+    private func loadLocations() async {
+        let descriptor = FetchDescriptor<StorageLocation>(sortBy: [SortDescriptor(\.sortOrder)])
+        locations = (try? modelContext.fetch(descriptor)) ?? []
     }
 
     private var productImageHeader: some View {

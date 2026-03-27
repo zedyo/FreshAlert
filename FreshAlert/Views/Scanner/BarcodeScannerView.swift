@@ -176,7 +176,6 @@ struct ScannerOverlay: View {
         GeometryReader { geo in
             let frameW: CGFloat = 260
             let frameH: CGFloat = 130
-            let frameX = (geo.size.width - frameW) / 2
             let frameY = (geo.size.height - frameH) / 2 - 40
 
             // Dark mask with transparent cutout
