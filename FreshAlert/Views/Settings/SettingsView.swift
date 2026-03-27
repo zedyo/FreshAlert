@@ -25,12 +25,22 @@ struct SettingsView: View {
                             Label("Ausstehende Syncs", systemImage: "arrow.triangle.2.circlepath")
                             Spacer()
                             Text("\(viewModel.pendingSyncCount)")
-                                .foregroundStyle(.orange)
-                                .font(.subheadline.bold())
+                                .foregroundStyle(.orange).font(.subheadline.bold())
                         }
                     }
                 } header: {
                     Text("Status")
+                }
+
+                // Verwaltung
+                Section {
+                    NavigationLink {
+                        StorageLocationsView()
+                    } label: {
+                        Label("Lagerorte verwalten", systemImage: "archivebox.fill")
+                    }
+                } header: {
+                    Text("Verwaltung")
                 }
 
                 // Notifications
@@ -40,7 +50,6 @@ struct SettingsView: View {
                         Spacer()
                         notifStatusBadge
                     }
-
                     if notifStatus == .denied {
                         Button {
                             UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
@@ -48,14 +57,12 @@ struct SettingsView: View {
                             Label("In Einstellungen aktivieren", systemImage: "arrow.up.right")
                         }
                     }
-
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
                             Label("Erinnerung", systemImage: "clock")
                             Spacer()
                             Text("\(globalReminderDays) \(globalReminderDays == 1 ? "Tag" : "Tage") vorher")
-                                .foregroundStyle(.secondary)
-                                .font(.subheadline)
+                                .foregroundStyle(.secondary).font(.subheadline)
                         }
                         Slider(
                             value: Binding(
@@ -66,14 +73,10 @@ struct SettingsView: View {
                         )
                         .tint(Color(red: 0.2, green: 0.78, blue: 0.2))
                         HStack {
-                            Text("1 Tag")
-                            Spacer()
-                            Text("30 Tage")
+                            Text("1 Tag"); Spacer(); Text("30 Tage")
                         }
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .font(.caption2).foregroundStyle(.secondary)
                     }
-
                     Button {
                         showRescheduleConfirm = true
                     } label: {
@@ -96,7 +99,6 @@ struct SettingsView: View {
                     } message: {
                         Text("Alle Erinnerungen wurden neu eingeplant.")
                     }
-
                 } header: {
                     Text("Benachrichtigungen")
                 }
@@ -119,22 +121,15 @@ struct SettingsView: View {
     private var notifStatusBadge: some View {
         switch notifStatus {
         case .authorized, .provisional:
-            Text("Aktiv")
-                .foregroundStyle(.green)
-                .font(.subheadline)
+            Text("Aktiv").foregroundStyle(.green).font(.subheadline)
         case .denied:
-            Text("Blockiert")
-                .foregroundStyle(.red)
-                .font(.subheadline)
+            Text("Blockiert").foregroundStyle(.red).font(.subheadline)
         default:
-            Text("Nicht erteilt")
-                .foregroundStyle(.secondary)
-                .font(.subheadline)
+            Text("Nicht erteilt").foregroundStyle(.secondary).font(.subheadline)
         }
     }
 
     private func loadNotifStatus() async {
-        let settings = await UNUserNotificationCenter.current().notificationSettings()
-        notifStatus = settings.authorizationStatus
+        notifStatus = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
     }
 }

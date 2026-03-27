@@ -5,6 +5,7 @@ struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var viewModel: AppViewModel
     @Query(sort: \FoodItem.expiryDate, order: .forward) private var allItems: [FoodItem]
+    @Query(sort: \StorageLocation.sortOrder) private var locations: [StorageLocation]
 
     @State private var searchText = ""
     @State private var selectedFilter: FilterOption = .all
@@ -18,84 +19,113 @@ struct DashboardView: View {
         case expired      = "Abgelaufen"
     }
 
-    @Query(sort: \StorageLocation.sortOrder) private var locations: [StorageLocation]
-
     var filteredItems: [FoodItem] {
         var items = allItems
-
         if !searchText.isEmpty {
             items = items.filter {
                 $0.name.localizedCaseInsensitiveContains(searchText) ||
                 $0.brand.localizedCaseInsensitiveContains(searchText)
             }
         }
-
         switch selectedFilter {
         case .all: break
-        case .expiringSoon:
-            items = items.filter { $0.daysUntilExpiry >= 0 && $0.daysUntilExpiry <= 7 }
-        case .expired:
-            items = items.filter { $0.daysUntilExpiry < 0 }
+        case .expiringSoon: items = items.filter { $0.daysUntilExpiry >= 0 && $0.daysUntilExpiry <= 7 }
+        case .expired:      items = items.filter { $0.daysUntilExpiry < 0 }
         }
-
         if let locID = selectedLocationID {
             items = items.filter { $0.storageLocation?.id == locID }
         }
-
         return items
     }
 
-    var expiringThisWeek: Int {
-        allItems.filter { $0.daysUntilExpiry >= 0 && $0.daysUntilExpiry <= 7 }.count
-    }
-    var expiredCount: Int {
-        allItems.filter { $0.daysUntilExpiry < 0 }.count
-    }
+    var expiringThisWeek: Int { allItems.filter { $0.daysUntilExpiry >= 0 && $0.daysUntilExpiry <= 7 }.count }
+    var expiredCount: Int     { allItems.filter { $0.daysUntilExpiry < 0 }.count }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    // Stats
-                    if !allItems.isEmpty {
+            List {
+                // Stats
+                if !allItems.isEmpty {
+                    Section {
                         statsRow
-                    }
-
-                    // Filter chips
-                    filterBar
-
-                    // Location chips
-                    if !locations.isEmpty {
-                        locationBar
-                    }
-
-                    // List
-                    if filteredItems.isEmpty {
-                        emptyState
-                    } else {
-                        LazyVStack(spacing: 12) {
-                            ForEach(filteredItems) { item in
-                                FoodItemCardView(item: item)
-                                    .contextMenu {
-                                        Button(role: .destructive) {
-                                            itemToDelete = item
-                                            showDeleteAlert = true
-                                        } label: {
-                                            Label("Löschen", systemImage: "trash")
-                                        }
-                                        Button {
-                                            Task { await viewModel.decrementQuantity(item) }
-                                        } label: {
-                                            Label("1 verbraucht", systemImage: "minus.circle")
-                                        }
-                                    }
-                            }
-                        }
-                        .padding(.horizontal)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     }
                 }
-                .padding(.vertical)
+
+                // Filter + Location chips
+                Section {
+                    filterBar
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(.init())
+                    if !locations.isEmpty {
+                        locationBar
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(.init())
+                    }
+                }
+
+                // Items
+                if filteredItems.isEmpty {
+                    Section {
+                        emptyState
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                    }
+                } else {
+                    Section {
+                        ForEach(filteredItems) { item in
+                            FoodItemCardView(item: item)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                // Swipe LEFT → trailing → "Verwendet"
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button {
+                                        viewModel.decrementQuantity(item)
+                                    } label: {
+                                        Label(
+                                            item.quantity > 1 ? "1 verwendet" : "Verwendet",
+                                            systemImage: "checkmark.circle.fill"
+                                        )
+                                    }
+                                    .tint(Color(red: 0.2, green: 0.78, blue: 0.2))
+                                }
+                                // Swipe RIGHT → leading → Löschen
+                                .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                                    Button(role: .destructive) {
+                                        itemToDelete = item
+                                        showDeleteAlert = true
+                                    } label: {
+                                        Label("Löschen", systemImage: "trash")
+                                    }
+                                }
+                                .contextMenu {
+                                    Button {
+                                        viewModel.decrementQuantity(item)
+                                    } label: {
+                                        Label(
+                                            item.quantity > 1 ? "1 Exemplar verbraucht" : "Als verwendet markieren",
+                                            systemImage: "checkmark.circle"
+                                        )
+                                    }
+                                    Button(role: .destructive) {
+                                        itemToDelete = item
+                                        showDeleteAlert = true
+                                    } label: {
+                                        Label("Löschen", systemImage: "trash")
+                                    }
+                                }
+                        }
+                    }
+                }
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("FreshAlert")
             .navigationBarTitleDisplayMode(.large)
             .searchable(text: $searchText, prompt: "Produkt suchen …")
@@ -115,47 +145,27 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: - Sub-views
+    // MARK: - Subviews
 
     private var statsRow: some View {
         HStack(spacing: 12) {
-            StatCard(
-                value: "\(allItems.count)",
-                label: "Produkte",
-                icon: "cart.fill",
-                color: .blue
-            )
-            StatCard(
-                value: "\(expiringThisWeek)",
-                label: "Bald ablaufend",
-                icon: "exclamationmark.triangle.fill",
-                color: .orange
-            )
-            StatCard(
-                value: "\(expiredCount)",
-                label: "Abgelaufen",
-                icon: "xmark.circle.fill",
-                color: .red
-            )
+            StatCard(value: "\(allItems.count)",       label: "Produkte",       icon: "cart.fill",                    color: .blue)
+            StatCard(value: "\(expiringThisWeek)",     label: "Bald ablaufend", icon: "exclamationmark.triangle.fill", color: .orange)
+            StatCard(value: "\(expiredCount)",         label: "Abgelaufen",     icon: "xmark.circle.fill",            color: .red)
         }
-        .padding(.horizontal)
     }
 
     private var filterBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(FilterOption.allCases, id: \.self) { option in
-                    FilterChip(
-                        title: option.rawValue,
-                        isSelected: selectedFilter == option
-                    ) {
-                        withAnimation(.spring(response: 0.3)) {
-                            selectedFilter = option
-                        }
+                    FilterChip(title: option.rawValue, isSelected: selectedFilter == option) {
+                        withAnimation(.spring(response: 0.3)) { selectedFilter = option }
                     }
                 }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 4)
         }
     }
 
@@ -171,7 +181,8 @@ struct DashboardView: View {
                     }
                 }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 4)
         }
     }
 
@@ -182,28 +193,25 @@ struct DashboardView: View {
                 .foregroundStyle(.secondary)
             Text(searchText.isEmpty ? "Noch keine Produkte" : "Keine Ergebnisse")
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(.primary)
             Text(searchText.isEmpty
-                ? "Scanne einen Barcode unter \"Scannen\" um zu beginnen."
-                : "Versuche einen anderen Suchbegriff.")
+                 ? "Scanne einen Barcode unter \"Scannen\" um zu beginnen."
+                 : "Versuche einen anderen Suchbegriff.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
-        .padding(.top, 60)
+        .frame(maxWidth: .infinity)
+        .padding(.top, 48)
         .padding(.horizontal, 32)
     }
 
     private var syncBadge: some View {
         HStack(spacing: 4) {
-            Image(systemName: "arrow.triangle.2.circlepath")
-                .font(.caption)
-            Text("\(viewModel.pendingSyncCount)")
-                .font(.caption.bold())
+            Image(systemName: "arrow.triangle.2.circlepath").font(.caption)
+            Text("\(viewModel.pendingSyncCount)").font(.caption.bold())
         }
         .foregroundStyle(.orange)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, 8).padding(.vertical, 4)
         .background(Color.orange.opacity(0.15))
         .clipShape(Capsule())
     }
@@ -212,24 +220,12 @@ struct DashboardView: View {
 // MARK: - Helper Components
 
 struct StatCard: View {
-    let value: String
-    let label: String
-    let icon: String
-    let color: Color
-
+    let value: String; let label: String; let icon: String; let color: Color
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundStyle(color)
-                    .font(.caption)
-                Spacer()
-            }
-            Text(value)
-                .font(.title2.bold())
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack { Image(systemName: icon).foregroundStyle(color).font(.caption); Spacer() }
+            Text(value).font(.title2.bold())
+            Text(label).font(.caption).foregroundStyle(.secondary)
         }
         .padding(12)
         .frame(maxWidth: .infinity)
@@ -239,17 +235,13 @@ struct StatCard: View {
 }
 
 struct FilterChip: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-
+    let title: String; let isSelected: Bool; let action: () -> Void
     var body: some View {
         Button(action: action) {
             Text(title)
                 .font(.subheadline.weight(isSelected ? .semibold : .regular))
                 .foregroundStyle(isSelected ? .white : .primary)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
+                .padding(.horizontal, 14).padding(.vertical, 7)
                 .background(isSelected ? Color(red: 0.2, green: 0.78, blue: 0.2) : Color(.secondarySystemBackground))
                 .clipShape(Capsule())
         }
@@ -258,21 +250,15 @@ struct FilterChip: View {
 }
 
 struct LocationChip: View {
-    let location: StorageLocation
-    let isSelected: Bool
-    let action: () -> Void
-
+    let location: StorageLocation; let isSelected: Bool; let action: () -> Void
     var body: some View {
         Button(action: action) {
             HStack(spacing: 4) {
-                Image(systemName: location.iconName)
-                    .font(.caption)
-                Text(location.name)
-                    .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                Image(systemName: location.iconName).font(.caption)
+                Text(location.name).font(.subheadline.weight(isSelected ? .semibold : .regular))
             }
             .foregroundStyle(isSelected ? .white : .primary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7)
+            .padding(.horizontal, 12).padding(.vertical, 7)
             .background(isSelected ? location.color : Color(.secondarySystemBackground))
             .clipShape(Capsule())
         }
