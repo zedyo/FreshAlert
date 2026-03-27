@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5DADE2"/>
+      <stop offset="100%" stop-color="#1B4F72"/>
+    </linearGradient>
+    <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EBF5FB"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="url(#bgGrad)"/>
+
+  <!-- Fridge body -->
+  <rect x="256" y="133" width="512" height="778" rx="72" fill="url(#bodyGrad)"/>
+
+  <!-- Freezer / fridge divider -->
+  <line x1="270" y1="430" x2="754" y2="430" stroke="#AED6F1" stroke-width="12"/>
+
+  <!-- Freezer door handle -->
+  <rect x="698" y="210" width="32" height="136" rx="16" fill="#AED6F1"/>
+
+  <!-- Fridge door handle -->
+  <rect x="698" y="510" width="32" height="230" rx="16" fill="#AED6F1"/>
+
+  <!-- SNOWFLAKE centered at (490, 282) in freezer section, arm radius 86 -->
+
+  <!-- Main vertical arm -->
+  <line x1="490" y1="196" x2="490" y2="368"
+        stroke="#2E86C1" stroke-width="18" stroke-linecap="round"/>
+  <!-- Diagonal arm 60°/240° -->
+  <line x1="564" y1="239" x2="416" y2="325"
+        stroke="#2E86C1" stroke-width="18" stroke-linecap="round"/>
+  <!-- Diagonal arm 120°/300° -->
+  <line x1="564" y1="325" x2="416" y2="239"
+        stroke="#2E86C1" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- Branches on upper vertical arm (at 25% from top tip) -->
+  <line x1="490" y1="239" x2="460" y2="209"
+        stroke="#2E86C1" stroke-width="12" stroke-linecap="round"/>
+  <line x1="490" y1="239" x2="520" y2="209"
+        stroke="#2E86C1" stroke-width="12" stroke-linecap="round"/>
+  <!-- Branches on lower vertical arm -->
+  <line x1="490" y1="325" x2="460" y2="355"
+        stroke="#2E86C1" stroke-width="12" stroke-linecap="round"/>
+  <line x1="490" y1="325" x2="520" y2="355"
+        stroke="#2E86C1" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Shelf lines inside fridge section -->
+  <line x1="300" y1="628" x2="710" y2="628" stroke="#D6EAF8" stroke-width="10"/>
+  <line x1="300" y1="780" x2="710" y2="780" stroke="#D6EAF8" stroke-width="10"/>
+</svg>
