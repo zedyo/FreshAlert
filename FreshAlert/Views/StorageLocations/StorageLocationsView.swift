@@ -4,46 +4,56 @@ import SwiftData
 struct StorageLocationsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \StorageLocation.sortOrder) private var locations: [StorageLocation]
+
     @State private var showAddSheet = false
     @State private var locationToEdit: StorageLocation?
     @State private var locationToDelete: StorageLocation?
-    @State private var showDeleteAlert = false
+    @State private var showSimpleDeleteAlert = false
+    @State private var showItemsWarningAlert = false
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if locations.isEmpty {
-                    emptyState
-                } else {
-                    locationList
+        Group {
+            if locations.isEmpty {
+                emptyState
+            } else {
+                locationList
+            }
+        }
+        .navigationTitle("Lagerorte")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showAddSheet = true
+                } label: {
+                    Image(systemName: "plus.circle.fill").font(.title3)
                 }
             }
-            .navigationTitle("Lagerorte")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showAddSheet = true
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title3)
-                    }
-                }
-            }
-            .sheet(isPresented: $showAddSheet) {
-                AddStorageLocationView(existingCount: locations.count)
-            }
-            .sheet(item: $locationToEdit) { loc in
-                AddStorageLocationView(editingLocation: loc, existingCount: locations.count)
-            }
-            .alert("Lagerort löschen?", isPresented: $showDeleteAlert, presenting: locationToDelete) { loc in
-                Button("Löschen", role: .destructive) {
-                    modelContext.delete(loc)
-                    try? modelContext.save()
-                }
-                Button("Abbrechen", role: .cancel) {}
-            } message: { loc in
-                Text("\"\(loc.name)\" wird gelöscht. Produkte behalten diesen Ort nicht mehr.")
-            }
+        }
+        .sheet(isPresented: $showAddSheet) {
+            AddStorageLocationView(existingCount: locations.count)
+        }
+        .sheet(item: $locationToEdit) { loc in
+            AddStorageLocationView(editingLocation: loc, existingCount: locations.count)
+        }
+        // Simple delete (no items affected)
+        .alert("Lagerort löschen?", isPresented: $showSimpleDeleteAlert, presenting: locationToDelete) { loc in
+            Button("Löschen", role: .destructive) { delete(loc) }
+            Button("Abbrechen", role: .cancel) {}
+        } message: { loc in
+            Text("\"\(loc.name)\" wird gelöscht.")
+        }
+        // Delete with items warning
+        .alert("Lagerort hat noch Produkte", isPresented: $showItemsWarningAlert, presenting: locationToDelete) { loc in
+            Button("Abbrechen", role: .cancel) {}
+            Button("Trotzdem löschen", role: .destructive) { delete(loc) }
+        } message: { loc in
+            let count = loc.foodItems.count
+            let produktWort = count == 1 ? "Produkt" : "Produkte"
+            Text(
+                "\"\(loc.name)\" enthält noch \(count) \(produktWort). " +
+                "Diese Produkte werden nicht gelöscht, sind aber danach ohne Lagerort gespeichert."
+            )
         }
     }
 
@@ -56,7 +66,11 @@ struct StorageLocationsView: View {
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
                             locationToDelete = loc
-                            showDeleteAlert = true
+                            if loc.foodItems.isEmpty {
+                                showSimpleDeleteAlert = true
+                            } else {
+                                showItemsWarningAlert = true
+                            }
                         } label: {
                             Label("Löschen", systemImage: "trash")
                         }
@@ -71,9 +85,7 @@ struct StorageLocationsView: View {
             .onMove { from, to in
                 var arr = locations
                 arr.move(fromOffsets: from, toOffset: to)
-                for (index, loc) in arr.enumerated() {
-                    loc.sortOrder = index
-                }
+                for (index, loc) in arr.enumerated() { loc.sortOrder = index }
                 try? modelContext.save()
             }
         }
@@ -93,19 +105,21 @@ struct StorageLocationsView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
-            Button("Ersten Ort erstellen") {
-                showAddSheet = true
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(Color(red: 0.2, green: 0.78, blue: 0.2))
+            Button("Ersten Ort erstellen") { showAddSheet = true }
+                .buttonStyle(.borderedProminent)
+                .tint(Color(red: 0.2, green: 0.78, blue: 0.2))
         }
         .padding()
+    }
+
+    private func delete(_ location: StorageLocation) {
+        modelContext.delete(location)
+        try? modelContext.save()
     }
 }
 
 struct LocationRow: View {
     let location: StorageLocation
-
     var body: some View {
         HStack(spacing: 14) {
             ZStack {
@@ -117,17 +131,13 @@ struct LocationRow: View {
                     .foregroundStyle(location.color)
             }
             VStack(alignment: .leading, spacing: 2) {
-                Text(location.name)
-                    .font(.subheadline.weight(.semibold))
+                Text(location.name).font(.subheadline.weight(.semibold))
                 let count = location.foodItems.count
                 Text(count == 0 ? "Keine Produkte" : "\(count) \(count == 1 ? "Produkt" : "Produkte")")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
         }
         .padding(.vertical, 4)
     }

@@ -18,17 +18,11 @@ struct ContentView: View {
                 }
                 .tag(1)
 
-            StorageLocationsView()
-                .tabItem {
-                    Label("Standorte", systemImage: "archivebox.fill")
-                }
-                .tag(2)
-
             SettingsView()
                 .tabItem {
                     Label("Einstellungen", systemImage: "gearshape.fill")
                 }
-                .tag(3)
+                .tag(2)
         }
         .tint(Color(red: 0.2, green: 0.78, blue: 0.2))
     }
