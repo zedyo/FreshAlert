@@ -93,7 +93,8 @@ struct FreshAlertWidgetEntryView: View {
             }
             Spacer(minLength: 0)
         }
-        .padding(.vertical, 8)
+        .padding(.top, family == .systemLarge ? 16 : 8)
+        .padding(.bottom, family == .systemLarge ? 16 : 8)
         .containerBackground(.fill, for: .widget)
     }
 
