@@ -48,10 +48,11 @@ struct FreshAlertTimelineProvider: TimelineProvider {
 
 struct FreshAlertWidgetEntryView: View {
     let entry: FreshAlertEntry
+    @Environment(\.widgetFamily) private var family
 
-    // Expired first, then soonest, max 10
     var displayItems: [WidgetFoodItem] {
-        Array(entry.items.sorted { $0.expiryDate < $1.expiryDate }.prefix(10))
+        let limit = family == .systemLarge ? 10 : 5
+        return Array(entry.items.sorted { $0.expiryDate < $1.expiryDate }.prefix(limit))
     }
 
     var body: some View {
@@ -167,7 +168,7 @@ struct FreshAlertWidget: Widget {
             FreshAlertWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("FreshAlert")
-        .description("Die 10 nächsten ablaufenden Produkte auf einen Blick.")
-        .supportedFamilies([.systemLarge])
+        .description("Die nächsten ablaufenden Produkte auf einen Blick.")
+        .supportedFamilies([.systemMedium, .systemLarge])
     }
 }
