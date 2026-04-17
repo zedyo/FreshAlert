@@ -13,10 +13,8 @@ struct DashboardView: View {
     @State private var itemToDelete: FoodItem?
     @State private var showDeleteAlert = false
 
-    enum FilterOption: String, CaseIterable {
-        case all          = "Alle"
-        case expiringSoon = "Bald ablaufend"
-        case expired      = "Abgelaufen"
+    enum FilterOption {
+        case all, expiringSoon, expired
     }
 
     var filteredItems: [FoodItem] {
@@ -44,7 +42,7 @@ struct DashboardView: View {
     var body: some View {
         NavigationStack {
             List {
-                // Stats
+                // Interactive stat cards (replace filter chips)
                 if !allItems.isEmpty {
                     Section {
                         statsRow
@@ -54,13 +52,9 @@ struct DashboardView: View {
                     }
                 }
 
-                // Filter + Location chips
-                Section {
-                    filterBar
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                        .listRowInsets(.init())
-                    if !locations.isEmpty {
+                // Location chips
+                if !locations.isEmpty {
+                    Section {
                         locationBar
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
@@ -82,7 +76,6 @@ struct DashboardView: View {
                                 .listRowBackground(Color.clear)
                                 .listRowSeparator(.hidden)
                                 .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                                // Swipe LEFT → trailing → "Verwendet"
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     Button {
                                         viewModel.decrementQuantity(item)
@@ -94,7 +87,6 @@ struct DashboardView: View {
                                     }
                                     .tint(Color(red: 0.2, green: 0.78, blue: 0.2))
                                 }
-                                // Swipe RIGHT → leading → Löschen
                                 .swipeActions(edge: .leading, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
                                         itemToDelete = item
@@ -128,7 +120,12 @@ struct DashboardView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("FreshAlert")
             .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $searchText, prompt: "Produkt suchen …")
+            // Search bar hidden by default; reveals on pull-down
+            .searchable(
+                text: $searchText,
+                placement: .navigationBarDrawer(displayMode: .automatic),
+                prompt: "Produkt suchen …"
+            )
             .toolbar {
                 if viewModel.pendingSyncCount > 0 {
                     ToolbarItem(placement: .navigationBarTrailing) {
@@ -149,23 +146,33 @@ struct DashboardView: View {
 
     private var statsRow: some View {
         HStack(spacing: 12) {
-            StatCard(value: "\(allItems.count)",       label: "Produkte",       icon: "cart.fill",                    color: .blue)
-            StatCard(value: "\(expiringThisWeek)",     label: "Bald ablaufend", icon: "exclamationmark.triangle.fill", color: .orange)
-            StatCard(value: "\(expiredCount)",         label: "Abgelaufen",     icon: "xmark.circle.fill",            color: .red)
-        }
-    }
-
-    private var filterBar: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(FilterOption.allCases, id: \.self) { option in
-                    FilterChip(title: option.rawValue, isSelected: selectedFilter == option) {
-                        withAnimation(.spring(response: 0.3)) { selectedFilter = option }
-                    }
-                }
+            InteractiveStatCard(
+                value: "\(allItems.count)",
+                label: "Produkte",
+                icon: "cart.fill",
+                color: .blue,
+                isSelected: selectedFilter == .all
+            ) {
+                withAnimation(.spring(response: 0.3)) { selectedFilter = .all }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 4)
+            InteractiveStatCard(
+                value: "\(expiringThisWeek)",
+                label: "Bald ablaufend",
+                icon: "exclamationmark.triangle.fill",
+                color: .orange,
+                isSelected: selectedFilter == .expiringSoon
+            ) {
+                withAnimation(.spring(response: 0.3)) { selectedFilter = .expiringSoon }
+            }
+            InteractiveStatCard(
+                value: "\(expiredCount)",
+                label: "Abgelaufen",
+                icon: "xmark.circle.fill",
+                color: .red,
+                isSelected: selectedFilter == .expired
+            ) {
+                withAnimation(.spring(response: 0.3)) { selectedFilter = .expired }
+            }
         }
     }
 
@@ -219,18 +226,42 @@ struct DashboardView: View {
 
 // MARK: - Helper Components
 
-struct StatCard: View {
-    let value: String; let label: String; let icon: String; let color: Color
+struct InteractiveStatCard: View {
+    let value: String
+    let label: String
+    let icon: String
+    let color: Color
+    let isSelected: Bool
+    let action: () -> Void
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack { Image(systemName: icon).foregroundStyle(color).font(.caption); Spacer() }
-            Text(value).font(.title2.bold())
-            Text(label).font(.caption).foregroundStyle(.secondary)
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Image(systemName: icon)
+                        .foregroundStyle(isSelected ? .white : color)
+                        .font(.caption)
+                    Spacer()
+                    if isSelected {
+                        Image(systemName: "checkmark")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.white.opacity(0.8))
+                    }
+                }
+                Text(value)
+                    .font(.title2.bold())
+                    .foregroundStyle(isSelected ? .white : .primary)
+                Text(label)
+                    .font(.caption)
+                    .foregroundStyle(isSelected ? .white.opacity(0.85) : .secondary)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity)
+            .background(isSelected ? color : Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .shadow(color: isSelected ? color.opacity(0.3) : .clear, radius: 4, y: 2)
         }
-        .padding(12)
-        .frame(maxWidth: .infinity)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .buttonStyle(.plain)
     }
 }
 

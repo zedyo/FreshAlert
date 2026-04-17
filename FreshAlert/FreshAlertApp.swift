@@ -5,6 +5,7 @@ import SwiftData
 struct FreshAlertApp: App {
     let modelContainer: ModelContainer
     @StateObject private var appViewModel: AppViewModel
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         do {
@@ -27,7 +28,13 @@ struct FreshAlertApp: App {
                 .environmentObject(appViewModel)
                 .task {
                     await NotificationService.shared.requestPermission()
+                    appViewModel.updateWidgetSnapshot()
                 }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                appViewModel.processPendingWidgetDecrements()
+            }
         }
     }
 }
