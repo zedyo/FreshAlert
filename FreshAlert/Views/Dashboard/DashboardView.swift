@@ -12,6 +12,7 @@ struct DashboardView: View {
     @State private var selectedLocationID: UUID?
     @State private var itemToDelete: FoodItem?
     @State private var showDeleteAlert = false
+    @State private var isSearchPresented = false
 
     enum FilterOption {
         case all, expiringSoon, expired
@@ -120,16 +121,23 @@ struct DashboardView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("FreshAlert")
             .navigationBarTitleDisplayMode(.large)
-            // Search bar hidden by default; reveals on pull-down
+            // Hidden by default — appears only when search icon tapped
             .searchable(
                 text: $searchText,
-                placement: .navigationBarDrawer(displayMode: .automatic),
+                isPresented: $isSearchPresented,
+                placement: .navigationBarDrawer(displayMode: .always),
                 prompt: "Produkt suchen …"
             )
             .toolbar {
-                if viewModel.pendingSyncCount > 0 {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        syncBadge
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    HStack(spacing: 6) {
+                        if viewModel.pendingSyncCount > 0 { syncBadge }
+                        Button {
+                            withAnimation { isSearchPresented.toggle() }
+                        } label: {
+                            Image(systemName: isSearchPresented ? "xmark.circle.fill" : "magnifyingglass")
+                                .foregroundStyle(isSearchPresented ? Color.secondary : Color.primary)
+                        }
                     }
                 }
             }
