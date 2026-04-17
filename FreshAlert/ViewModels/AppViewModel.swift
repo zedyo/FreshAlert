@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 import SwiftUI
 import Network
+import WidgetKit
 
 @MainActor
 final class AppViewModel: ObservableObject {
@@ -53,6 +54,7 @@ final class AppViewModel: ObservableObject {
             .scheduleNotifications(for: item, reminderDays: days)
         try? modelContext.save()
         updatePendingCount()
+        updateWidgetSnapshot()
 
         if item.isOfflineEntry && isOnline {
             await syncItem(item)
@@ -64,6 +66,7 @@ final class AppViewModel: ObservableObject {
         modelContext.delete(item)
         try? modelContext.save()
         updatePendingCount()
+        updateWidgetSnapshot()
     }
 
     func updateFoodItem(_ item: FoodItem) async {
@@ -71,6 +74,7 @@ final class AppViewModel: ObservableObject {
         item.notificationIdentifiers = await NotificationService.shared
             .scheduleNotifications(for: item, reminderDays: days)
         try? modelContext.save()
+        updateWidgetSnapshot()
     }
 
     func decrementQuantity(_ item: FoodItem) {
@@ -78,8 +82,43 @@ final class AppViewModel: ObservableObject {
             item.quantity -= 1
         } else {
             deleteFoodItem(item)
+            return
         }
         try? modelContext.save()
+        updateWidgetSnapshot()
+    }
+
+    // MARK: - Widget Data
+    func updateWidgetSnapshot() {
+        let descriptor = FetchDescriptor<FoodItem>(
+            sortBy: [SortDescriptor(\.expiryDate, order: .forward)]
+        )
+        let items = (try? modelContext.fetch(descriptor)) ?? []
+        let widgetItems = items.prefix(20).map { item in
+            WidgetFoodItem(
+                id: item.id,
+                name: item.name,
+                brand: item.brand,
+                expiryDate: item.expiryDate,
+                quantity: item.quantity,
+                locationName: item.storageLocation?.name,
+                locationIconName: item.storageLocation?.iconName
+            )
+        }
+        WidgetDataStore.saveItems(Array(widgetItems))
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    func processPendingWidgetDecrements() {
+        let pending = WidgetDataStore.loadPendingDecrements()
+        guard !pending.isEmpty else { return }
+        WidgetDataStore.clearPendingDecrements()
+        for id in pending {
+            let descriptor = FetchDescriptor<FoodItem>(predicate: #Predicate { $0.id == id })
+            if let item = try? modelContext.fetch(descriptor).first {
+                decrementQuantity(item)
+            }
+        }
     }
 
     // MARK: - Product Fetch
@@ -89,8 +128,6 @@ final class AppViewModel: ObservableObject {
         defer { isLoadingProduct = false }
         do {
             return try await OpenFoodFactsService.shared.fetchProduct(barcode: barcode)
-        } catch OFFError.productNotFound {
-            return nil
         } catch {
             return nil
         }
