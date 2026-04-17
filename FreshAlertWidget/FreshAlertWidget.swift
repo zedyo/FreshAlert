@@ -51,7 +51,7 @@ struct FreshAlertWidgetEntryView: View {
     @Environment(\.widgetFamily) private var family
 
     var displayItems: [WidgetFoodItem] {
-        let limit = family == .systemLarge ? 10 : 5
+        let limit = family == .systemLarge ? 8 : 3
         return Array(entry.items.sorted { $0.expiryDate < $1.expiryDate }.prefix(limit))
     }
 
@@ -59,7 +59,7 @@ struct FreshAlertWidgetEntryView: View {
         if displayItems.isEmpty {
             emptyView
         } else {
-            largeView
+            itemsView
         }
     }
 
@@ -83,36 +83,17 @@ struct FreshAlertWidgetEntryView: View {
         .containerBackground(.fill, for: .widget)
     }
 
-    private var largeView: some View {
+    private var itemsView: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header
-            HStack(spacing: 6) {
-                Image(systemName: "refrigerator.fill")
-                    .foregroundStyle(Color(red: 0.36, green: 0.68, blue: 0.89))
-                    .font(.subheadline.weight(.semibold))
-                Text("FreshAlert")
-                    .font(.subheadline.weight(.bold))
-                Spacer()
-                Text("\(displayItems.count) Produkte")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.horizontal, 14)
-            .padding(.top, 12)
-            .padding(.bottom, 7)
-
-            Divider().padding(.horizontal, 14)
-
             ForEach(Array(displayItems.enumerated()), id: \.element.id) { idx, item in
                 itemRow(item)
                 if idx < displayItems.count - 1 {
-                    Divider()
-                        .padding(.leading, 30)
+                    Divider().padding(.leading, 14)
                 }
             }
-
             Spacer(minLength: 0)
         }
+        .padding(.vertical, 8)
         .containerBackground(.fill, for: .widget)
     }
 
@@ -120,12 +101,22 @@ struct FreshAlertWidgetEntryView: View {
         let days = item.daysUntilExpiry
         let statusColor: Color = days < 0 ? Color(.systemGray) : days <= 1 ? .red : days <= 7 ? .orange : Color(red: 0.2, green: 0.78, blue: 0.2)
 
-        return HStack(spacing: 8) {
-            Circle()
-                .fill(statusColor)
-                .frame(width: 7, height: 7)
+        return HStack(spacing: 10) {
+            // Location icon (or status dot fallback)
+            if let icon = item.locationIconName {
+                Image(systemName: icon)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 18)
+            } else {
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: 7, height: 7)
+                    .frame(width: 18)
+            }
 
-            VStack(alignment: .leading, spacing: 0) {
+            // Name + quantity
+            VStack(alignment: .leading, spacing: 1) {
                 Text(item.name)
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
@@ -138,23 +129,27 @@ struct FreshAlertWidgetEntryView: View {
 
             Spacer()
 
+            // Expiry badge
             Text(item.expiryLabel)
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(statusColor)
-                .padding(.horizontal, 5)
-                .padding(.vertical, 2)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
                 .background(statusColor.opacity(0.12))
                 .clipShape(Capsule())
 
+            // Mark-as-used button — large tap target
             Button(intent: MarkAsUsedIntent(itemID: item.id.uuidString)) {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 18))
+                    .font(.system(size: 22))
                     .foregroundStyle(Color(red: 0.2, green: 0.78, blue: 0.2))
+                    .frame(width: 36, height: 36)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 5)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
     }
 }
 
