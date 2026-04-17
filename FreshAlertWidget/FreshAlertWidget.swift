@@ -51,7 +51,7 @@ struct FreshAlertWidgetEntryView: View {
     @Environment(\.widgetFamily) private var family
 
     var displayItems: [WidgetFoodItem] {
-        let limit = family == .systemLarge ? 8 : 3
+        let limit = family == .systemLarge ? 7 : 3
         return Array(entry.items.sorted { $0.expiryDate < $1.expiryDate }.prefix(limit))
     }
 
