@@ -58,6 +58,8 @@ final class AppViewModel: ObservableObject {
 
         if item.isOfflineEntry && isOnline {
             await syncItem(item)
+        } else if !item.imageURL.isEmpty && item.imageData == nil {
+            await downloadAndCacheImage(for: item)
         }
     }
 
@@ -161,6 +163,32 @@ final class AppViewModel: ObservableObject {
         }
         item.isOfflineEntry = false
         try? modelContext.save()
+        if !item.imageURL.isEmpty && item.imageData == nil {
+            await downloadAndCacheImage(for: item)
+        }
+    }
+
+    // Downloads the product image once and stores it in SwiftData (@externalStorage).
+    // After this, the image is shown from local storage and never fetched again.
+    private func downloadAndCacheImage(for item: FoodItem) async {
+        guard let url = URL(string: item.imageURL) else { return }
+        guard let (data, response) = try? await URLSession.shared.data(from: url),
+              let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200,
+              !data.isEmpty else { return }
+        item.imageData = data
+        try? modelContext.save()
+    }
+
+    // Back-fills imageData for existing items that only have a URL stored.
+    func cacheImagesForExistingItems() async {
+        let descriptor = FetchDescriptor<FoodItem>(
+            predicate: #Predicate { !$0.imageURL.isEmpty && $0.imageData == nil }
+        )
+        let items = (try? modelContext.fetch(descriptor)) ?? []
+        for item in items {
+            await downloadAndCacheImage(for: item)
+        }
     }
 
     private func updatePendingCount() {

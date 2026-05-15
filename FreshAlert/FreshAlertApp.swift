@@ -29,6 +29,8 @@ struct FreshAlertApp: App {
                 .task {
                     await NotificationService.shared.requestPermission()
                     appViewModel.updateWidgetSnapshot()
+                    // Back-fill images for products that only have a URL stored
+                    await appViewModel.cacheImagesForExistingItems()
                 }
         }
         .onChange(of: scenePhase) { _, newPhase in
