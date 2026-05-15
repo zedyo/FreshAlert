@@ -65,6 +65,9 @@ final class AppViewModel: ObservableObject {
 
     func deleteFoodItem(_ item: FoodItem) {
         NotificationService.shared.cancelNotifications(for: item)
+        // Explicitly nil out external storage before deletion so SwiftData
+        // releases the image file on disk immediately during the same save.
+        item.imageData = nil
         modelContext.delete(item)
         try? modelContext.save()
         updatePendingCount()
@@ -189,6 +192,18 @@ final class AppViewModel: ObservableObject {
         for item in items {
             await downloadAndCacheImage(for: item)
         }
+    }
+
+    // Removes imageData from items whose imageURL is empty (no product image).
+    // Cleans up any orphaned external storage left by past bugs.
+    func purgeOrphanedImageData() {
+        let descriptor = FetchDescriptor<FoodItem>(
+            predicate: #Predicate { $0.imageURL.isEmpty && $0.imageData != nil }
+        )
+        let items = (try? modelContext.fetch(descriptor)) ?? []
+        guard !items.isEmpty else { return }
+        items.forEach { $0.imageData = nil }
+        try? modelContext.save()
     }
 
     private func updatePendingCount() {
