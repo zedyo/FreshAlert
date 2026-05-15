@@ -16,8 +16,13 @@ struct AddFoodItemView: View {
     @State private var selectedLocation: StorageLocation? = nil
     @State private var useCustomReminder = false
     @State private var customReminderDays: Int = 7
-    @State private var isLoadingProduct = true
+    @State private var isLoadingProduct: Bool
     @State private var productNotFound = false
+
+    init(barcode: String) {
+        self.barcode = barcode
+        _isLoadingProduct = State(initialValue: !barcode.isEmpty)
+    }
     @State private var showLocationPicker = false
 
     @Query(sort: \StorageLocation.sortOrder) private var locations: [StorageLocation]
@@ -144,7 +149,10 @@ struct AddFoodItemView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                if isLoadingProduct {
+                if barcode.isEmpty {
+                    Text("Produktdaten manuell eingeben")
+                        .font(.subheadline).foregroundStyle(.secondary)
+                } else if isLoadingProduct {
                     HStack(spacing: 6) {
                         ProgressView().scaleEffect(0.8)
                         Text("Produkt wird gesucht …")
@@ -162,7 +170,9 @@ struct AddFoodItemView: View {
                         Text(brand).font(.caption).foregroundStyle(.secondary)
                     }
                 }
-                Text("Barcode: \(barcode)").font(.caption2).foregroundStyle(.tertiary)
+                if !barcode.isEmpty {
+                    Text("Barcode: \(barcode)").font(.caption2).foregroundStyle(.tertiary)
+                }
             }
         }
         .padding(.vertical, 4)
@@ -172,7 +182,7 @@ struct AddFoodItemView: View {
         RoundedRectangle(cornerRadius: 10)
             .fill(Color(.systemGray5))
             .frame(width: 64, height: 64)
-            .overlay(Image(systemName: "barcode").foregroundStyle(.secondary))
+            .overlay(Image(systemName: barcode.isEmpty ? "pencil" : "barcode").foregroundStyle(.secondary))
     }
 
     // MARK: - Quick Expiry
@@ -203,6 +213,7 @@ struct AddFoodItemView: View {
 
     // MARK: - Actions
     private func loadProduct() async {
+        guard !barcode.isEmpty else { return }
         isLoadingProduct = true
         defer { isLoadingProduct = false }
         guard viewModel.isOnline else { productNotFound = true; return }

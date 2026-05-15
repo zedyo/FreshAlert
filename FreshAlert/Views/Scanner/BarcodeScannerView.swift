@@ -13,6 +13,7 @@ struct BarcodeScannerView: View {
     @State private var cameraPermission: AVAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
     @State private var scanStatus: ScanStatus = .waiting
     @State private var scanTask: Task<Void, Never>?
+    @State private var showManualForm = false
 
     enum ScanStatus { case waiting, noCodeDetected, success }
 
@@ -47,6 +48,11 @@ struct BarcodeScannerView: View {
                 if let barcode = scannedBarcode {
                     AddFoodItemView(barcode: barcode)
                 }
+            }
+            .sheet(isPresented: $showManualForm, onDismiss: {
+                startNoCodeTimer()
+            }) {
+                AddFoodItemView(barcode: "")
             }
             .alert("Barcode eingeben", isPresented: $showManualEntry) {
                 TextField("z.B. 4000417025005", text: $manualBarcode)
@@ -85,7 +91,9 @@ struct BarcodeScannerView: View {
                 Spacer()
 
                 statusHint
-                    .padding(.bottom, 50)
+
+                manualFormButton
+                    .padding(.bottom, 40)
             }
         }
     }
@@ -161,6 +169,18 @@ struct BarcodeScannerView: View {
         }
     }
 
+    private var manualFormButton: some View {
+        Button { showManualForm = true } label: {
+            Label("Ohne Barcode hinzufügen", systemImage: "plus")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(.ultraThinMaterial)
+                .clipShape(Capsule())
+        }
+    }
+
     // MARK: - Permission View
     private var permissionView: some View {
         VStack(spacing: 20) {
@@ -184,7 +204,10 @@ struct BarcodeScannerView: View {
 
             Divider().padding(.horizontal, 40)
 
-            Button("Manuell eingeben") { showManualEntry = true }
+            Button("Barcode manuell eingeben") { showManualEntry = true }
+                .buttonStyle(.bordered)
+
+            Button("Ohne Barcode hinzufügen") { showManualForm = true }
                 .buttonStyle(.bordered)
         }
         .padding()
