@@ -1,6 +1,8 @@
 import SwiftUI
 import AVFoundation
 
+// MARK: - Main View
+
 struct BarcodeScannerView: View {
     @EnvironmentObject var viewModel: AppViewModel
     @State private var scannedBarcode: String?
@@ -9,6 +11,11 @@ struct BarcodeScannerView: View {
     @State private var manualBarcode = ""
     @State private var torchOn = false
     @State private var cameraPermission: AVAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
+    @State private var scanStatus: ScanStatus = .waiting
+    @State private var scanTask: Task<Void, Never>?
+    @State private var showManualForm = false
+
+    enum ScanStatus { case waiting, noCodeDetected, success }
 
     var body: some View {
         NavigationStack {
@@ -22,16 +29,30 @@ struct BarcodeScannerView: View {
             .navigationTitle("Scannen")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
-            .onAppear { checkCameraPermission() }
+            .onAppear {
+                checkCameraPermission()
+                startNoCodeTimer()
+            }
+            .onDisappear { scanTask?.cancel() }
             .onChange(of: scannedBarcode) { _, barcode in
-                if barcode != nil { showAddSheet = true }
+                guard barcode != nil else { return }
+                scanStatus = .success
+                scanTask?.cancel()
+                showAddSheet = true
             }
             .sheet(isPresented: $showAddSheet, onDismiss: {
                 scannedBarcode = nil
+                scanStatus = .waiting
+                startNoCodeTimer()
             }) {
                 if let barcode = scannedBarcode {
                     AddFoodItemView(barcode: barcode)
                 }
+            }
+            .sheet(isPresented: $showManualForm, onDismiss: {
+                startNoCodeTimer()
+            }) {
+                AddFoodItemView(barcode: "")
             }
             .alert("Barcode eingeben", isPresented: $showManualEntry) {
                 TextField("z.B. 4000417025005", text: $manualBarcode)
@@ -55,12 +76,10 @@ struct BarcodeScannerView: View {
             CameraPreview(scannedBarcode: $scannedBarcode, torchOn: $torchOn)
                 .ignoresSafeArea()
 
-            // Dimmed overlay with cutout effect
-            ScannerOverlay()
+            ScannerOverlay(scanStatus: scanStatus)
                 .ignoresSafeArea()
 
             VStack {
-                // Top bar
                 HStack {
                     torchButton
                     Spacer()
@@ -71,38 +90,65 @@ struct BarcodeScannerView: View {
 
                 Spacer()
 
-                // Scanner frame hint
-                VStack(spacing: 8) {
-                    Text("Barcode in den Rahmen halten")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 8)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Capsule())
+                statusHint
 
-                    if !viewModel.isOnline {
-                        HStack(spacing: 6) {
-                            Image(systemName: "wifi.slash")
-                            Text("Offline – Produkt wird später synchronisiert")
-                        }
-                        .font(.caption)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 6)
-                        .background(Color.orange.opacity(0.8))
-                        .clipShape(Capsule())
-                    }
-                }
-                .padding(.bottom, 50)
+                manualFormButton
+                    .padding(.bottom, 40)
             }
         }
     }
 
+    @ViewBuilder
+    private var statusHint: some View {
+        VStack(spacing: 10) {
+            switch scanStatus {
+            case .waiting:
+                scanHintPill("Barcode in den Rahmen halten", color: .white)
+
+            case .noCodeDetected:
+                scanHintPill("Kein Barcode erkannt", color: .orange, icon: "exclamationmark.triangle.fill")
+                VStack(spacing: 4) {
+                    Text("Tipps:")
+                        .font(.caption.bold())
+                        .foregroundStyle(.white)
+                    Text("• Kamera näher an den Barcode halten\n• Für mehr Licht die Taschenlampe nutzen\n• Barcode manuell eingeben")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.9))
+                        .multilineTextAlignment(.leading)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+
+            case .success:
+                scanHintPill("Barcode erkannt ✓", color: Color(red: 0.2, green: 0.78, blue: 0.2))
+            }
+
+            if !viewModel.isOnline {
+                scanHintPill("Offline – wird später synchronisiert", color: .orange, icon: "wifi.slash")
+            }
+        }
+    }
+
+    private func scanHintPill(_ text: String, color: Color, icon: String? = nil) -> some View {
+        HStack(spacing: 6) {
+            if let icon {
+                Image(systemName: icon).font(.caption.weight(.semibold))
+            }
+            Text(text).font(.subheadline.weight(.medium))
+        }
+        .foregroundStyle(color == .white ? Color.primary : .white)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 8)
+        .background(color == .white ? AnyShapeStyle(.ultraThinMaterial) : AnyShapeStyle(color.opacity(0.85)))
+        .clipShape(Capsule())
+    }
+
+    // MARK: - Buttons
     private var torchButton: some View {
-        Button {
-            torchOn.toggle()
-        } label: {
+        Button { torchOn.toggle() } label: {
             Image(systemName: torchOn ? "bolt.fill" : "bolt.slash.fill")
                 .font(.title3)
                 .foregroundStyle(torchOn ? .yellow : .white)
@@ -113,15 +159,25 @@ struct BarcodeScannerView: View {
     }
 
     private var manualButton: some View {
-        Button {
-            showManualEntry = true
-        } label: {
+        Button { showManualEntry = true } label: {
             Image(systemName: "keyboard")
                 .font(.title3)
                 .foregroundStyle(.white)
                 .frame(width: 44, height: 44)
                 .background(.ultraThinMaterial)
                 .clipShape(Circle())
+        }
+    }
+
+    private var manualFormButton: some View {
+        Button { showManualForm = true } label: {
+            Label("Ohne Barcode hinzufügen", systemImage: "plus")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(.ultraThinMaterial)
+                .clipShape(Capsule())
         }
     }
 
@@ -148,12 +204,28 @@ struct BarcodeScannerView: View {
 
             Divider().padding(.horizontal, 40)
 
-            Button("Manuell eingeben") {
-                showManualEntry = true
-            }
-            .buttonStyle(.bordered)
+            Button("Barcode manuell eingeben") { showManualEntry = true }
+                .buttonStyle(.bordered)
+
+            Button("Ohne Barcode hinzufügen") { showManualForm = true }
+                .buttonStyle(.bordered)
         }
         .padding()
+    }
+
+    // MARK: - No-code hint timer
+    private func startNoCodeTimer() {
+        scanTask?.cancel()
+        scanStatus = .waiting
+        scanTask = Task {
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                withAnimation(.spring(response: 0.4)) {
+                    if scanStatus == .waiting { scanStatus = .noCodeDetected }
+                }
+            }
+        }
     }
 
     private func checkCameraPermission() {
@@ -171,14 +243,28 @@ struct BarcodeScannerView: View {
 }
 
 // MARK: - Scanner Overlay
+
 struct ScannerOverlay: View {
+    let scanStatus: BarcodeScannerView.ScanStatus
+    @State private var scanLineProgress: CGFloat = 0
+
+    private let frameW: CGFloat = 270
+    private let frameH: CGFloat = 140
+
+    private var borderColor: Color {
+        switch scanStatus {
+        case .waiting:       return Color(red: 0.2, green: 0.78, blue: 0.2)
+        case .noCodeDetected: return .orange
+        case .success:       return .white
+        }
+    }
+
     var body: some View {
         GeometryReader { geo in
-            let frameW: CGFloat = 260
-            let frameH: CGFloat = 130
+            let frameX = (geo.size.width  - frameW) / 2
             let frameY = (geo.size.height - frameH) / 2 - 40
 
-            // Dark mask with transparent cutout
+            // Dimmed mask with transparent cutout
             Color.black.opacity(0.55)
                 .mask(
                     Rectangle()
@@ -191,27 +277,65 @@ struct ScannerOverlay: View {
                         .compositingGroup()
                 )
 
-            // Animated green border
+            // Scan frame border — color reflects status
             RoundedRectangle(cornerRadius: 14)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [Color(red: 0.2, green: 0.78, blue: 0.2), .white],
-                        startPoint: .topLeading, endPoint: .bottomTrailing),
-                    lineWidth: 2.5)
+                .strokeBorder(borderColor, lineWidth: 2.5)
                 .frame(width: frameW, height: frameH)
                 .position(x: geo.size.width / 2, y: frameY + frameH / 2)
+                .animation(.easeInOut(duration: 0.3), value: scanStatus)
+
+            // Animated scan line (hidden on success/no-code)
+            if scanStatus == .waiting {
+                let lineY = frameY + scanLineProgress * frameH
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [.clear, Color(red: 0.2, green: 0.78, blue: 0.2).opacity(0.9), .clear],
+                            startPoint: .leading, endPoint: .trailing)
+                    )
+                    .frame(width: frameW - 20, height: 2.5)
+                    .position(x: geo.size.width / 2, y: lineY)
+                    .clipped()
+            }
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
+                scanLineProgress = 1
+            }
         }
     }
 }
 
 // MARK: - AVFoundation Camera Preview
+
 final class ScannerUIView: UIView {
     var session: AVCaptureSession?
     var previewLayer: AVCaptureVideoPreviewLayer?
+    var metadataOutput: AVCaptureMetadataOutput?
+
+    // Scan frame dimensions (must match ScannerOverlay)
+    private let frameW: CGFloat = 270
+    private let frameH: CGFloat = 140
 
     override func layoutSubviews() {
         super.layoutSubviews()
         previewLayer?.frame = bounds
+        updateRectOfInterest()
+    }
+
+    // Restrict AVFoundation's scan area to the visible frame cutout.
+    // This dramatically improves recognition speed and reliability.
+    func updateRectOfInterest() {
+        guard let output = metadataOutput,
+              let preview = previewLayer,
+              bounds.width > 0 else { return }
+        let scanRect = CGRect(
+            x: (bounds.width  - frameW) / 2,
+            y: (bounds.height - frameH) / 2 - 40,
+            width: frameW,
+            height: frameH
+        )
+        output.rectOfInterest = preview.metadataOutputRectConverted(fromLayerRect: scanRect)
     }
 }
 
@@ -219,21 +343,39 @@ struct CameraPreview: UIViewRepresentable {
     @Binding var scannedBarcode: String?
     @Binding var torchOn: Bool
 
+    private let sessionQueue = DispatchQueue(label: "com.freshalert.camera", qos: .userInitiated)
+
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     func makeUIView(context: Context) -> ScannerUIView {
         let view = ScannerUIView()
-        guard let device = AVCaptureDevice.default(for: .video),
+        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
               let input = try? AVCaptureDeviceInput(device: device) else { return view }
 
+        // Optimise focus and exposure for close-up barcode scanning
+        try? device.lockForConfiguration()
+        if device.isFocusModeSupported(.continuousAutoFocus) {
+            device.focusMode = .continuousAutoFocus
+        }
+        if device.isAutoSmoothAutoFocusEnabled {
+            device.isAutoSmoothAutoFocusEnabled = false // faster focus transitions
+        }
+        if device.isExposureModeSupported(.continuousAutoExposure) {
+            device.exposureMode = .continuousAutoExposure
+        }
+        device.unlockForConfiguration()
+
         let session = AVCaptureSession()
+        session.sessionPreset = .hd1280x720  // good resolution without excessive CPU
+
         session.beginConfiguration()
         if session.canAddInput(input) { session.addInput(input) }
 
         let output = AVCaptureMetadataOutput()
         if session.canAddOutput(output) {
             session.addOutput(output)
-            output.setMetadataObjectsDelegate(context.coordinator, queue: .main)
+            // Process on dedicated queue, not main — prevents dropped frames
+            output.setMetadataObjectsDelegate(context.coordinator, queue: sessionQueue)
             output.metadataObjectTypes = [.ean8, .ean13, .upce, .code128, .code39, .qr]
         }
         session.commitConfiguration()
@@ -243,23 +385,27 @@ struct CameraPreview: UIViewRepresentable {
         view.layer.addSublayer(preview)
         view.session = session
         view.previewLayer = preview
+        view.metadataOutput = output
 
-        DispatchQueue.global(qos: .userInitiated).async { session.startRunning() }
+        sessionQueue.async { session.startRunning() }
         return view
     }
 
     func updateUIView(_ uiView: ScannerUIView, context: Context) {
         uiView.previewLayer?.frame = uiView.bounds
-        if let device = AVCaptureDevice.default(for: .video), device.hasTorch {
-            try? device.lockForConfiguration()
-            device.torchMode = torchOn ? .on : .off
-            device.unlockForConfiguration()
-        }
+        uiView.updateRectOfInterest()
+        guard let device = AVCaptureDevice.default(for: .video), device.hasTorch else { return }
+        try? device.lockForConfiguration()
+        device.torchMode = torchOn ? .on : .off
+        device.unlockForConfiguration()
     }
+
+    // MARK: - Coordinator
 
     final class Coordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate {
         var parent: CameraPreview
         private var lastScan: Date = .distantPast
+        private let debounce: TimeInterval = 0.8   // was 2.0 — still prevents double-fire
 
         init(_ parent: CameraPreview) { self.parent = parent }
 
@@ -268,13 +414,14 @@ struct CameraPreview: UIViewRepresentable {
             didOutput metadataObjects: [AVMetadataObject],
             from connection: AVCaptureConnection
         ) {
-            // Debounce: at least 2s between scans
-            guard Date().timeIntervalSince(lastScan) > 2 else { return }
+            guard Date().timeIntervalSince(lastScan) > debounce else { return }
             guard let obj = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
-                  let value = obj.stringValue else { return }
+                  let value = obj.stringValue, !value.isEmpty else { return }
             lastScan = Date()
-            parent.scannedBarcode = value
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            DispatchQueue.main.async {
+                self.parent.scannedBarcode = value
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            }
         }
     }
 }

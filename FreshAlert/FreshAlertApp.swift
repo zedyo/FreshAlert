@@ -29,6 +29,8 @@ struct FreshAlertApp: App {
                 .task {
                     await NotificationService.shared.requestPermission()
                     appViewModel.updateWidgetSnapshot()
+                    appViewModel.purgeOrphanedImageData()
+                    await appViewModel.cacheImagesForExistingItems()
                 }
         }
         .onChange(of: scenePhase) { _, newPhase in

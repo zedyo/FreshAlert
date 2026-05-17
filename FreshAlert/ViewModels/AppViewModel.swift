@@ -58,11 +58,16 @@ final class AppViewModel: ObservableObject {
 
         if item.isOfflineEntry && isOnline {
             await syncItem(item)
+        } else if !item.imageURL.isEmpty && item.imageData == nil {
+            await downloadAndCacheImage(for: item)
         }
     }
 
     func deleteFoodItem(_ item: FoodItem) {
         NotificationService.shared.cancelNotifications(for: item)
+        // Explicitly nil out external storage before deletion so SwiftData
+        // releases the image file on disk immediately during the same save.
+        item.imageData = nil
         modelContext.delete(item)
         try? modelContext.save()
         updatePendingCount()
@@ -160,6 +165,44 @@ final class AppViewModel: ObservableObject {
             if item.imageURL.isEmpty, let url = info.imageURL { item.imageURL = url }
         }
         item.isOfflineEntry = false
+        try? modelContext.save()
+        if !item.imageURL.isEmpty && item.imageData == nil {
+            await downloadAndCacheImage(for: item)
+        }
+    }
+
+    // Downloads the product image once and stores it in SwiftData (@externalStorage).
+    // After this, the image is shown from local storage and never fetched again.
+    private func downloadAndCacheImage(for item: FoodItem) async {
+        guard let url = URL(string: item.imageURL) else { return }
+        guard let (data, response) = try? await URLSession.shared.data(from: url),
+              let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200,
+              !data.isEmpty else { return }
+        item.imageData = data
+        try? modelContext.save()
+    }
+
+    // Back-fills imageData for existing items that only have a URL stored.
+    func cacheImagesForExistingItems() async {
+        let descriptor = FetchDescriptor<FoodItem>(
+            predicate: #Predicate { !$0.imageURL.isEmpty && $0.imageData == nil }
+        )
+        let items = (try? modelContext.fetch(descriptor)) ?? []
+        for item in items {
+            await downloadAndCacheImage(for: item)
+        }
+    }
+
+    // Removes imageData from items whose imageURL is empty (no product image).
+    // Cleans up any orphaned external storage left by past bugs.
+    func purgeOrphanedImageData() {
+        let descriptor = FetchDescriptor<FoodItem>(
+            predicate: #Predicate { $0.imageURL.isEmpty && $0.imageData != nil }
+        )
+        let items = (try? modelContext.fetch(descriptor)) ?? []
+        guard !items.isEmpty else { return }
+        items.forEach { $0.imageData = nil }
         try? modelContext.save()
     }
 
