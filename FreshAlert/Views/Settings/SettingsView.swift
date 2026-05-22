@@ -129,7 +129,8 @@ struct SettingsView: View {
 
                 // About
                 Section {
-                    LabeledContent("Version", value: "1.0.0")
+                    LabeledContent("Version", value: appVersion)
+                    LabeledContent("Build", value: buildNumber)
                     LabeledContent("Produktdaten", value: "Open Food Facts")
                     LabeledContent("Minimales iOS", value: "iOS 17.0")
                 } header: {
@@ -155,5 +156,13 @@ struct SettingsView: View {
 
     private func loadNotifStatus() async {
         notifStatus = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+    }
+
+    private var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
+    }
+
+    private var buildNumber: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—"
     }
 }

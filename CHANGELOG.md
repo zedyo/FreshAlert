@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.1.1] – 2026-05-22
+
+### Fehlerbehebungen
+- **Quick Action**: Wechsel in den Scanner-Tab funktioniert jetzt zuverlässig (Race-Condition beim Kaltstart behoben).
+- **Versionsnummer**: Wird in den Einstellungen jetzt dynamisch aus dem App-Bundle gelesen.
+- **Build-Fehler**: `isAutoSmoothAutoFocusEnabled` entfernt (API nicht im aktuellen SDK vorhanden).
+- **Warnung**: Unbenutzte Variable `frameX` im Scanner-Overlay entfernt.
+
+---
+
 ## [1.1.0] – 2026-05-22
 
 ### Neue Funktionen
