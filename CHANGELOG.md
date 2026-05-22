@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.6] – 2026-05-22
+
+### Verbesserungen
+- **Widget – keine manuelle Einrichtung mehr**: Die App Group `group.com.freshalert.app` wird jetzt über versionierte `.entitlements`-Dateien (`FreshAlert.entitlements`, `FreshAlertWidget.entitlements`) und feste `CODE_SIGN_ENTITLEMENTS`-Build-Settings konfiguriert. Bisher musste die App Group nach jedem Clone/Pull manuell in Xcode unter „Signing & Capabilities" für beide Targets aktiviert werden. Das Widget ist nun direkt aktiv und teilt Daten ohne Setup.
+- **Settings**: Obsolete „Widget einrichten"-Anleitung entfernt.
+
+---
+
 ## [1.1.5] – 2026-05-22
 
 ### Fehlerbehebungen

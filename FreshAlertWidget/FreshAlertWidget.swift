@@ -65,19 +65,12 @@ struct FreshAlertWidgetEntryView: View {
 
     private var emptyView: some View {
         VStack(spacing: 10) {
-            Image(systemName: WidgetDataStore.defaults == nil ? "exclamationmark.triangle" : "cart.badge.checkmark")
+            Image(systemName: "cart.badge.checkmark")
                 .font(.largeTitle)
                 .foregroundStyle(.secondary)
-            Text(WidgetDataStore.defaults == nil ? "App Group nicht konfiguriert" : "Keine Produkte")
+            Text("Keine Produkte")
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(.secondary)
-            if WidgetDataStore.defaults == nil {
-                Text("In Xcode: beide Targets → Signing & Capabilities → App Groups → group.com.freshalert.app")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 12)
-            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .containerBackground(.fill, for: .widget)

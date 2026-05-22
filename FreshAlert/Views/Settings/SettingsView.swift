@@ -103,30 +103,6 @@ struct SettingsView: View {
                     Text("Benachrichtigungen")
                 }
 
-                // Widget Setup
-                Section {
-                    HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: "rectangle.on.rectangle")
-                            .foregroundStyle(Color(red: 0.36, green: 0.68, blue: 0.89))
-                            .font(.title3)
-                            .padding(.top, 2)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Widget einrichten")
-                                .font(.subheadline.weight(.semibold))
-                            Text("Damit das Widget Produkte anzeigt, muss die App Group in Xcode aktiviert werden:")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text("1. Xcode öffnen\n2. Target \"FreshAlert\" → Signing & Capabilities → + → App Groups\n3. Gruppe \"group.com.freshalert.app\" hinzufügen\n4. Dasselbe für Target \"FreshAlertWidget\" wiederholen")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .padding(.top, 2)
-                        }
-                    }
-                    .padding(.vertical, 4)
-                } header: {
-                    Text("Widget")
-                }
-
                 // About
                 Section {
                     LabeledContent("Version", value: appVersion)
