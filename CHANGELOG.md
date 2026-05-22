@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.5.2] – 2026-05-22
+
+### Projekt / Dokumentation
+- **`docs/HANDOFF.md`**: Session-Handoff hinzugefügt – fasst zusammen, was zuletzt
+  umgesetzt wurde (StoreKit-2-Freemium, Deployment-Umstellung) und welche
+  Aufgaben noch offen sind (Datenschutz-URL, In-App-Käufe in App Store Connect,
+  Xcode-StoreKit-Konfiguration, Branch-Schutz). Ermöglicht den nahtlosen Übergang
+  in eine neue Arbeits-Session. `CLAUDE.md` verweist darauf.
+
+---
+
 ## [1.5.1] – 2026-05-22
 
 ### Projekt / Infrastruktur

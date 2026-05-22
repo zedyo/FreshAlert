@@ -2,6 +2,10 @@
 
 Project guidance for working effectively in this repository.
 
+> **Open work:** see `docs/HANDOFF.md` for the current session handoff — what was
+> done last and which tasks are still open. Delete that file once everything in
+> it is resolved.
+
 ## Project
 
 **FreshAlert** — native iOS app for tracking food expiry dates. Barcode scanner,
