@@ -7,6 +7,7 @@ struct FreshAlertApp: App {
     let modelContainer: ModelContainer
     @StateObject private var appViewModel: AppViewModel
     @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     init() {
         do {
@@ -28,7 +29,11 @@ struct FreshAlertApp: App {
                 .modelContainer(modelContainer)
                 .environmentObject(appViewModel)
                 .task {
-                    await NotificationService.shared.requestPermission()
+                    // On a fresh install the notification prompt is deferred to
+                    // the onboarding wizard (after the reminder step is explained).
+                    if hasCompletedOnboarding {
+                        await NotificationService.shared.requestPermission()
+                    }
                     appViewModel.updateWidgetSnapshot()
                     appViewModel.purgeOrphanedImageData()
                     await appViewModel.cacheImagesForExistingItems()

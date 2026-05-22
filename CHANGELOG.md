@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1] – 2026-05-22
+
+### Verbesserungen
+- **Benachrichtigungs-Abfrage**: Die iOS-Nachfrage „Darf FreshAlert dir Mitteilungen senden?" erscheint beim Erststart jetzt erst im Wizard — direkt nachdem die Erinnerungs-Funktion erklärt wurde — statt sofort beim App-Start. Bestehende Nutzer werden weiterhin beim Start gefragt.
+
+---
+
 ## [1.2.0] – 2026-05-22
 
 ### Neue Funktionen

@@ -9,8 +9,10 @@ struct OnboardingView: View {
 
     @State private var page = 0
     @State private var selectedTemplates: Set<Int> = Set(StorageLocation.defaultTemplates.indices)
+    @State private var didRequestNotifications = false
 
     private let lastPage = 4
+    private let reminderPage = 2
 
     var body: some View {
         VStack(spacing: 0) {
@@ -45,6 +47,13 @@ struct OnboardingView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
             .indexViewStyle(.page(backgroundDisplayMode: .always))
+            .onChange(of: page) { _, newPage in
+                // Ask for notification permission once the reminder step has
+                // been read and the user moves past it.
+                if newPage > reminderPage {
+                    Task { await requestNotificationsOnce() }
+                }
+            }
 
             primaryButton
         }
@@ -168,7 +177,15 @@ struct OnboardingView: View {
 
     // MARK: - Finish
 
+    private func requestNotificationsOnce() async {
+        guard !didRequestNotifications else { return }
+        didRequestNotifications = true
+        await NotificationService.shared.requestPermission()
+    }
+
     private func finish(insertAll: Bool) {
+        // Covers skipping past the reminder step without ever triggering it.
+        Task { await requestNotificationsOnce() }
         var sortOrder = 0
         for (index, template) in StorageLocation.defaultTemplates.enumerated() {
             guard insertAll || selectedTemplates.contains(index) else { continue }
