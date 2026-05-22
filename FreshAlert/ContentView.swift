@@ -25,6 +25,12 @@ struct ContentView: View {
                 .tag(2)
         }
         .tint(Color(red: 0.2, green: 0.78, blue: 0.2))
+        .onAppear {
+            if viewModel.scanRequested {
+                selectedTab = 1
+                viewModel.scanRequested = false
+            }
+        }
         .onChange(of: viewModel.scanRequested) { _, requested in
             guard requested else { return }
             selectedTab = 1

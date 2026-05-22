@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import UIKit
 import Network
 import WidgetKit
 
@@ -22,6 +23,21 @@ final class AppViewModel: ObservableObject {
         self.modelContext = modelContext
         setupNetwork()
         insertDefaultLocationsIfNeeded()
+        setupQuickActionObserver()
+    }
+
+    private func setupQuickActionObserver() {
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self else { return }
+            if AppDelegate.pendingShortcutType == "com.freshalert.app.scan" {
+                AppDelegate.pendingShortcutType = nil
+                Task { @MainActor in self.scanRequested = true }
+            }
+        }
     }
 
     // MARK: - Network

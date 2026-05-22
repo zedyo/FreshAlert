@@ -37,10 +37,6 @@ struct FreshAlertApp: App {
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 appViewModel.processPendingWidgetDecrements()
-                if AppDelegate.pendingShortcutType == "com.freshalert.app.scan" {
-                    AppDelegate.pendingShortcutType = nil
-                    appViewModel.scanRequested = true
-                }
             }
         }
     }

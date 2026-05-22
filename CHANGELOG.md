@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.4] – 2026-05-22
+
+### Fehlerbehebungen
+- **Home Screen Quick Action**: Scanner-Tab-Wechsel funktioniert jetzt zuverlässig. Statt SwiftUI-`scenePhase` (anfällig für Timing-Probleme) lauscht `AppViewModel` direkt auf `UIApplication.didBecomeActiveNotification`, welche iOS garantiert nach `performActionFor` feuert — sowohl bei Kaltstart als auch Hintergrund→Vordergrund.
+
+---
+
 ## [1.1.3] – 2026-05-22
 
 ### Fehlerbehebungen / Verbesserungen
