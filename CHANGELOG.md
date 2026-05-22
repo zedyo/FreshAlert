@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.1.2] – 2026-05-22
+
+### Fehlerbehebungen
+- **Quick Action**: `performActionFor` setzt jetzt `pendingShortcutType` statt direkt eine Notification zu posten — behebt den Tab-Wechsel bei Hintergrund→Vordergrund.
+- **Scan-Linie**: Animation startet jetzt zuverlässig neu nach jedem Scan (`.onAppear` auf die Capsule verschoben, `scanLineProgress` wird vor dem Start zurückgesetzt).
+- **Suchleiste**: Suche-Button entfernt; native iOS-Suchleiste (nach oben scrollen) übernimmt. Liste startet leicht gescrollt damit die Suchleiste initial eingeklappt ist.
+- **Xcode-Datenmüll**: `.gitignore` hinzugefügt — `xcuserdata/`, `*.xcuserstate` u.a. werden nicht mehr getrackt, kein „Stash Changes"-Dialog mehr beim Pull.
+
+---
+
 ## [1.1.1] – 2026-05-22
 
 ### Fehlerbehebungen

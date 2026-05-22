@@ -12,7 +12,6 @@ struct DashboardView: View {
     @State private var selectedLocationID: UUID?
     @State private var itemToDelete: FoodItem?
     @State private var showDeleteAlert = false
-    @State private var isSearchPresented = false
 
     enum FilterOption {
         case all, expiringSoon, expired
@@ -42,8 +41,9 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationStack {
+            ScrollViewReader { proxy in
             List {
-                // Interactive stat cards (replace filter chips)
+                // Interactive stat cards
                 if !allItems.isEmpty {
                     Section {
                         statsRow
@@ -51,6 +51,7 @@ struct DashboardView: View {
                             .listRowSeparator(.hidden)
                             .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     }
+                    .id("firstSection")
                 }
 
                 // Location chips
@@ -121,24 +122,10 @@ struct DashboardView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("FreshAlert")
             .navigationBarTitleDisplayMode(.large)
-            // Hidden by default — appears only when search icon tapped
-            .searchable(
-                text: $searchText,
-                isPresented: $isSearchPresented,
-                placement: .automatic,
-                prompt: "Produkt suchen …"
-            )
+            .searchable(text: $searchText, placement: .automatic, prompt: "Produkt suchen …")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 6) {
-                        if viewModel.pendingSyncCount > 0 { syncBadge }
-                        Button {
-                            withAnimation { isSearchPresented.toggle() }
-                        } label: {
-                            Image(systemName: isSearchPresented ? "xmark.circle.fill" : "magnifyingglass")
-                                .foregroundStyle(isSearchPresented ? Color.secondary : Color.primary)
-                        }
-                    }
+                    if viewModel.pendingSyncCount > 0 { syncBadge }
                 }
             }
             .alert("Produkt löschen?", isPresented: $showDeleteAlert, presenting: itemToDelete) { item in
@@ -147,6 +134,10 @@ struct DashboardView: View {
             } message: { item in
                 Text("\"\(item.name)\" wird aus der Liste entfernt.")
             }
+            .task {
+                proxy.scrollTo("firstSection", anchor: .top)
+            }
+            } // ScrollViewReader
         }
     }
 

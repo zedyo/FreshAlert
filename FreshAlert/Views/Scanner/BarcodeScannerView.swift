@@ -295,11 +295,12 @@ struct ScannerOverlay: View {
                     .frame(width: frameW - 20, height: 2.5)
                     .position(x: geo.size.width / 2, y: lineY)
                     .clipped()
-            }
-        }
-        .onAppear {
-            withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
-                scanLineProgress = 1
+                    .onAppear {
+                        scanLineProgress = 0
+                        withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
+                            scanLineProgress = 1
+                        }
+                    }
             }
         }
     }

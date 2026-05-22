@@ -18,7 +18,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         performActionFor shortcutItem: UIApplicationShortcutItem,
         completionHandler: @escaping (Bool) -> Void
     ) {
-        NotificationCenter.default.post(name: .openScannerTab, object: nil)
+        Self.pendingShortcutType = shortcutItem.type
         completionHandler(true)
     }
 }
