@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1] – 2026-05-22
+
+### Fehlerbehebungen
+- **Scan-Linie**: Sprang aus dem grünen Rahmen, wenn man den Scanner-Tab verließ und zurückkehrte (zwei `repeatForever`-Animationen überlagerten sich). Die Animation läuft jetzt über `phaseAnimator` und startet bei jedem Wiedererscheinen sauber neu.
+
+---
+
 ## [1.4.0] – 2026-05-22
 
 ### Neue Funktionen

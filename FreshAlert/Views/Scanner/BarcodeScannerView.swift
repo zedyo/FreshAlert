@@ -246,7 +246,6 @@ struct BarcodeScannerView: View {
 
 struct ScannerOverlay: View {
     let scanStatus: BarcodeScannerView.ScanStatus
-    @State private var scanLineProgress: CGFloat = 0
 
     private let frameW: CGFloat = 270
     private let frameH: CGFloat = 140
@@ -283,9 +282,11 @@ struct ScannerOverlay: View {
                 .position(x: geo.size.width / 2, y: frameY + frameH / 2)
                 .animation(.easeInOut(duration: 0.3), value: scanStatus)
 
-            // Animated scan line (hidden on success/no-code)
+            // Animated scan line (hidden on success/no-code).
+            // phaseAnimator restarts cleanly whenever the overlay reappears
+            // (e.g. after a tab switch) — unlike a repeatForever animation,
+            // which would stack and let the line drift out of the frame.
             if scanStatus == .waiting {
-                let lineY = frameY + scanLineProgress * frameH
                 Capsule()
                     .fill(
                         LinearGradient(
@@ -293,13 +294,10 @@ struct ScannerOverlay: View {
                             startPoint: .leading, endPoint: .trailing)
                     )
                     .frame(width: frameW - 20, height: 2.5)
-                    .position(x: geo.size.width / 2, y: lineY)
-                    .clipped()
-                    .onAppear {
-                        scanLineProgress = 0
-                        withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
-                            scanLineProgress = 1
-                        }
+                    .phaseAnimator([0, 1] as [CGFloat]) { line, phase in
+                        line.position(x: geo.size.width / 2, y: frameY + phase * frameH)
+                    } animation: { _ in
+                        .easeInOut(duration: 1.6)
                     }
             }
         }
