@@ -17,7 +17,7 @@
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSCameraUsageDescription</key>
-	<string>FreshAlert benötigt Zugriff auf die Kamera, um Barcodes zu scannen.</string>
+	<string>FreshAlert benötigt Zugriff auf die Kamera, um Barcodes zu scannen und Produktfotos aufzunehmen.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -30,5 +30,18 @@
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>UIApplicationShortcutItems</key>
+	<array>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>com.freshalert.app.scan</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Scannen</string>
+			<key>UIApplicationShortcutItemSubtitle</key>
+			<string>Produkt per Barcode hinzufügen</string>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>barcode.viewfinder</string>
+		</dict>
+	</array>
 </dict>
 </plist>

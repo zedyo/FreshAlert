@@ -1,0 +1,77 @@
+default_platform(:ios)
+
+PROJECT     = "FreshAlert.xcodeproj"
+SCHEME      = "FreshAlert"
+APP_ID      = "com.freshalert.app"
+WIDGET_ID   = "com.freshalert.app.widget"
+
+platform :ios do
+
+  # Reads the App Store Connect API key from environment variables / CI secrets.
+  def asc_api_key
+    app_store_connect_api_key(
+      key_id:                ENV.fetch("ASC_KEY_ID"),
+      issuer_id:             ENV.fetch("ASC_ISSUER_ID"),
+      key_content:           ENV.fetch("ASC_KEY_CONTENT"),
+      is_key_content_base64: true
+    )
+  end
+
+  # --- Quality gate -------------------------------------------------------
+  desc "Run the unit test suite (FreshAlertTests)"
+  lane :test do
+    run_tests(
+      project:       PROJECT,
+      scheme:        SCHEME,
+      destination:   "platform=iOS Simulator,name=iPhone 16",
+      code_coverage: true
+    )
+  end
+
+  # --- TestFlight ---------------------------------------------------------
+  desc "Run tests, build a signed release and upload it to TestFlight"
+  lane :beta do
+    test # quality gate — if tests fail the deploy aborts here
+
+    api_key = asc_api_key
+
+    # Build number = total commit count → strictly increasing and unique,
+    # which App Store Connect requires for every upload.
+    increment_build_number(
+      xcodeproj:    PROJECT,
+      build_number: number_of_commits(all: true).to_s
+    )
+
+    match(type: "appstore", readonly: true, api_key: api_key)
+
+    build_app(
+      project:       PROJECT,
+      scheme:        SCHEME,
+      export_method: "app-store"
+    )
+
+    # Wait for Apple to finish processing — the build must be ready before it
+    # can be submitted to App Store review in the `release` lane.
+    upload_to_testflight(
+      api_key:                          api_key,
+      skip_waiting_for_build_processing: false
+    )
+  end
+
+  # --- App Store ----------------------------------------------------------
+  desc "Build, upload to TestFlight and submit the build to App Store review"
+  lane :release do
+    beta # build + upload to TestFlight (waits for processing)
+
+    deliver(
+      api_key:           asc_api_key,
+      submit_for_review: true,
+      automatic_release: true,
+      force:             true,
+      skip_binary_upload: true,
+      skip_screenshots:  true,
+      skip_metadata:     true,
+      precheck_include_in_app_purchases: false
+    )
+  end
+end

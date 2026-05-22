@@ -10,7 +10,7 @@ struct AddStorageLocationView: View {
 
     @State private var name: String = ""
     @State private var selectedIcon: String = "archivebox"
-    @State private var selectedColor: Color = Color(red: 0.2, green: 0.78, blue: 0.2)
+    @State private var selectedColor: Color = Color.freshGreen
     @State private var iconSearchText: String = ""
 
     // SF Symbols for storage locations
@@ -52,7 +52,7 @@ struct AddStorageLocationView: View {
     }
 
     private let colors: [Color] = [
-        Color(red: 0.2, green: 0.78, blue: 0.2),
+        Color.freshGreen,
         Color(hex: "#5AC8FA") ?? .cyan,
         Color(hex: "#007AFF") ?? .blue,
         Color(hex: "#FF9500") ?? .orange,

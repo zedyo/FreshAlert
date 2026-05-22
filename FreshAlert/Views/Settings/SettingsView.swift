@@ -71,7 +71,7 @@ struct SettingsView: View {
                             ),
                             in: 1...30, step: 1
                         )
-                        .tint(Color(red: 0.2, green: 0.78, blue: 0.2))
+                        .tint(Color.freshGreen)
                         HStack {
                             Text("1 Tag"); Spacer(); Text("30 Tage")
                         }
@@ -103,33 +103,10 @@ struct SettingsView: View {
                     Text("Benachrichtigungen")
                 }
 
-                // Widget Setup
-                Section {
-                    HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: "rectangle.on.rectangle")
-                            .foregroundStyle(Color(red: 0.36, green: 0.68, blue: 0.89))
-                            .font(.title3)
-                            .padding(.top, 2)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Widget einrichten")
-                                .font(.subheadline.weight(.semibold))
-                            Text("Damit das Widget Produkte anzeigt, muss die App Group in Xcode aktiviert werden:")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text("1. Xcode öffnen\n2. Target \"FreshAlert\" → Signing & Capabilities → + → App Groups\n3. Gruppe \"group.com.freshalert.app\" hinzufügen\n4. Dasselbe für Target \"FreshAlertWidget\" wiederholen")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .padding(.top, 2)
-                        }
-                    }
-                    .padding(.vertical, 4)
-                } header: {
-                    Text("Widget")
-                }
-
                 // About
                 Section {
-                    LabeledContent("Version", value: "1.0.0")
+                    LabeledContent("Version", value: appVersion)
+                    LabeledContent("Build", value: buildNumber)
                     LabeledContent("Produktdaten", value: "Open Food Facts")
                     LabeledContent("Minimales iOS", value: "iOS 17.0")
                 } header: {
@@ -155,5 +132,13 @@ struct SettingsView: View {
 
     private func loadNotifStatus() async {
         notifStatus = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+    }
+
+    private var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
+    }
+
+    private var buildNumber: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—"
     }
 }

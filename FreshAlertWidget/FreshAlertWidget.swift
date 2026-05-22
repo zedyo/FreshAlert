@@ -1,6 +1,10 @@
 import WidgetKit
 import SwiftUI
 
+private extension Color {
+    static let freshGreen = Color(red: 0.2, green: 0.78, blue: 0.2)
+}
+
 // MARK: - Timeline
 
 struct FreshAlertEntry: TimelineEntry {
@@ -65,19 +69,12 @@ struct FreshAlertWidgetEntryView: View {
 
     private var emptyView: some View {
         VStack(spacing: 10) {
-            Image(systemName: WidgetDataStore.defaults == nil ? "exclamationmark.triangle" : "cart.badge.checkmark")
+            Image(systemName: "cart.badge.checkmark")
                 .font(.largeTitle)
                 .foregroundStyle(.secondary)
-            Text(WidgetDataStore.defaults == nil ? "App Group nicht konfiguriert" : "Keine Produkte")
+            Text("Keine Produkte")
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(.secondary)
-            if WidgetDataStore.defaults == nil {
-                Text("In Xcode: beide Targets → Signing & Capabilities → App Groups → group.com.freshalert.app")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 12)
-            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .containerBackground(.fill, for: .widget)
@@ -100,7 +97,7 @@ struct FreshAlertWidgetEntryView: View {
 
     private func itemRow(_ item: WidgetFoodItem) -> some View {
         let days = item.daysUntilExpiry
-        let statusColor: Color = days < 0 ? Color(.systemGray) : days <= 1 ? .red : days <= 7 ? .orange : Color(red: 0.2, green: 0.78, blue: 0.2)
+        let statusColor: Color = days < 0 ? Color(.systemGray) : days <= 1 ? .red : days <= 7 ? .orange : Color.freshGreen
 
         return HStack(spacing: 10) {
             // Location icon (or status dot fallback)
@@ -143,7 +140,7 @@ struct FreshAlertWidgetEntryView: View {
             Button(intent: MarkAsUsedIntent(itemID: item.id.uuidString)) {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 22))
-                    .foregroundStyle(Color(red: 0.2, green: 0.78, blue: 0.2))
+                    .foregroundStyle(Color.freshGreen)
                     .frame(width: 36, height: 36)
                     .contentShape(Rectangle())
             }

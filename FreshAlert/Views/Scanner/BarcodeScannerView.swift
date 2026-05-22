@@ -1,10 +1,13 @@
 import SwiftUI
+import SwiftData
 import AVFoundation
 
 // MARK: - Main View
 
 struct BarcodeScannerView: View {
+    @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var viewModel: AppViewModel
+    @EnvironmentObject private var store: StoreManager
     @State private var scannedBarcode: String?
     @State private var showAddSheet = false
     @State private var showManualEntry = false
@@ -14,6 +17,7 @@ struct BarcodeScannerView: View {
     @State private var scanStatus: ScanStatus = .waiting
     @State private var scanTask: Task<Void, Never>?
     @State private var showManualForm = false
+    @State private var showPaywall = false
 
     enum ScanStatus { case waiting, noCodeDetected, success }
 
@@ -38,8 +42,16 @@ struct BarcodeScannerView: View {
                 guard barcode != nil else { return }
                 scanStatus = .success
                 scanTask?.cancel()
-                showAddSheet = true
+                if isAtFreeLimit() {
+                    scannedBarcode = nil
+                    scanStatus = .waiting
+                    startNoCodeTimer()
+                    showPaywall = true
+                } else {
+                    showAddSheet = true
+                }
             }
+            .sheet(isPresented: $showPaywall) { PaywallView() }
             .sheet(isPresented: $showAddSheet, onDismiss: {
                 scannedBarcode = nil
                 scanStatus = .waiting
@@ -60,8 +72,13 @@ struct BarcodeScannerView: View {
                 Button("Abbrechen", role: .cancel) { manualBarcode = "" }
                 Button("Weiter") {
                     if !manualBarcode.isEmpty {
-                        scannedBarcode = manualBarcode
-                        manualBarcode = ""
+                        if isAtFreeLimit() {
+                            manualBarcode = ""
+                            showPaywall = true
+                        } else {
+                            scannedBarcode = manualBarcode
+                            manualBarcode = ""
+                        }
                     }
                 }
             } message: {
@@ -123,7 +140,7 @@ struct BarcodeScannerView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
 
             case .success:
-                scanHintPill("Barcode erkannt ✓", color: Color(red: 0.2, green: 0.78, blue: 0.2))
+                scanHintPill("Barcode erkannt ✓", color: Color.freshGreen)
             }
 
             if !viewModel.isOnline {
@@ -170,7 +187,9 @@ struct BarcodeScannerView: View {
     }
 
     private var manualFormButton: some View {
-        Button { showManualForm = true } label: {
+        Button {
+            if isAtFreeLimit() { showPaywall = true } else { showManualForm = true }
+        } label: {
             Label("Ohne Barcode hinzufügen", systemImage: "plus")
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(.white)
@@ -200,17 +219,27 @@ struct BarcodeScannerView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
-            .tint(Color(red: 0.2, green: 0.78, blue: 0.2))
+            .tint(Color.freshGreen)
 
             Divider().padding(.horizontal, 40)
 
             Button("Barcode manuell eingeben") { showManualEntry = true }
                 .buttonStyle(.bordered)
 
-            Button("Ohne Barcode hinzufügen") { showManualForm = true }
-                .buttonStyle(.bordered)
+            Button("Ohne Barcode hinzufügen") {
+                if isAtFreeLimit() { showPaywall = true } else { showManualForm = true }
+            }
+            .buttonStyle(.bordered)
         }
         .padding()
+    }
+
+    // MARK: - Helpers
+
+    private func isAtFreeLimit() -> Bool {
+        guard !store.isPro else { return false }
+        let count = (try? modelContext.fetchCount(FetchDescriptor<FoodItem>())) ?? 0
+        return count >= StoreManager.freeLimit
     }
 
     // MARK: - No-code hint timer
@@ -246,14 +275,13 @@ struct BarcodeScannerView: View {
 
 struct ScannerOverlay: View {
     let scanStatus: BarcodeScannerView.ScanStatus
-    @State private var scanLineProgress: CGFloat = 0
 
     private let frameW: CGFloat = 270
     private let frameH: CGFloat = 140
 
     private var borderColor: Color {
         switch scanStatus {
-        case .waiting:       return Color(red: 0.2, green: 0.78, blue: 0.2)
+        case .waiting:       return Color.freshGreen
         case .noCodeDetected: return .orange
         case .success:       return .white
         }
@@ -261,7 +289,6 @@ struct ScannerOverlay: View {
 
     var body: some View {
         GeometryReader { geo in
-            let frameX = (geo.size.width  - frameW) / 2
             let frameY = (geo.size.height - frameH) / 2 - 40
 
             // Dimmed mask with transparent cutout
@@ -284,23 +311,26 @@ struct ScannerOverlay: View {
                 .position(x: geo.size.width / 2, y: frameY + frameH / 2)
                 .animation(.easeInOut(duration: 0.3), value: scanStatus)
 
-            // Animated scan line (hidden on success/no-code)
+            // Animated scan line (hidden on success/no-code).
+            // Driven purely by elapsed time via TimelineView: the position is
+            // a function of the clock, so there is nothing to interpolate,
+            // stack or "fly in" — it renders correctly on every frame and
+            // resumes seamlessly after a tab switch.
             if scanStatus == .waiting {
-                let lineY = frameY + scanLineProgress * frameH
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [.clear, Color(red: 0.2, green: 0.78, blue: 0.2).opacity(0.9), .clear],
-                            startPoint: .leading, endPoint: .trailing)
-                    )
-                    .frame(width: frameW - 20, height: 2.5)
-                    .position(x: geo.size.width / 2, y: lineY)
-                    .clipped()
-            }
-        }
-        .onAppear {
-            withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
-                scanLineProgress = 1
+                TimelineView(.animation) { timeline in
+                    let elapsed = timeline.date.timeIntervalSinceReferenceDate
+                    let cycle = 3.2  // seconds for a full down-and-up sweep
+                    let progress = (1 - cos(2 * .pi * elapsed / cycle)) / 2
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [.clear, Color.freshGreen.opacity(0.9), .clear],
+                                startPoint: .leading, endPoint: .trailing)
+                        )
+                        .frame(width: frameW - 20, height: 2.5)
+                        .position(x: geo.size.width / 2,
+                                  y: frameY + CGFloat(progress) * frameH)
+                }
             }
         }
     }
@@ -356,9 +386,6 @@ struct CameraPreview: UIViewRepresentable {
         try? device.lockForConfiguration()
         if device.isFocusModeSupported(.continuousAutoFocus) {
             device.focusMode = .continuousAutoFocus
-        }
-        if device.isAutoSmoothAutoFocusEnabled {
-            device.isAutoSmoothAutoFocusEnabled = false // faster focus transitions
         }
         if device.isExposureModeSupported(.continuousAutoExposure) {
             device.exposureMode = .continuousAutoExposure
@@ -420,7 +447,7 @@ struct CameraPreview: UIViewRepresentable {
             lastScan = Date()
             DispatchQueue.main.async {
                 self.parent.scannedBarcode = value
-                UINotificationFeedbackGenerator().notificationOccurred(.success)
+                Feedback.scanSuccess()
             }
         }
     }

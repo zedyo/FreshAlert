@@ -1,0 +1,61 @@
+{
+  "identifier": "com.freshalert.storekitconfig",
+  "nonConsumableProducts": [
+    {
+      "displayPrice": "14.99",
+      "familySharable": true,
+      "internalID": "pro-lifetime",
+      "localizations": [
+        {
+          "description": "Unbegrenzte Produkte für immer – einmalig, kein Abo.",
+          "displayName": "Pro Lifetime",
+          "locale": "de_DE"
+        }
+      ],
+      "productID": "com.freshalert.pro.lifetime",
+      "referenceName": "Pro Lifetime",
+      "type": "NonConsumable"
+    }
+  ],
+  "products": [],
+  "settings": {
+    "_applicationInternalID": "com.freshalert.app",
+    "_developerTeamID": "92P4377WNF",
+    "_storefront": "DEU",
+    "_storeKitErrors": []
+  },
+  "subscriptionGroups": [
+    {
+      "id": "group-freshalert-pro",
+      "localizations": [],
+      "name": "FreshAlert Pro",
+      "subscriptions": [
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "4.99",
+          "familySharable": true,
+          "groupNumber": 1,
+          "internalID": "pro-yearly",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Unbegrenzte Produkte, jährlich kündbar.",
+              "displayName": "Pro Jährlich",
+              "locale": "de_DE"
+            }
+          ],
+          "productID": "com.freshalert.pro.yearly",
+          "referenceName": "Pro Jährlich",
+          "recurringSubscriptionPeriod": "P1Y",
+          "subscriptionGroupID": "group-freshalert-pro",
+          "type": "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
+}

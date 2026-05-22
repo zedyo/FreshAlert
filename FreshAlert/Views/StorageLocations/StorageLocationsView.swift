@@ -107,7 +107,7 @@ struct StorageLocationsView: View {
                 .padding(.horizontal)
             Button("Ersten Ort erstellen") { showAddSheet = true }
                 .buttonStyle(.borderedProminent)
-                .tint(Color(red: 0.2, green: 0.78, blue: 0.2))
+                .tint(Color.freshGreen)
         }
         .padding()
     }

@@ -1,0 +1,43 @@
+name: Release
+
+# Deployment-Pipeline:
+#   - Merge / Push nach `main` → Tests laufen, Build wird zu TestFlight
+#     hochgeladen UND anschließend zur App-Store-Prüfung eingereicht.
+#
+# Ein Merge nach `main` ist damit ein vollständiges App-Store-Release.
+# Die Tests laufen zuerst (über die Fastlane-Lane `beta`) — schlägt ein Test
+# fehl, bricht der Deploy ab. Das ist das Qualitäts-Gate.
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    name: Build, TestFlight & App Store
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # vollständige Historie → korrekte Build-Nummer (Commit-Anzahl)
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Set up Ruby & Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Build, upload to TestFlight & submit to App Store
+        run: bundle exec fastlane release
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}

@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import UIKit
 import Network
 import WidgetKit
 
@@ -14,13 +15,33 @@ final class AppViewModel: ObservableObject {
     @Published var pendingSyncCount: Int = 0
     @Published var isLoadingProduct: Bool = false
     @Published var toastMessage: String?
+    @Published var scanRequested: Bool = false
 
     @AppStorage("globalReminderDays") var globalReminderDays: Int = 7
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         setupNetwork()
-        insertDefaultLocationsIfNeeded()
+        setupQuickActionObserver()
+    }
+
+    private func setupQuickActionObserver() {
+        let center = NotificationCenter.default
+        let handler: @Sendable (Notification) -> Void = { [weak self] _ in
+            guard let self else { return }
+            if AppDelegate.pendingShortcutType == "com.freshalert.app.scan" {
+                AppDelegate.pendingShortcutType = nil
+                Task { @MainActor in self.scanRequested = true }
+            }
+        }
+        center.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil, queue: .main, using: handler
+        )
+        center.addObserver(
+            forName: .openScannerTab,
+            object: nil, queue: .main, using: handler
+        )
     }
 
     // MARK: - Network
@@ -36,14 +57,6 @@ final class AppViewModel: ObservableObject {
             }
         }
         monitor.start(queue: monitorQueue)
-    }
-
-    // MARK: - Default Locations
-    private func insertDefaultLocationsIfNeeded() {
-        let count = (try? modelContext.fetchCount(FetchDescriptor<StorageLocation>())) ?? 0
-        guard count == 0 else { return }
-        StorageLocation.defaultLocations.forEach { modelContext.insert($0) }
-        try? modelContext.save()
     }
 
     // MARK: - Food Items CRUD
@@ -192,18 +205,6 @@ final class AppViewModel: ObservableObject {
         for item in items {
             await downloadAndCacheImage(for: item)
         }
-    }
-
-    // Removes imageData from items whose imageURL is empty (no product image).
-    // Cleans up any orphaned external storage left by past bugs.
-    func purgeOrphanedImageData() {
-        let descriptor = FetchDescriptor<FoodItem>(
-            predicate: #Predicate { $0.imageURL.isEmpty && $0.imageData != nil }
-        )
-        let items = (try? modelContext.fetch(descriptor)) ?? []
-        guard !items.isEmpty else { return }
-        items.forEach { $0.imageData = nil }
-        try? modelContext.save()
     }
 
     private func updatePendingCount() {

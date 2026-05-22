@@ -67,9 +67,11 @@ final class FoodItem {
 
     var expiryLabel: String {
         switch daysUntilExpiry {
-        case ..<0:  return "Abgelaufen"
-        case 0:     return "Läuft heute ab"
-        case 1:     return "Läuft morgen ab"
+        case ..<0:
+            let days = abs(daysUntilExpiry)
+            return "Abgelaufen · \(days) \(days == 1 ? "Tag" : "Tage")"
+        case 0:     return "Heute verbrauchen"
+        case 1:     return "Morgen"
         default:    return "Noch \(daysUntilExpiry) Tage"
         }
     }
@@ -80,7 +82,7 @@ enum ExpiryStatus {
 
     var color: Color {
         switch self {
-        case .good:     return Color(red: 0.2, green: 0.78, blue: 0.2)
+        case .good:     return Color.freshGreen
         case .warning:  return .orange
         case .critical: return .red
         case .expired:  return Color(.systemGray)
@@ -89,7 +91,7 @@ enum ExpiryStatus {
 
     var backgroundColor: Color {
         switch self {
-        case .good:     return Color(red: 0.2, green: 0.78, blue: 0.2).opacity(0.12)
+        case .good:     return Color.freshGreen.opacity(0.12)
         case .warning:  return Color.orange.opacity(0.12)
         case .critical: return Color.red.opacity(0.12)
         case .expired:  return Color(.systemGray5)
