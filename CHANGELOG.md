@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.5.1] – 2026-05-22
+
+### Projekt / Infrastruktur
+- **Deployment**: Die App-Store-Einreichung erfolgt jetzt automatisch beim
+  **Merge nach `main`** (statt zuvor über einen Versions-Tag). `release.yml` hat
+  nur noch einen Job; die Fastlane-Lane `release` baut, lädt zu TestFlight hoch
+  (wartet nun auf Apples Build-Verarbeitung) und reicht den Build anschließend
+  zur App-Store-Prüfung ein.
+- **Dokumentation**: `docs/MONETIZATION.md` um konkrete Setup-Schritte erweitert –
+  In-App-Käufe in App Store Connect anlegen (mit aktuellen Menüpfaden),
+  IAP-Einreichung an den Build hängen, StoreKit-Konfiguration im Xcode-Schema.
+  `docs/RELEASE_AUTOMATION.md` an den neuen Merge-basierten Ablauf angepasst,
+  inkl. Empfehlung zum Branch-Schutz für `main`.
+
+---
+
 ## [1.5.0] – 2026-05-22
 
 ### Neue Funktionen

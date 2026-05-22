@@ -31,8 +31,10 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
 - `AppViewModel` (`@MainActor`, `ObservableObject`) — all CRUD, network monitoring,
   widget snapshot writing, offline sync, notification scheduling.
 - Models: `FoodItem`, `StorageLocation` (`@Model`).
-- Services: `OpenFoodFactsService` (actor), `NotificationService` (`@MainActor`).
-- Views split by feature folder under `FreshAlert/Views/`.
+- Services: `OpenFoodFactsService` (actor), `NotificationService` (`@MainActor`),
+  `StoreManager` (`@MainActor`, StoreKit 2 — freemium gate, injected via env).
+- Views split by feature folder under `FreshAlert/Views/`. `Paywall/PaywallView`
+  appears once the free limit (`StoreManager.freeLimit = 20`) is reached.
 
 ## Conventions
 
@@ -67,8 +69,10 @@ Semantic: x.0.0 major · x.y.0 feature · x.y.z bugfix. Add a `CHANGELOG.md` ent
 
 ## Release & deployment
 
-- CI/CD via GitHub Actions + Fastlane. PR/`main` → tests; `main` → TestFlight;
-  tag `v*` → App Store submission. CI sets the build number from the commit count.
+- CI/CD via GitHub Actions + Fastlane. PR → tests (`ci.yml`); merge to `main` →
+  TestFlight upload **and** App Store submission (`release.yml`, lane `release`).
+  A merge to `main` is a full App Store release — there is no tag step.
+  CI sets the build number from the commit count.
 - Docs: `docs/RELEASE_AUTOMATION.md` (pipeline + setup), `docs/APP_STORE.md`
   (manual store steps), `docs/MARKETING.md`, `docs/MONETIZATION.md`,
   `docs/PRIVACY_POLICY.md`.
