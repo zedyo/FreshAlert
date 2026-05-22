@@ -100,7 +100,7 @@ struct PaywallView: View {
             .font(.caption)
             .foregroundStyle(.tertiary)
 
-            Text("Das Jahresabo verlängert sich automatisch um 1 Jahr, sofern es nicht mindestens 24 Stunden vor Ablauf in den iPhone-Einstellungen unter „Abonnements" gekündigt wird.")
+            Text("Das Jahresabo verlängert sich automatisch um 1 Jahr, sofern es nicht mindestens 24 Stunden vor Ablauf in den iPhone-Einstellungen unter „Abonnements“ gekündigt wird.")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)

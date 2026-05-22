@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.3] – 2026-05-22
+
+### Behoben
+- **`PaywallView.swift`**: Build-Fehler im Verlängerungshinweis behoben. Das
+  Schlusszeichen nach „Abonnements" war ein gerades ASCII-Anführungszeichen (`"`)
+  und beendete dadurch das Swift-String-Literal vorzeitig – die Datei ließ sich
+  nicht kompilieren. Ersetzt durch das typografisch korrekte deutsche
+  Schlusszeichen. Dieser Fehler stammte aus dem v1.5.0-StoreKit-Code, der laut
+  Handoff noch nicht kompiliert worden war.
+
+---
+
 ## [1.5.2] – 2026-05-22
 
 ### Projekt / Dokumentation
