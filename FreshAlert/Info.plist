@@ -30,5 +30,18 @@
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>UIApplicationShortcutItems</key>
+	<array>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>com.freshalert.app.scan</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Scannen</string>
+			<key>UIApplicationShortcutItemSubtitle</key>
+			<string>Produkt per Barcode hinzufügen</string>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>barcode.viewfinder</string>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -3,6 +3,7 @@ import SwiftData
 
 @main
 struct FreshAlertApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     let modelContainer: ModelContainer
     @StateObject private var appViewModel: AppViewModel
     @Environment(\.scenePhase) private var scenePhase
@@ -36,6 +37,10 @@ struct FreshAlertApp: App {
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 appViewModel.processPendingWidgetDecrements()
+                if AppDelegate.pendingShortcutType == "com.freshalert.app.scan" {
+                    AppDelegate.pendingShortcutType = nil
+                    NotificationCenter.default.post(name: .openScannerTab, object: nil)
+                }
             }
         }
     }

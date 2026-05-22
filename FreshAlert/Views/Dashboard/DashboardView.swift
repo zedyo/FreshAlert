@@ -125,7 +125,7 @@ struct DashboardView: View {
             .searchable(
                 text: $searchText,
                 isPresented: $isSearchPresented,
-                placement: .navigationBarDrawer(displayMode: .always),
+                placement: .automatic,
                 prompt: "Produkt suchen …"
             )
             .toolbar {

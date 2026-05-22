@@ -21,8 +21,10 @@ struct WidgetFoodItem: Codable, Identifiable {
 
     var expiryLabel: String {
         switch daysUntilExpiry {
-        case ..<0:  return "Abgelaufen"
-        case 0:     return "Heute"
+        case ..<0:
+            let days = abs(daysUntilExpiry)
+            return "Abl. \(days) \(days == 1 ? "T." : "T.")"
+        case 0:     return "Heute verwenden"
         case 1:     return "Morgen"
         default:    return "Noch \(daysUntilExpiry) T."
         }
