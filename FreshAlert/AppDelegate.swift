@@ -1,7 +1,10 @@
 import UIKit
 
 final class AppDelegate: NSObject, UIApplicationDelegate {
-    static var pendingShortcutType: String?
+    // Only ever touched on the main thread (scene delegate callbacks and
+    // .main-queue notification observers), so opting out of actor isolation
+    // is safe and avoids Sendable-closure warnings.
+    nonisolated(unsafe) static var pendingShortcutType: String?
 
     func application(
         _ application: UIApplication,

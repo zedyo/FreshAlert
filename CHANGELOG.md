@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.7] – 2026-05-22
+
+### Fehlerbehebungen
+- **Build-Warnungen**: `AppDelegate.pendingShortcutType` als `nonisolated(unsafe)` markiert — behebt zwei Swift-Concurrency-Warnungen („Main actor-isolated static property can not be referenced/mutated from a Sendable closure"). Die Property wird ausschließlich auf dem Main-Thread verwendet.
+
+---
+
 ## [1.1.6] – 2026-05-22
 
 ### Verbesserungen
