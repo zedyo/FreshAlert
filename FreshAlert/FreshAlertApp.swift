@@ -35,7 +35,6 @@ struct FreshAlertApp: App {
                         await NotificationService.shared.requestPermission()
                     }
                     appViewModel.updateWidgetSnapshot()
-                    appViewModel.purgeOrphanedImageData()
                     await appViewModel.cacheImagesForExistingItems()
                 }
         }

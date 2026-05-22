@@ -207,18 +207,6 @@ final class AppViewModel: ObservableObject {
         }
     }
 
-    // Removes imageData from items whose imageURL is empty (no product image).
-    // Cleans up any orphaned external storage left by past bugs.
-    func purgeOrphanedImageData() {
-        let descriptor = FetchDescriptor<FoodItem>(
-            predicate: #Predicate { $0.imageURL.isEmpty && $0.imageData != nil }
-        )
-        let items = (try? modelContext.fetch(descriptor)) ?? []
-        guard !items.isEmpty else { return }
-        items.forEach { $0.imageData = nil }
-        try? modelContext.save()
-    }
-
     private func updatePendingCount() {
         let descriptor = FetchDescriptor<FoodItem>(
             predicate: #Predicate { $0.isOfflineEntry }

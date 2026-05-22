@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.3.0] – 2026-05-22
+
+### Neue Funktionen
+- **Eigenes Produktfoto**: Wird ein Produkt nicht gefunden oder ist es ein Offline-Eintrag, kann beim manuellen Erfassen jetzt ein Foto aufgenommen oder aus der Mediathek gewählt werden. Das Bild wird lokal als Produktbild gespeichert. Im Bearbeiten-Modus genügt ein Tipp auf das Bildfeld (Kamera-Symbol).
+
+### Fehlerbehebungen
+- **Offline-Modus**: Bei Offline-Erfassung öffnet sich jetzt direkt der manuelle Eingabemodus (vorher blieb die Karte schreibgeschützt).
+- Automatische Bereinigung „verwaister" Bilddaten beim Start entfernt — sie hätte selbst aufgenommene Produktfotos gelöscht.
+
+---
+
 ## [1.2.2] – 2026-05-22
 
 ### Fehlerbehebungen

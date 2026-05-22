@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct AddFoodItemView: View {
     @Environment(\.dismiss) private var dismiss
@@ -17,8 +18,10 @@ struct AddFoodItemView: View {
     @State private var useCustomReminder = false
     @State private var customReminderDays: Int = 7
     @State private var isLoadingProduct: Bool
-    @State private var productNotFound = false
     @State private var isEditingProduct: Bool
+    @State private var capturedImageData: Data?
+    @State private var photoSource: PhotoSource?
+    @State private var showImageSourceDialog = false
     @FocusState private var focusedField: Field?
 
     enum Field { case name, brand }
@@ -132,19 +135,7 @@ struct AddFoodItemView: View {
     // MARK: - Product Info Header
     private var productInfoHeader: some View {
         HStack(spacing: 12) {
-            if !imageURL.isEmpty, let url = URL(string: imageURL) {
-                AsyncImage(url: url) { phase in
-                    if case .success(let img) = phase {
-                        img.resizable().scaledToFill()
-                            .frame(width: 64, height: 64)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                    } else {
-                        productPlaceholder
-                    }
-                }
-            } else {
-                productPlaceholder
-            }
+            productImageView
 
             VStack(alignment: .leading, spacing: 4) {
                 if isLoadingProduct {
@@ -182,13 +173,74 @@ struct AddFoodItemView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                guard !isLoadingProduct else { return }
+                beginEditing()
+            }
         }
         .padding(.vertical, 4)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            guard !isLoadingProduct else { return }
-            withAnimation(.spring(response: 0.25)) { isEditingProduct = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { focusedField = .name }
+        .confirmationDialog("Produktfoto", isPresented: $showImageSourceDialog, titleVisibility: .visible) {
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                Button("Foto aufnehmen") { photoSource = .camera }
+            }
+            Button("Aus Mediathek wählen") { photoSource = .library }
+            if capturedImageData != nil {
+                Button("Foto entfernen", role: .destructive) { capturedImageData = nil }
+            }
+            Button("Abbrechen", role: .cancel) {}
+        }
+        .sheet(item: $photoSource) { source in
+            ImagePicker(sourceType: source.uiSourceType) { data in
+                capturedImageData = data
+            }
+        }
+    }
+
+    // The image slot. In edit mode it is tappable to take or pick a photo.
+    private var productImageView: some View {
+        imageContent
+            .overlay(alignment: .bottomTrailing) {
+                if isEditingProduct && !isLoadingProduct {
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 22, height: 22)
+                        .background(Color.freshGreen, in: Circle())
+                        .overlay(Circle().stroke(Color(.systemBackground), lineWidth: 2))
+                        .offset(x: 5, y: 5)
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                guard !isLoadingProduct else { return }
+                if isEditingProduct {
+                    showImageSourceDialog = true
+                } else {
+                    beginEditing()
+                }
+            }
+    }
+
+    @ViewBuilder
+    private var imageContent: some View {
+        if let data = capturedImageData, let uiImage = UIImage(data: data) {
+            Image(uiImage: uiImage)
+                .resizable().scaledToFill()
+                .frame(width: 64, height: 64)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+        } else if !imageURL.isEmpty, let url = URL(string: imageURL) {
+            AsyncImage(url: url) { phase in
+                if case .success(let img) = phase {
+                    img.resizable().scaledToFill()
+                        .frame(width: 64, height: 64)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                } else {
+                    productPlaceholder
+                }
+            }
+        } else {
+            productPlaceholder
         }
     }
 
@@ -196,7 +248,10 @@ struct AddFoodItemView: View {
         RoundedRectangle(cornerRadius: 10)
             .fill(Color(.systemGray5))
             .frame(width: 64, height: 64)
-            .overlay(Image(systemName: barcode.isEmpty ? "pencil" : "barcode").foregroundStyle(.secondary))
+            .overlay(
+                Image(systemName: isEditingProduct ? "camera" : (barcode.isEmpty ? "pencil" : "barcode"))
+                    .foregroundStyle(.secondary)
+            )
     }
 
     // MARK: - Quick Expiry
@@ -226,19 +281,23 @@ struct AddFoodItemView: View {
     }
 
     // MARK: - Actions
+    private func beginEditing() {
+        withAnimation(.spring(response: 0.25)) { isEditingProduct = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { focusedField = .name }
+    }
+
     private func loadProduct() async {
         guard !barcode.isEmpty else { return }
         isLoadingProduct = true
         defer { isLoadingProduct = false }
-        guard viewModel.isOnline else { productNotFound = true; return }
+        // Offline or product not found → let the user fill in details manually.
+        guard viewModel.isOnline else { beginEditing(); return }
         if let info = await viewModel.fetchProductInfo(barcode: barcode) {
             name     = info.name
             brand    = info.brand
             imageURL = info.imageURL ?? ""
         } else {
-            productNotFound = true
-            isEditingProduct = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { focusedField = .name }
+            beginEditing()
         }
     }
 
@@ -262,6 +321,7 @@ struct AddFoodItemView: View {
             name: trimmedName,
             brand: brand,
             imageURL: imageURL,
+            imageData: capturedImageData,
             expiryDate: expiryDate,
             quantity: quantity,
             storageLocation: location,
@@ -332,5 +392,63 @@ struct LocationPickerSheet: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+}
+
+// MARK: - Photo Capture
+
+enum PhotoSource: Identifiable {
+    case camera, library
+    var id: Self { self }
+    var uiSourceType: UIImagePickerController.SourceType {
+        self == .camera ? .camera : .photoLibrary
+    }
+}
+
+// Wraps UIImagePickerController for taking a photo or picking one from the
+// library. The picked image is downscaled and handed back as JPEG data.
+struct ImagePicker: UIViewControllerRepresentable {
+    let sourceType: UIImagePickerController.SourceType
+    let onImagePicked: (Data) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = sourceType
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+        init(_ parent: ImagePicker) { self.parent = parent }
+
+        func imagePickerController(
+            _ picker: UIImagePickerController,
+            didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
+        ) {
+            if let image = info[.originalImage] as? UIImage,
+               let data = Self.downscaled(image).jpegData(compressionQuality: 0.7) {
+                parent.onImagePicked(data)
+            }
+            parent.dismiss()
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
+        }
+
+        private static func downscaled(_ image: UIImage, maxDimension: CGFloat = 1200) -> UIImage {
+            let longest = max(image.size.width, image.size.height)
+            guard longest > maxDimension else { return image }
+            let scale = maxDimension / longest
+            let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+            let renderer = UIGraphicsImageRenderer(size: newSize)
+            return renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: newSize)) }
+        }
     }
 }
