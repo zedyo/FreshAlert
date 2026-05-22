@@ -283,22 +283,25 @@ struct ScannerOverlay: View {
                 .animation(.easeInOut(duration: 0.3), value: scanStatus)
 
             // Animated scan line (hidden on success/no-code).
-            // phaseAnimator restarts cleanly whenever the overlay reappears
-            // (e.g. after a tab switch) — unlike a repeatForever animation,
-            // which would stack and let the line drift out of the frame.
+            // Driven purely by elapsed time via TimelineView: the position is
+            // a function of the clock, so there is nothing to interpolate,
+            // stack or "fly in" — it renders correctly on every frame and
+            // resumes seamlessly after a tab switch.
             if scanStatus == .waiting {
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [.clear, Color.freshGreen.opacity(0.9), .clear],
-                            startPoint: .leading, endPoint: .trailing)
-                    )
-                    .frame(width: frameW - 20, height: 2.5)
-                    .phaseAnimator([0, 1] as [CGFloat]) { line, phase in
-                        line.position(x: geo.size.width / 2, y: frameY + phase * frameH)
-                    } animation: { _ in
-                        .easeInOut(duration: 1.6)
-                    }
+                TimelineView(.animation) { timeline in
+                    let elapsed = timeline.date.timeIntervalSinceReferenceDate
+                    let cycle = 3.2  // seconds for a full down-and-up sweep
+                    let progress = (1 - cos(2 * .pi * elapsed / cycle)) / 2
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [.clear, Color.freshGreen.opacity(0.9), .clear],
+                                startPoint: .leading, endPoint: .trailing)
+                        )
+                        .frame(width: frameW - 20, height: 2.5)
+                        .position(x: geo.size.width / 2,
+                                  y: frameY + CGFloat(progress) * frameH)
+                }
             }
         }
     }

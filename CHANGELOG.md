@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.2] – 2026-05-22
+
+### Fehlerbehebungen
+- **Scan-Linie**: Beim ersten Öffnen des Scanners „flog" die Linie vom oberen Bildschirmrand herein. Die Animation wurde komplett neu gebaut — sie wird jetzt zeitgesteuert über `TimelineView` gerendert (Position als reine Funktion der Uhrzeit). Dadurch gibt es keine zu interpolierende Animation mehr: kein Einfliegen, kein Überlagern, sauberer Neustart nach Tab-Wechseln.
+
+---
+
 ## [1.4.1] – 2026-05-22
 
 ### Fehlerbehebungen
