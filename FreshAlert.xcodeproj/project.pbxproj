@@ -36,6 +36,7 @@
 		E00000000000000000000024 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00000000000000000000018 /* WidgetKit.framework */; };
 		E00000000000000000000025 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00000000000000000000019 /* SwiftUI.framework */; };
 		E00000000000000000000026 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000001A /* AppDelegate.swift */; };
+		T00000000000000000000005 /* ExpiryLabelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000001B /* ExpiryLabelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -66,6 +67,8 @@
 		D00000000000000000000001 /* FreshAlertApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreshAlertApp.swift; sourceTree = "<group>"; };
 		D00000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		D0000000000000000000001A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		D0000000000000000000001B /* ExpiryLabelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiryLabelTests.swift; sourceTree = "<group>"; };
+		D0000000000000000000001C /* FreshAlertTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FreshAlertTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D00000000000000000000003 /* FoodItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodItem.swift; sourceTree = "<group>"; };
 		D00000000000000000000004 /* StorageLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageLocation.swift; sourceTree = "<group>"; };
 		D00000000000000000000005 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
@@ -120,6 +123,7 @@
 			children = (
 				A00000000000000000000003 /* FreshAlert */,
 				A0000000000000000000000C /* FreshAlertWidget */,
+				T00000000000000000000004 /* FreshAlertTests */,
 				A00000000000000000000002 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -129,8 +133,17 @@
 			children = (
 				D00000000000000000000011 /* FreshAlert.app */,
 				D00000000000000000000012 /* FreshAlertWidget.appex */,
+				D0000000000000000000001C /* FreshAlertTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		T00000000000000000000004 /* FreshAlertTests */ = {
+			isa = PBXGroup;
+			children = (
+				D0000000000000000000001B /* ExpiryLabelTests.swift */,
+			);
+			path = FreshAlertTests;
 			sourceTree = "<group>";
 		};
 		A00000000000000000000003 /* FreshAlert */ = {
@@ -272,6 +285,21 @@
 			productReference = D00000000000000000000012 /* FreshAlertWidget.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		T00000000000000000000001 /* FreshAlertTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = T00000000000000000000008 /* Build configuration list for PBXNativeTarget "FreshAlertTests" */;
+			buildPhases = (
+				T00000000000000000000002 /* Sources (Tests) */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FreshAlertTests;
+			productName = FreshAlertTests;
+			productReference = D0000000000000000000001C /* FreshAlertTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -287,6 +315,10 @@
 					};
 					B00000000000000000000003 = {
 						CreatedOnToolsVersion = 15.4;
+					};
+					T00000000000000000000001 = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = B00000000000000000000002;
 					};
 				};
 			};
@@ -306,6 +338,7 @@
 			targets = (
 				B00000000000000000000002 /* FreshAlert */,
 				B00000000000000000000003 /* FreshAlertWidget */,
+				T00000000000000000000001 /* FreshAlertTests */,
 			);
 		};
 /* End PBXProject section */
@@ -349,6 +382,14 @@
 				E0000000000000000000000D /* NotificationService.swift in Sources */,
 				E0000000000000000000000E /* AppViewModel.swift in Sources */,
 				E00000000000000000000010 /* WidgetDataStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		T00000000000000000000002 /* Sources (Tests) */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				T00000000000000000000005 /* ExpiryLabelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -584,6 +625,42 @@
 			};
 			name = Release;
 		};
+		T00000000000000000000006 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.FreshAlertTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FreshAlert.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FreshAlert";
+			};
+			name = Debug;
+		};
+		T00000000000000000000007 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.FreshAlertTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FreshAlert.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FreshAlert";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -610,6 +687,15 @@
 			buildConfigurations = (
 				F00000000000000000000007 /* Debug */,
 				F00000000000000000000008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		T00000000000000000000008 /* Build configuration list for PBXNativeTarget "FreshAlertTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				T00000000000000000000006 /* Debug */,
+				T00000000000000000000007 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
