@@ -14,6 +14,7 @@ final class AppViewModel: ObservableObject {
     @Published var pendingSyncCount: Int = 0
     @Published var isLoadingProduct: Bool = false
     @Published var toastMessage: String?
+    @Published var scanRequested: Bool = false
 
     @AppStorage("globalReminderDays") var globalReminderDays: Int = 7
 

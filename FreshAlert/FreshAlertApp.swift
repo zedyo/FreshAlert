@@ -33,13 +33,16 @@ struct FreshAlertApp: App {
                     appViewModel.purgeOrphanedImageData()
                     await appViewModel.cacheImagesForExistingItems()
                 }
+                .onReceive(NotificationCenter.default.publisher(for: .openScannerTab)) { _ in
+                    appViewModel.scanRequested = true
+                }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 appViewModel.processPendingWidgetDecrements()
                 if AppDelegate.pendingShortcutType == "com.freshalert.app.scan" {
                     AppDelegate.pendingShortcutType = nil
-                    NotificationCenter.default.post(name: .openScannerTab, object: nil)
+                    appViewModel.scanRequested = true
                 }
             }
         }
