@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.5.0] – 2026-05-22
+
+### Neue Funktionen
+- **StoreKit 2 – Freemium-Modell**: Kostenlose Nutzung bis zu 20 gleichzeitig gespeicherten Produkten. Darüber hinaus erscheint die Paywall (Pro Jährlich 4,99 € / Pro Lifetime 14,99 €). Das Limit gilt beim Speichern in `AddFoodItemView` und beim Öffnen neuer Scans in `BarcodeScannerView`.
+- **`StoreManager`** (`FreshAlert/Services/StoreManager.swift`): `@MainActor ObservableObject` — lädt Produkte via `Product.products(for:)`, prüft Berechtigung über `Transaction.currentEntitlements`, lauscht dauerhaft auf `Transaction.updates` (geräteübergreifende Käufe, Verlängerungen). Bietet `purchase(_:)` und `restorePurchases()`.
+- **`PaywallView`** (`FreshAlert/Views/Paywall/PaywallView.swift`): Zeigt Pro Jährlich (empfohlen, grün) und Pro Lifetime. Enthält „Kauf wiederherstellen"-Button sowie Pflichtlinks zu Nutzungsbedingungen und Datenschutz.
+- **`Products.storekit`** (`FreshAlert/Products.storekit`): StoreKit-Konfigurationsdatei für lokales Testen im Simulator ohne echte Käufe. Muss einmalig im Xcode-Schema unter Run → Options → StoreKit Configuration aktiviert werden.
+
+### Hinweise vor der App-Store-Einreichung
+- Produkte `com.freshalert.pro.yearly` und `com.freshalert.pro.lifetime` in App Store Connect anlegen.
+- Datenschutz-URL in `PaywallView.swift` durch die veröffentlichte Policy ersetzen (TODO-Kommentar).
+- Small Business Program beantragen (15 % statt 30 % Provision).
+
+---
+
 ## [1.4.4] – 2026-05-22
 
 ### Projekt / Dokumentation

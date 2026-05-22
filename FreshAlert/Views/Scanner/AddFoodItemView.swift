@@ -6,6 +6,7 @@ struct AddFoodItemView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var viewModel: AppViewModel
+    @EnvironmentObject private var store: StoreManager
 
     let barcode: String
 
@@ -22,6 +23,7 @@ struct AddFoodItemView: View {
     @State private var capturedImageData: Data?
     @State private var photoSource: PhotoSource?
     @State private var showImageSourceDialog = false
+    @State private var showPaywall = false
     @FocusState private var focusedField: Field?
 
     enum Field { case name, brand }
@@ -124,6 +126,7 @@ struct AddFoodItemView: View {
                 }
             }
             .task { await loadProduct() }
+            .sheet(isPresented: $showPaywall) { PaywallView() }
             .sheet(isPresented: $showLocationPicker) {
                 LocationPickerSheet(locations: locations) { chosen in
                     performSave(location: chosen)
@@ -316,6 +319,13 @@ struct AddFoodItemView: View {
     private func performSave(location: StorageLocation?) {
         let trimmedName = name.trimmingCharacters(in: .whitespaces)
         guard !trimmedName.isEmpty else { return }
+        if !store.isPro {
+            let count = (try? modelContext.fetchCount(FetchDescriptor<FoodItem>())) ?? 0
+            if count >= StoreManager.freeLimit {
+                showPaywall = true
+                return
+            }
+        }
         let item = FoodItem(
             barcode: barcode,
             name: trimmedName,

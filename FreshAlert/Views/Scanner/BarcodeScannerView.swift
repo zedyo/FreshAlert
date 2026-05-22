@@ -1,10 +1,13 @@
 import SwiftUI
+import SwiftData
 import AVFoundation
 
 // MARK: - Main View
 
 struct BarcodeScannerView: View {
+    @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var viewModel: AppViewModel
+    @EnvironmentObject private var store: StoreManager
     @State private var scannedBarcode: String?
     @State private var showAddSheet = false
     @State private var showManualEntry = false
@@ -14,6 +17,7 @@ struct BarcodeScannerView: View {
     @State private var scanStatus: ScanStatus = .waiting
     @State private var scanTask: Task<Void, Never>?
     @State private var showManualForm = false
+    @State private var showPaywall = false
 
     enum ScanStatus { case waiting, noCodeDetected, success }
 
@@ -38,8 +42,16 @@ struct BarcodeScannerView: View {
                 guard barcode != nil else { return }
                 scanStatus = .success
                 scanTask?.cancel()
-                showAddSheet = true
+                if isAtFreeLimit() {
+                    scannedBarcode = nil
+                    scanStatus = .waiting
+                    startNoCodeTimer()
+                    showPaywall = true
+                } else {
+                    showAddSheet = true
+                }
             }
+            .sheet(isPresented: $showPaywall) { PaywallView() }
             .sheet(isPresented: $showAddSheet, onDismiss: {
                 scannedBarcode = nil
                 scanStatus = .waiting
@@ -60,8 +72,13 @@ struct BarcodeScannerView: View {
                 Button("Abbrechen", role: .cancel) { manualBarcode = "" }
                 Button("Weiter") {
                     if !manualBarcode.isEmpty {
-                        scannedBarcode = manualBarcode
-                        manualBarcode = ""
+                        if isAtFreeLimit() {
+                            manualBarcode = ""
+                            showPaywall = true
+                        } else {
+                            scannedBarcode = manualBarcode
+                            manualBarcode = ""
+                        }
                     }
                 }
             } message: {
@@ -170,7 +187,9 @@ struct BarcodeScannerView: View {
     }
 
     private var manualFormButton: some View {
-        Button { showManualForm = true } label: {
+        Button {
+            if isAtFreeLimit() { showPaywall = true } else { showManualForm = true }
+        } label: {
             Label("Ohne Barcode hinzufügen", systemImage: "plus")
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(.white)
@@ -207,10 +226,20 @@ struct BarcodeScannerView: View {
             Button("Barcode manuell eingeben") { showManualEntry = true }
                 .buttonStyle(.bordered)
 
-            Button("Ohne Barcode hinzufügen") { showManualForm = true }
-                .buttonStyle(.bordered)
+            Button("Ohne Barcode hinzufügen") {
+                if isAtFreeLimit() { showPaywall = true } else { showManualForm = true }
+            }
+            .buttonStyle(.bordered)
         }
         .padding()
+    }
+
+    // MARK: - Helpers
+
+    private func isAtFreeLimit() -> Bool {
+        guard !store.isPro else { return false }
+        let count = (try? modelContext.fetchCount(FetchDescriptor<FoodItem>())) ?? 0
+        return count >= StoreManager.freeLimit
     }
 
     // MARK: - No-code hint timer

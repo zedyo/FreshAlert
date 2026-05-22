@@ -33,6 +33,8 @@
 		E00000000000000000000025 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00000000000000000000019 /* SwiftUI.framework */; };
 		E00000000000000000000026 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000001A /* AppDelegate.swift */; };
 		E00000000000000000000027 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000001F /* OnboardingView.swift */; };
+		E00000000000000000000028 /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000020 /* StoreManager.swift */; };
+		E00000000000000000000029 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000021 /* PaywallView.swift */; };
 		T00000000000000000000005 /* ExpiryLabelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000001B /* ExpiryLabelTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -92,6 +94,9 @@
 		D0000000000000000000001D /* FreshAlert.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FreshAlert.entitlements; sourceTree = "<group>"; };
 		D0000000000000000000001E /* FreshAlertWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FreshAlertWidget.entitlements; sourceTree = "<group>"; };
 		D0000000000000000000001F /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		D00000000000000000000020 /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
+		D00000000000000000000021 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		D00000000000000000000022 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,6 +154,7 @@
 				D0000000000000000000000F /* Assets.xcassets */,
 				D00000000000000000000010 /* Info.plist */,
 				D0000000000000000000001D /* FreshAlert.entitlements */,
+				D00000000000000000000022 /* Products.storekit */,
 			);
 			path = FreshAlert;
 			sourceTree = "<group>";
@@ -170,6 +176,7 @@
 				A00000000000000000000008 /* StorageLocations */,
 				A00000000000000000000009 /* Settings */,
 				A0000000000000000000000D /* Onboarding */,
+				A0000000000000000000000E /* Paywall */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -214,6 +221,7 @@
 			children = (
 				D0000000000000000000000C /* OpenFoodFactsService.swift */,
 				D0000000000000000000000D /* NotificationService.swift */,
+				D00000000000000000000020 /* StoreManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -245,6 +253,14 @@
 				D0000000000000000000001F /* OnboardingView.swift */,
 			);
 			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000E /* Paywall */ = {
+			isa = PBXGroup;
+			children = (
+				D00000000000000000000021 /* PaywallView.swift */,
+			);
+			path = Paywall;
 			sourceTree = "<group>";
 		};
 		D547F91D2FC05BC80016D1B4 /* Recovered References */ = {
@@ -401,6 +417,8 @@
 				E0000000000000000000000D /* NotificationService.swift in Sources */,
 				E0000000000000000000000E /* AppViewModel.swift in Sources */,
 				E00000000000000000000010 /* WidgetDataStore.swift in Sources */,
+				E00000000000000000000028 /* StoreManager.swift in Sources */,
+				E00000000000000000000029 /* PaywallView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -553,7 +571,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FreshAlert/FreshAlert.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 19;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FreshAlert/Info.plist;
@@ -562,7 +580,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.4;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -578,7 +596,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FreshAlert/FreshAlert.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 19;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FreshAlert/Info.plist;
@@ -587,7 +605,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.4;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -602,7 +620,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = FreshAlertWidget/FreshAlertWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 19;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FreshAlertWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -611,7 +629,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.4.4;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app.widget;
 				PRODUCT_NAME = FreshAlertWidget;
 				SKIP_INSTALL = YES;
@@ -627,7 +645,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = FreshAlertWidget/FreshAlertWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 19;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FreshAlertWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -636,7 +654,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.4.4;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app.widget;
 				PRODUCT_NAME = FreshAlertWidget;
 				SKIP_INSTALL = YES;
@@ -651,10 +669,10 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 19;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.4.4;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.FreshAlertTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -669,10 +687,10 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 19;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.4.4;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.FreshAlertTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
