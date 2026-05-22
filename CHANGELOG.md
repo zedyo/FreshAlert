@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.4.4] – 2026-05-22
+
+### Projekt / Dokumentation
+- **`docs/MONETIZATION.md`**: Umsatzeinschätzung und Monetarisierungs-Konzept –
+  Freemium mit Eintrags-Limit, Preisempfehlung, Apple-Rahmenbedingungen und
+  technischer Umsetzungsplan (StoreKit 2).
+
+---
+
 ## [1.4.3] – 2026-05-22
 
 ### Projekt / Infrastruktur

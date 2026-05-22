@@ -70,4 +70,5 @@ Semantic: x.0.0 major · x.y.0 feature · x.y.z bugfix. Add a `CHANGELOG.md` ent
 - CI/CD via GitHub Actions + Fastlane. PR/`main` → tests; `main` → TestFlight;
   tag `v*` → App Store submission. CI sets the build number from the commit count.
 - Docs: `docs/RELEASE_AUTOMATION.md` (pipeline + setup), `docs/APP_STORE.md`
-  (manual store steps), `docs/MARKETING.md`, `docs/PRIVACY_POLICY.md`.
+  (manual store steps), `docs/MARKETING.md`, `docs/MONETIZATION.md`,
+  `docs/PRIVACY_POLICY.md`.
