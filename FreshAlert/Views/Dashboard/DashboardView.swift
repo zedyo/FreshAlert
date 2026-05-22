@@ -81,6 +81,7 @@ struct DashboardView: View {
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     Button {
                                         viewModel.decrementQuantity(item)
+                                        Feedback.itemUsed()
                                     } label: {
                                         Label(
                                             item.quantity > 1 ? "1 verwendet" : "Verwendet",
@@ -100,6 +101,7 @@ struct DashboardView: View {
                                 .contextMenu {
                                     Button {
                                         viewModel.decrementQuantity(item)
+                                        Feedback.itemUsed()
                                     } label: {
                                         Label(
                                             item.quantity > 1 ? "1 Exemplar verbraucht" : "Als verwendet markieren",

@@ -330,6 +330,7 @@ struct AddFoodItemView: View {
         )
         Task {
             await viewModel.addFoodItem(item)
+            Feedback.itemSaved()
             dismiss()
         }
     }

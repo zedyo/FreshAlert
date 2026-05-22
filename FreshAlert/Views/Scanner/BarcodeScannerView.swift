@@ -417,7 +417,7 @@ struct CameraPreview: UIViewRepresentable {
             lastScan = Date()
             DispatchQueue.main.async {
                 self.parent.scannedBarcode = value
-                UINotificationFeedbackGenerator().notificationOccurred(.success)
+                Feedback.scanSuccess()
             }
         }
     }

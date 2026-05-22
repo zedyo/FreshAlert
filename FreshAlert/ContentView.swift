@@ -1,5 +1,7 @@
 import SwiftUI
 import SwiftData
+import UIKit
+import AudioToolbox
 
 struct ContentView: View {
     @EnvironmentObject var viewModel: AppViewModel
@@ -30,6 +32,9 @@ struct ContentView: View {
                 .tag(2)
         }
         .tint(Color.freshGreen)
+        .onChange(of: selectedTab) { _, _ in
+            Feedback.tabChanged()
+        }
         .onAppear {
             if viewModel.scanRequested {
                 selectedTab = 1
@@ -60,5 +65,30 @@ struct ContentView: View {
         } else {
             hasCompletedOnboarding = true
         }
+    }
+}
+
+// MARK: - Feedback
+
+// Subtle sound + haptic feedback. System sounds honor the ringer switch,
+// so the audio stays discreet and is silent when the phone is muted.
+enum Feedback {
+    static func tabChanged() {
+        UISelectionFeedbackGenerator().selectionChanged()
+    }
+
+    static func scanSuccess() {
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        AudioServicesPlaySystemSound(1057)
+    }
+
+    static func itemSaved() {
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        AudioServicesPlaySystemSound(1057)
+    }
+
+    static func itemUsed() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        AudioServicesPlaySystemSound(1104)
     }
 }

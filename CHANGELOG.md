@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0] – 2026-05-22
+
+### Neue Funktionen
+- **Sound & Haptik**: Dezentes Feedback an sinnvollen Stellen — ein leichtes haptisches Tippen beim Wechsel der Tabs, ein feiner Ton plus Haptik bei erfolgreichem Barcode-Scan und beim Speichern eines Produkts, sowie ein kurzes Feedback beim Markieren als verwendet. Töne respektieren den Stummschalter des iPhones.
+
+---
+
 ## [1.3.0] – 2026-05-22
 
 ### Neue Funktionen
