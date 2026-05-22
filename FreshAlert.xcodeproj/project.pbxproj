@@ -22,13 +22,9 @@
 		E0000000000000000000000D /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000000D /* NotificationService.swift */; };
 		E0000000000000000000000E /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000000E /* AppViewModel.swift */; };
 		E0000000000000000000000F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000000F /* Assets.xcassets */; };
-		/* Main app: WidgetDataStore shared file */
 		E00000000000000000000010 /* WidgetDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000013 /* WidgetDataStore.swift */; };
-		/* WidgetKit framework linked in main app (for WidgetCenter.reloadAllTimelines) */
 		E00000000000000000000011 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00000000000000000000018 /* WidgetKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
-		/* Embed App Extensions */
-		E00000000000000000000012 /* FreshAlertWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = D00000000000000000000012 /* FreshAlertWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		/* Widget target build files */
+		E00000000000000000000012 /* FreshAlertWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D00000000000000000000012 /* FreshAlertWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E00000000000000000000020 /* FreshAlertWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000014 /* FreshAlertWidget.swift */; };
 		E00000000000000000000021 /* FreshAlertWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000015 /* FreshAlertWidgetBundle.swift */; };
 		E00000000000000000000022 /* MarkAsUsedIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000016 /* MarkAsUsedIntent.swift */; };
@@ -51,15 +47,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		C00000000000000000000007 /* Embed App Extensions */ = {
+		C00000000000000000000007 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				E00000000000000000000012 /* FreshAlertWidget.appex in Embed App Extensions */,
+				E00000000000000000000012 /* FreshAlertWidget.appex in Embed Foundation Extensions */,
 			);
-			name = "Embed App Extensions";
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -67,10 +63,6 @@
 /* Begin PBXFileReference section */
 		D00000000000000000000001 /* FreshAlertApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreshAlertApp.swift; sourceTree = "<group>"; };
 		D00000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		D0000000000000000000001A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		D0000000000000000000001F /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
-		D0000000000000000000001B /* ExpiryLabelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiryLabelTests.swift; sourceTree = "<group>"; };
-		D0000000000000000000001C /* FreshAlertTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FreshAlertTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D00000000000000000000003 /* FoodItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodItem.swift; sourceTree = "<group>"; };
 		D00000000000000000000004 /* StorageLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageLocation.swift; sourceTree = "<group>"; };
 		D00000000000000000000005 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
@@ -86,20 +78,20 @@
 		D0000000000000000000000F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D00000000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D00000000000000000000011 /* FreshAlert.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FreshAlert.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		/* Widget product */
 		D00000000000000000000012 /* FreshAlertWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FreshAlertWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		/* Widget source files */
 		D00000000000000000000013 /* WidgetDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDataStore.swift; sourceTree = "<group>"; };
 		D00000000000000000000014 /* FreshAlertWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreshAlertWidget.swift; sourceTree = "<group>"; };
 		D00000000000000000000015 /* FreshAlertWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreshAlertWidgetBundle.swift; sourceTree = "<group>"; };
 		D00000000000000000000016 /* MarkAsUsedIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkAsUsedIntent.swift; sourceTree = "<group>"; };
-		D00000000000000000000017 /* Info.plist (Widget) */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		/* Entitlements */
-		D0000000000000000000001D /* FreshAlert.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FreshAlert.entitlements; sourceTree = "<group>"; };
-		D0000000000000000000001E /* FreshAlertWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FreshAlertWidget.entitlements; sourceTree = "<group>"; };
-		/* System frameworks */
+		D00000000000000000000017 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D00000000000000000000018 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D00000000000000000000019 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		D0000000000000000000001A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		D0000000000000000000001B /* ExpiryLabelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiryLabelTests.swift; sourceTree = "<group>"; };
+		D0000000000000000000001C /* FreshAlertTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FreshAlertTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D0000000000000000000001D /* FreshAlert.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FreshAlert.entitlements; sourceTree = "<group>"; };
+		D0000000000000000000001E /* FreshAlertWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FreshAlertWidget.entitlements; sourceTree = "<group>"; };
+		D0000000000000000000001F /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,7 +103,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C00000000000000000000005 /* Frameworks (Widget) */ = {
+		C00000000000000000000005 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -130,6 +122,7 @@
 				A0000000000000000000000C /* FreshAlertWidget */,
 				T00000000000000000000004 /* FreshAlertTests */,
 				A00000000000000000000002 /* Products */,
+				D547F91D2FC05BC80016D1B4 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -141,14 +134,6 @@
 				D0000000000000000000001C /* FreshAlertTests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		T00000000000000000000004 /* FreshAlertTests */ = {
-			isa = PBXGroup;
-			children = (
-				D0000000000000000000001B /* ExpiryLabelTests.swift */,
-			);
-			path = FreshAlertTests;
 			sourceTree = "<group>";
 		};
 		A00000000000000000000003 /* FreshAlert */ = {
@@ -187,14 +172,6 @@
 				A0000000000000000000000D /* Onboarding */,
 			);
 			path = Views;
-			sourceTree = "<group>";
-		};
-		A0000000000000000000000D /* Onboarding */ = {
-			isa = PBXGroup;
-			children = (
-				D0000000000000000000001F /* OnboardingView.swift */,
-			);
-			path = Onboarding;
 			sourceTree = "<group>";
 		};
 		A00000000000000000000006 /* Dashboard */ = {
@@ -256,10 +233,35 @@
 				D00000000000000000000015 /* FreshAlertWidgetBundle.swift */,
 				D00000000000000000000016 /* MarkAsUsedIntent.swift */,
 				D00000000000000000000013 /* WidgetDataStore.swift */,
-				D00000000000000000000017 /* Info.plist (Widget) */,
+				D00000000000000000000017 /* Info.plist */,
 				D0000000000000000000001E /* FreshAlertWidget.entitlements */,
 			);
 			path = FreshAlertWidget;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000D /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				D0000000000000000000001F /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		D547F91D2FC05BC80016D1B4 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				D00000000000000000000018 /* WidgetKit.framework */,
+				D00000000000000000000019 /* SwiftUI.framework */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
+		T00000000000000000000004 /* FreshAlertTests */ = {
+			isa = PBXGroup;
+			children = (
+				D0000000000000000000001B /* ExpiryLabelTests.swift */,
+			);
+			path = FreshAlertTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -272,7 +274,7 @@
 				C00000000000000000000001 /* Sources */,
 				C00000000000000000000002 /* Frameworks */,
 				C00000000000000000000003 /* Resources */,
-				C00000000000000000000007 /* Embed App Extensions */,
+				C00000000000000000000007 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
@@ -288,9 +290,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F00000000000000000000009 /* Build configuration list for PBXNativeTarget "FreshAlertWidget" */;
 			buildPhases = (
-				C00000000000000000000004 /* Sources (Widget) */,
-				C00000000000000000000005 /* Frameworks (Widget) */,
-				C00000000000000000000006 /* Resources (Widget) */,
+				C00000000000000000000004 /* Sources */,
+				C00000000000000000000005 /* Frameworks */,
+				C00000000000000000000006 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -305,7 +307,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = T00000000000000000000008 /* Build configuration list for PBXNativeTarget "FreshAlertTests" */;
 			buildPhases = (
-				T00000000000000000000002 /* Sources (Tests) */,
+				T00000000000000000000002 /* Sources */,
 			);
 			buildRules = (
 			);
@@ -324,7 +326,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1540;
-				LastUpgradeCheck = 2630;
+				LastUpgradeCheck = 2640;
 				TargetAttributes = {
 					B00000000000000000000002 = {
 						CreatedOnToolsVersion = 15.4;
@@ -368,7 +370,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C00000000000000000000006 /* Resources (Widget) */ = {
+		C00000000000000000000006 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -402,15 +404,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		T00000000000000000000002 /* Sources (Tests) */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				T00000000000000000000005 /* ExpiryLabelTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C00000000000000000000004 /* Sources (Widget) */ = {
+		C00000000000000000000004 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -418,6 +412,14 @@
 				E00000000000000000000021 /* FreshAlertWidgetBundle.swift in Sources */,
 				E00000000000000000000022 /* MarkAsUsedIntent.swift in Sources */,
 				E00000000000000000000023 /* WidgetDataStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		T00000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				T00000000000000000000005 /* ExpiryLabelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -544,7 +546,6 @@
 			};
 			name = Release;
 		};
-		/* Main app target configs */
 		F00000000000000000000005 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -552,7 +553,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FreshAlert/FreshAlert.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FreshAlert/Info.plist;
@@ -561,7 +562,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.1;
+				MARKETING_VERSION = 1.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -577,7 +578,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FreshAlert/FreshAlert.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FreshAlert/Info.plist;
@@ -586,7 +587,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.1;
+				MARKETING_VERSION = 1.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -595,14 +596,13 @@
 			};
 			name = Release;
 		};
-		/* Widget target configs */
 		F00000000000000000000007 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = FreshAlertWidget/FreshAlertWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FreshAlertWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -611,7 +611,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.2.1;
+				MARKETING_VERSION = 1.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app.widget;
 				PRODUCT_NAME = FreshAlertWidget;
 				SKIP_INSTALL = YES;
@@ -627,7 +627,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = FreshAlertWidget/FreshAlertWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FreshAlertWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -636,7 +636,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.2.1;
+				MARKETING_VERSION = 1.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app.widget;
 				PRODUCT_NAME = FreshAlertWidget;
 				SKIP_INSTALL = YES;
@@ -651,10 +651,10 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.2.1;
+				MARKETING_VERSION = 1.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.FreshAlertTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -669,10 +669,10 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.2.1;
+				MARKETING_VERSION = 1.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.FreshAlertTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;

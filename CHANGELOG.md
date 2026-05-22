@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2] – 2026-05-22
+
+### Fehlerbehebungen
+- **Saubere Pulls**: Die `project.pbxproj` und das geteilte Schema liegen jetzt exakt in der Form vor, die Xcode 26 erzeugt (Build-Phase „Embed Foundation Extensions", „Recovered References"-Gruppe für Frameworks, Schema `LastUpgradeVersion 2640`). Dadurch normalisiert Xcode die Dateien nicht mehr automatisch — keine ungewollten lokalen Änderungen mehr, die Pulls blockieren.
+
+---
+
 ## [1.2.1] – 2026-05-22
 
 ### Verbesserungen
