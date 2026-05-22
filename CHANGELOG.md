@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.4.3] – 2026-05-22
+
+### Projekt / Infrastruktur
+- **Automatisches Deployment**: GitHub-Actions-Pipeline mit Fastlane hinzugefügt –
+  Tests als Qualitäts-Gate bei jedem PR, automatischer TestFlight-Upload bei Push
+  auf `main`, App-Store-Einreichung per Versions-Tag.
+- **Dokumentation** unter `docs/`: Marketing-Konzept, App-Store-Anleitung,
+  Deployment-/QA-Leitfaden und ein Datenschutzerklärungs-Entwurf.
+
+---
+
 ## [1.4.2] – 2026-05-22
 
 ### Fehlerbehebungen

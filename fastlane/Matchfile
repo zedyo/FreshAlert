@@ -1,0 +1,7 @@
+# Code-signing assets are stored in a separate private git repository.
+# Set the URL via the MATCH_GIT_URL environment variable / GitHub secret.
+git_url(ENV["MATCH_GIT_URL"])
+storage_mode("git")
+
+type("appstore")
+app_identifier(["com.freshalert.app", "com.freshalert.app.widget"])

@@ -64,3 +64,10 @@ Semantic: x.0.0 major · x.y.0 feature · x.y.z bugfix. Add a `CHANGELOG.md` ent
 - Tests: `⌘U` (scheme `FreshAlert` includes `FreshAlertTests` in its TestAction).
   The test target is built on every build, so test code that stops compiling
   fails the build immediately.
+
+## Release & deployment
+
+- CI/CD via GitHub Actions + Fastlane. PR/`main` → tests; `main` → TestFlight;
+  tag `v*` → App Store submission. CI sets the build number from the commit count.
+- Docs: `docs/RELEASE_AUTOMATION.md` (pipeline + setup), `docs/APP_STORE.md`
+  (manual store steps), `docs/MARKETING.md`, `docs/PRIVACY_POLICY.md`.
