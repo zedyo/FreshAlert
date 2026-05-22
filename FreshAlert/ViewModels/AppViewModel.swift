@@ -27,17 +27,22 @@ final class AppViewModel: ObservableObject {
     }
 
     private func setupQuickActionObserver() {
-        NotificationCenter.default.addObserver(
-            forName: UIApplication.didBecomeActiveNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
+        let center = NotificationCenter.default
+        let handler: @Sendable (Notification) -> Void = { [weak self] _ in
             guard let self else { return }
             if AppDelegate.pendingShortcutType == "com.freshalert.app.scan" {
                 AppDelegate.pendingShortcutType = nil
                 Task { @MainActor in self.scanRequested = true }
             }
         }
+        center.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil, queue: .main, using: handler
+        )
+        center.addObserver(
+            forName: .openScannerTab,
+            object: nil, queue: .main, using: handler
+        )
     }
 
     // MARK: - Network

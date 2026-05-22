@@ -5,20 +5,40 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
     func application(
         _ application: UIApplication,
-        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
-    ) -> Bool {
-        if let shortcut = launchOptions?[.shortcutItem] as? UIApplicationShortcutItem {
-            Self.pendingShortcutType = shortcut.type
+        configurationForConnecting connectingSceneSession: UISceneSession,
+        options: UIScene.ConnectionOptions
+    ) -> UISceneConfiguration {
+        let config = UISceneConfiguration(
+            name: nil,
+            sessionRole: connectingSceneSession.role
+        )
+        config.delegateClass = SceneDelegate.self
+        return config
+    }
+}
+
+// In SwiftUI scene-based apps Home Screen quick actions are delivered to the
+// scene delegate, never to UIApplicationDelegate. Cold launch arrives via
+// connectionOptions, warm launch via windowScene(_:performActionFor:).
+final class SceneDelegate: NSObject, UIWindowSceneDelegate {
+    func scene(
+        _ scene: UIScene,
+        willConnectTo session: UISceneSession,
+        options connectionOptions: UIScene.ConnectionOptions
+    ) {
+        if let shortcutItem = connectionOptions.shortcutItem {
+            AppDelegate.pendingShortcutType = shortcutItem.type
+            NotificationCenter.default.post(name: .openScannerTab, object: nil)
         }
-        return true
     }
 
-    func application(
-        _ application: UIApplication,
+    func windowScene(
+        _ windowScene: UIWindowScene,
         performActionFor shortcutItem: UIApplicationShortcutItem,
         completionHandler: @escaping (Bool) -> Void
     ) {
-        Self.pendingShortcutType = shortcutItem.type
+        AppDelegate.pendingShortcutType = shortcutItem.type
+        NotificationCenter.default.post(name: .openScannerTab, object: nil)
         completionHandler(true)
     }
 }

@@ -1,9 +1,16 @@
 # Changelog
 
+## [1.1.5] – 2026-05-22
+
+### Fehlerbehebungen
+- **Home Screen Quick Action**: Endgültige Behebung. Ursache war, dass SwiftUI-Scene-Apps Quick Actions **ausschließlich** an den Scene-Delegate liefern — `UIApplicationDelegate.performActionFor` wird nie aufgerufen, und der Kaltstart-Shortcut steht nicht in `launchOptions`. Ein echter `SceneDelegate` wurde hinzugefügt: Kaltstart über `scene(_:willConnectTo:)` (`connectionOptions.shortcutItem`), Hintergrund→Vordergrund über `windowScene(_:performActionFor:)`.
+
+---
+
 ## [1.1.4] – 2026-05-22
 
 ### Fehlerbehebungen
-- **Home Screen Quick Action**: Scanner-Tab-Wechsel funktioniert jetzt zuverlässig. Statt SwiftUI-`scenePhase` (anfällig für Timing-Probleme) lauscht `AppViewModel` direkt auf `UIApplication.didBecomeActiveNotification`, welche iOS garantiert nach `performActionFor` feuert — sowohl bei Kaltstart als auch Hintergrund→Vordergrund.
+- **Home Screen Quick Action**: Umstellung von SwiftUI-`scenePhase` auf `UIApplication.didBecomeActiveNotification`-Beobachtung in `AppViewModel`.
 
 ---
 
