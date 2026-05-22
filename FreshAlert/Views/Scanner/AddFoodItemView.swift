@@ -18,10 +18,15 @@ struct AddFoodItemView: View {
     @State private var customReminderDays: Int = 7
     @State private var isLoadingProduct: Bool
     @State private var productNotFound = false
+    @State private var isEditingProduct: Bool
+    @FocusState private var focusedField: Field?
+
+    enum Field { case name, brand }
 
     init(barcode: String) {
         self.barcode = barcode
         _isLoadingProduct = State(initialValue: !barcode.isEmpty)
+        _isEditingProduct = State(initialValue: barcode.isEmpty)
     }
     @State private var showLocationPicker = false
 
@@ -39,13 +44,6 @@ struct AddFoodItemView: View {
                     productInfoHeader
                 } header: {
                     Text("Produkt")
-                }
-
-                Section {
-                    TextField("Produktname *", text: $name)
-                    TextField("Marke (optional)", text: $brand)
-                } header: {
-                    Text("Details")
                 }
 
                 // Menge ABOVE Ablaufdatum
@@ -149,23 +147,32 @@ struct AddFoodItemView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                if barcode.isEmpty {
-                    Text("Produktdaten manuell eingeben")
-                        .font(.subheadline).foregroundStyle(.secondary)
-                } else if isLoadingProduct {
+                if isLoadingProduct {
                     HStack(spacing: 6) {
                         ProgressView().scaleEffect(0.8)
                         Text("Produkt wird gesucht …")
                             .font(.subheadline).foregroundStyle(.secondary)
                     }
-                } else if productNotFound {
-                    Text("Produkt nicht gefunden")
-                        .font(.subheadline).foregroundStyle(.secondary)
-                    Text("Bitte Namen manuell eingeben.")
-                        .font(.caption).foregroundStyle(.tertiary)
-                } else {
-                    Text(name.isEmpty ? "Unbekannt" : name)
+                } else if isEditingProduct {
+                    TextField("Produktname *", text: $name)
                         .font(.subheadline.weight(.semibold))
+                        .focused($focusedField, equals: .name)
+                        .submitLabel(.next)
+                        .onSubmit { focusedField = .brand }
+                    TextField("Marke (optional)", text: $brand)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .focused($focusedField, equals: .brand)
+                        .submitLabel(.done)
+                        .onSubmit { focusedField = nil }
+                } else {
+                    HStack(spacing: 4) {
+                        Text(name.isEmpty ? "Unbekannt" : name)
+                            .font(.subheadline.weight(.semibold))
+                        Image(systemName: "pencil")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
                     if !brand.isEmpty {
                         Text(brand).font(.caption).foregroundStyle(.secondary)
                     }
@@ -174,8 +181,15 @@ struct AddFoodItemView: View {
                     Text("Barcode: \(barcode)").font(.caption2).foregroundStyle(.tertiary)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.vertical, 4)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            guard !isLoadingProduct else { return }
+            withAnimation(.spring(response: 0.25)) { isEditingProduct = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { focusedField = .name }
+        }
     }
 
     private var productPlaceholder: some View {
@@ -223,6 +237,8 @@ struct AddFoodItemView: View {
             imageURL = info.imageURL ?? ""
         } else {
             productNotFound = true
+            isEditingProduct = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { focusedField = .name }
         }
     }
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3] – 2026-05-22
+
+### Fehlerbehebungen / Verbesserungen
+- **Produkt-Karte**: „Details"-Bereich (Name/Marke-TextFelder) entfernt. Name und Marke können direkt in der Produktkarte bearbeitet werden — Karte antippen öffnet die Felder inline. Bei manuellem Eintrag oder nicht gefundenem Produkt sind die Felder sofort aktiv.
+
+---
+
 ## [1.1.2] – 2026-05-22
 
 ### Fehlerbehebungen
