@@ -123,7 +123,7 @@ struct BarcodeScannerView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
 
             case .success:
-                scanHintPill("Barcode erkannt ✓", color: Color(red: 0.2, green: 0.78, blue: 0.2))
+                scanHintPill("Barcode erkannt ✓", color: Color.freshGreen)
             }
 
             if !viewModel.isOnline {
@@ -200,7 +200,7 @@ struct BarcodeScannerView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
-            .tint(Color(red: 0.2, green: 0.78, blue: 0.2))
+            .tint(Color.freshGreen)
 
             Divider().padding(.horizontal, 40)
 
@@ -253,7 +253,7 @@ struct ScannerOverlay: View {
 
     private var borderColor: Color {
         switch scanStatus {
-        case .waiting:       return Color(red: 0.2, green: 0.78, blue: 0.2)
+        case .waiting:       return Color.freshGreen
         case .noCodeDetected: return .orange
         case .success:       return .white
         }
@@ -289,7 +289,7 @@ struct ScannerOverlay: View {
                 Capsule()
                     .fill(
                         LinearGradient(
-                            colors: [.clear, Color(red: 0.2, green: 0.78, blue: 0.2).opacity(0.9), .clear],
+                            colors: [.clear, Color.freshGreen.opacity(0.9), .clear],
                             startPoint: .leading, endPoint: .trailing)
                     )
                     .frame(width: frameW - 20, height: 2.5)

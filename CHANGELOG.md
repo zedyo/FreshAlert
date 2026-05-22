@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.2.0] – 2026-05-22
+
+### Neue Funktionen
+- **Einrichtungs-Wizard**: Beim allerersten Start führt ein Tutorial durch die App (Scannen, Erinnerungen) und lässt den Nutzer seine Lagerorte auswählen. Erscheint nur, wenn noch keine Lagerorte existieren; bestehende Nutzer sehen ihn nicht.
+
+### Verbesserungen
+- **Code-Qualität**: Das Marken-Grün ist jetzt zentral als `Color.freshGreen` definiert statt 9× hartkodiert.
+- **Tests**: Zusätzliche Unit-Tests für `daysUntilExpiry`, `Color(hex:)` und die Standard-Lagerorte.
+- **Geteiltes Xcode-Schema**: `FreshAlert.xcscheme` ist nun versioniert — das Test-Target ist fest im Schema verankert und das Setup geht bei Pulls nicht mehr verloren. Test-Code wird bei jedem Build mitkompiliert.
+- **Projekt-Doku**: `CLAUDE.md` mit Architektur-Überblick und Projekt-Konventionen hinzugefügt.
+
+### Fehlerbehebungen
+- Überflüssiges Ternary in `WidgetDataStore.expiryLabel` entfernt.
+- Lagerorte werden nicht mehr automatisch beim Start angelegt — das übernimmt jetzt der Wizard.
+
+---
+
 ## [1.1.7] – 2026-05-22
 
 ### Fehlerbehebungen

@@ -87,7 +87,7 @@ struct DashboardView: View {
                                             systemImage: "checkmark.circle.fill"
                                         )
                                     }
-                                    .tint(Color(red: 0.2, green: 0.78, blue: 0.2))
+                                    .tint(Color.freshGreen)
                                 }
                                 .swipeActions(edge: .leading, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
@@ -272,7 +272,7 @@ struct FilterChip: View {
                 .font(.subheadline.weight(isSelected ? .semibold : .regular))
                 .foregroundStyle(isSelected ? .white : .primary)
                 .padding(.horizontal, 14).padding(.vertical, 7)
-                .background(isSelected ? Color(red: 0.2, green: 0.78, blue: 0.2) : Color(.secondarySystemBackground))
+                .background(isSelected ? Color.freshGreen : Color(.secondarySystemBackground))
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)

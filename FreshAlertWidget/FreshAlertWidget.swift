@@ -1,6 +1,10 @@
 import WidgetKit
 import SwiftUI
 
+private extension Color {
+    static let freshGreen = Color(red: 0.2, green: 0.78, blue: 0.2)
+}
+
 // MARK: - Timeline
 
 struct FreshAlertEntry: TimelineEntry {
@@ -93,7 +97,7 @@ struct FreshAlertWidgetEntryView: View {
 
     private func itemRow(_ item: WidgetFoodItem) -> some View {
         let days = item.daysUntilExpiry
-        let statusColor: Color = days < 0 ? Color(.systemGray) : days <= 1 ? .red : days <= 7 ? .orange : Color(red: 0.2, green: 0.78, blue: 0.2)
+        let statusColor: Color = days < 0 ? Color(.systemGray) : days <= 1 ? .red : days <= 7 ? .orange : Color.freshGreen
 
         return HStack(spacing: 10) {
             // Location icon (or status dot fallback)
@@ -136,7 +140,7 @@ struct FreshAlertWidgetEntryView: View {
             Button(intent: MarkAsUsedIntent(itemID: item.id.uuidString)) {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 22))
-                    .foregroundStyle(Color(red: 0.2, green: 0.78, blue: 0.2))
+                    .foregroundStyle(Color.freshGreen)
                     .frame(width: 36, height: 36)
                     .contentShape(Rectangle())
             }

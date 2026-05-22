@@ -32,15 +32,33 @@ final class StorageLocation {
         Color(hex: colorHex) ?? .green
     }
 
+    /// Single source of truth for the suggested storage locations,
+    /// used by the onboarding wizard and the `defaultLocations` factory.
+    static let defaultTemplates: [StorageLocationTemplate] = [
+        .init(name: "Kühlschrank",    iconName: "thermometer.snowflake", colorHex: "#5AC8FA"),
+        .init(name: "Tiefkühler",     iconName: "snowflake",             colorHex: "#007AFF"),
+        .init(name: "Vorratsschrank", iconName: "cabinet",               colorHex: "#FF9500"),
+        .init(name: "Keller",         iconName: "building.columns",      colorHex: "#8E8E93"),
+        .init(name: "Obstkorb",       iconName: "basket",                colorHex: "#FF3B30"),
+    ]
+
     static var defaultLocations: [StorageLocation] {
-        [
-            StorageLocation(name: "Kühlschrank",    iconName: "thermometer.snowflake", colorHex: "#5AC8FA", sortOrder: 0),
-            StorageLocation(name: "Tiefkühler",     iconName: "snowflake",             colorHex: "#007AFF", sortOrder: 1),
-            StorageLocation(name: "Vorratsschrank", iconName: "cabinet",               colorHex: "#FF9500", sortOrder: 2),
-            StorageLocation(name: "Keller",         iconName: "building.columns",      colorHex: "#8E8E93", sortOrder: 3),
-            StorageLocation(name: "Obstkorb",       iconName: "basket",                colorHex: "#FF3B30", sortOrder: 4),
-        ]
+        defaultTemplates.enumerated().map { index, t in
+            StorageLocation(name: t.name, iconName: t.iconName, colorHex: t.colorHex, sortOrder: index)
+        }
     }
+}
+
+struct StorageLocationTemplate {
+    let name: String
+    let iconName: String
+    let colorHex: String
+}
+
+// MARK: - Brand Color
+extension Color {
+    /// FreshAlert brand green — the single source of truth for the app's accent.
+    static let freshGreen = Color(red: 0.2, green: 0.78, blue: 0.2)
 }
 
 // MARK: - Color Hex Extension

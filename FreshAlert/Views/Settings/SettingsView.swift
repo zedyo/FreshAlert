@@ -71,7 +71,7 @@ struct SettingsView: View {
                             ),
                             in: 1...30, step: 1
                         )
-                        .tint(Color(red: 0.2, green: 0.78, blue: 0.2))
+                        .tint(Color.freshGreen)
                         HStack {
                             Text("1 Tag"); Spacer(); Text("30 Tage")
                         }

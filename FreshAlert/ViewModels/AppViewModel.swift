@@ -22,7 +22,6 @@ final class AppViewModel: ObservableObject {
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         setupNetwork()
-        insertDefaultLocationsIfNeeded()
         setupQuickActionObserver()
     }
 
@@ -58,14 +57,6 @@ final class AppViewModel: ObservableObject {
             }
         }
         monitor.start(queue: monitorQueue)
-    }
-
-    // MARK: - Default Locations
-    private func insertDefaultLocationsIfNeeded() {
-        let count = (try? modelContext.fetchCount(FetchDescriptor<StorageLocation>())) ?? 0
-        guard count == 0 else { return }
-        StorageLocation.defaultLocations.forEach { modelContext.insert($0) }
-        try? modelContext.save()
     }
 
     // MARK: - Food Items CRUD

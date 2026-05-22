@@ -61,7 +61,7 @@ struct AddFoodItemView: View {
                         displayedComponents: .date
                     )
                     .datePickerStyle(.graphical)
-                    .tint(Color(red: 0.2, green: 0.78, blue: 0.2))
+                    .tint(Color.freshGreen)
                 } header: {
                     Text("Ablaufdatum")
                 }
@@ -214,7 +214,7 @@ struct AddFoodItemView: View {
                             .foregroundStyle(isSelected ? .white : .primary)
                             .padding(.horizontal, 12).padding(.vertical, 6)
                             .background(isSelected
-                                ? Color(red: 0.2, green: 0.78, blue: 0.2)
+                                ? Color.freshGreen
                                 : Color(.secondarySystemBackground))
                             .clipShape(Capsule())
                     }

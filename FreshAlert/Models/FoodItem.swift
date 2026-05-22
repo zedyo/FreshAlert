@@ -82,7 +82,7 @@ enum ExpiryStatus {
 
     var color: Color {
         switch self {
-        case .good:     return Color(red: 0.2, green: 0.78, blue: 0.2)
+        case .good:     return Color.freshGreen
         case .warning:  return .orange
         case .critical: return .red
         case .expired:  return Color(.systemGray)
@@ -91,7 +91,7 @@ enum ExpiryStatus {
 
     var backgroundColor: Color {
         switch self {
-        case .good:     return Color(red: 0.2, green: 0.78, blue: 0.2).opacity(0.12)
+        case .good:     return Color.freshGreen.opacity(0.12)
         case .warning:  return Color.orange.opacity(0.12)
         case .critical: return Color.red.opacity(0.12)
         case .expired:  return Color(.systemGray5)

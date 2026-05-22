@@ -36,6 +36,7 @@
 		E00000000000000000000024 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00000000000000000000018 /* WidgetKit.framework */; };
 		E00000000000000000000025 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00000000000000000000019 /* SwiftUI.framework */; };
 		E00000000000000000000026 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000001A /* AppDelegate.swift */; };
+		E00000000000000000000027 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000001F /* OnboardingView.swift */; };
 		T00000000000000000000005 /* ExpiryLabelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000001B /* ExpiryLabelTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -67,6 +68,7 @@
 		D00000000000000000000001 /* FreshAlertApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreshAlertApp.swift; sourceTree = "<group>"; };
 		D00000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		D0000000000000000000001A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		D0000000000000000000001F /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		D0000000000000000000001B /* ExpiryLabelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiryLabelTests.swift; sourceTree = "<group>"; };
 		D0000000000000000000001C /* FreshAlertTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FreshAlertTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D00000000000000000000003 /* FoodItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodItem.swift; sourceTree = "<group>"; };
@@ -182,8 +184,17 @@
 				A00000000000000000000007 /* Scanner */,
 				A00000000000000000000008 /* StorageLocations */,
 				A00000000000000000000009 /* Settings */,
+				A0000000000000000000000D /* Onboarding */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000D /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				D0000000000000000000001F /* OnboardingView.swift */,
+			);
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 		A00000000000000000000006 /* Dashboard */ = {
@@ -374,6 +385,7 @@
 				E00000000000000000000001 /* FreshAlertApp.swift in Sources */,
 				E00000000000000000000002 /* ContentView.swift in Sources */,
 				E00000000000000000000026 /* AppDelegate.swift in Sources */,
+				E00000000000000000000027 /* OnboardingView.swift in Sources */,
 				E00000000000000000000003 /* FoodItem.swift in Sources */,
 				E00000000000000000000004 /* StorageLocation.swift in Sources */,
 				E00000000000000000000005 /* DashboardView.swift in Sources */,
@@ -540,7 +552,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FreshAlert/FreshAlert.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FreshAlert/Info.plist;
@@ -549,7 +561,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -565,7 +577,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FreshAlert/FreshAlert.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FreshAlert/Info.plist;
@@ -574,7 +586,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -590,7 +602,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = FreshAlertWidget/FreshAlertWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FreshAlertWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -599,7 +611,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app.widget;
 				PRODUCT_NAME = FreshAlertWidget;
 				SKIP_INSTALL = YES;
@@ -615,7 +627,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = FreshAlertWidget/FreshAlertWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FreshAlertWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -624,7 +636,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app.widget;
 				PRODUCT_NAME = FreshAlertWidget;
 				SKIP_INSTALL = YES;
@@ -639,10 +651,10 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.FreshAlertTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -657,10 +669,10 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.FreshAlertTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
