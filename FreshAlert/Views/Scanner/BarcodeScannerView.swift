@@ -261,7 +261,6 @@ struct ScannerOverlay: View {
 
     var body: some View {
         GeometryReader { geo in
-            let frameX = (geo.size.width  - frameW) / 2
             let frameY = (geo.size.height - frameH) / 2 - 40
 
             // Dimmed mask with transparent cutout
@@ -356,9 +355,6 @@ struct CameraPreview: UIViewRepresentable {
         try? device.lockForConfiguration()
         if device.isFocusModeSupported(.continuousAutoFocus) {
             device.focusMode = .continuousAutoFocus
-        }
-        if device.isAutoSmoothAutoFocusEnabled {
-            device.isAutoSmoothAutoFocusEnabled = false // faster focus transitions
         }
         if device.isExposureModeSupported(.continuousAutoExposure) {
             device.exposureMode = .continuousAutoExposure
