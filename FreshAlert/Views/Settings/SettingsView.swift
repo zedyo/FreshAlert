@@ -32,6 +32,53 @@ struct SettingsView: View {
                     Text("Status")
                 }
 
+                // Wiederherstellung verlorener Produkte
+                if !viewModel.orphanedNotifications.isEmpty {
+                    Section {
+                        ForEach(viewModel.orphanedNotifications) { orphan in
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(orphan.name)
+                                    .font(.subheadline.weight(.semibold))
+                                Text("Ablauf: \(orphan.expiryDate, format: .dateTime.day().month().year())")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                HStack(spacing: 8) {
+                                    Button {
+                                        Task { await viewModel.recoverOrphanedItem(orphan) }
+                                    } label: {
+                                        Label("Wiederherstellen", systemImage: "arrow.uturn.backward.circle.fill")
+                                            .font(.caption.weight(.semibold))
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .tint(Color.freshGreen)
+                                    Button {
+                                        viewModel.dismissOrphanedItem(orphan)
+                                    } label: {
+                                        Label("Verwerfen", systemImage: "trash")
+                                            .font(.caption)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .tint(.secondary)
+                                }
+                                .padding(.top, 4)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                        if viewModel.orphanedNotifications.count > 1 {
+                            Button(role: .destructive) {
+                                viewModel.dismissAllOrphanedNotifications()
+                            } label: {
+                                Label("Alle verwerfen", systemImage: "trash")
+                            }
+                        }
+                    } header: {
+                        Label("Vermisste Produkte (\(viewModel.orphanedNotifications.count))", systemImage: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                    } footer: {
+                        Text("Diese Produkte sind aus der Liste verschwunden, ihre Erinnerungen sind aber noch geplant. Wiederherstellen legt Name + Ablaufdatum neu an (andere Felder bleiben leer).")
+                    }
+                }
+
                 // Verwaltung
                 Section {
                     NavigationLink {

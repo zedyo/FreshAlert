@@ -38,6 +38,7 @@ struct FreshAlertApp: App {
                     }
                     appViewModel.updateWidgetSnapshot()
                     await appViewModel.cacheImagesForExistingItems()
+                    await appViewModel.scanForOrphanedNotifications()
                 }
         }
         .onChange(of: scenePhase) { _, newPhase in

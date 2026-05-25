@@ -1,5 +1,37 @@
 # Changelog
 
+## [1.6.0] – 2026-05-25
+
+### Robuste Speicherung & Wiederherstellung verlorener Produkte
+
+Hintergrund: Nach Updates waren bei einem Nutzer Produkte aus der Liste verschwunden,
+während die Erinnerungs-Notifications weiterhin ausgelöst wurden. Hauptursache:
+SwiftData-Save-Fehler wurden mit `try?` stillschweigend verschluckt – Items konnten
+nie persistiert werden, ohne dass es jemand mitbekam. Geplante Notifications blieben
+in der iOS-Notification-Queue als „Geister" zurück.
+
+### Hinzugefügt
+- **Vermisste-Produkte-Wiederherstellung in den Einstellungen**: Beim App-Start sucht
+  die App nach geplanten Notifications, deren Produkt-ID nicht mehr im Datenbestand
+  existiert. Aus deren Inhalt werden **Name** und **Ablaufdatum** rekonstruiert. In
+  den Einstellungen erscheint dann eine Sektion „Vermisste Produkte (N)" mit
+  „Wiederherstellen" (legt das Produkt neu an) und „Verwerfen" (cancelt die Notif).
+
+### Behoben
+- **Stille SwiftData-Save-Fehler werden nicht mehr verschluckt** (`AppViewModel`).
+  Alle sieben `try? modelContext.save()`-Aufrufe wurden durch `saveContext()` ersetzt,
+  das Fehler ins Log schreibt und einen Toast „Speichern fehlgeschlagen" anzeigt.
+- **Geister-Notifications werden erkannt und können entfernt werden** – Push-Erinnerungen
+  für längst nicht mehr existierende Produkte erscheinen jetzt in der
+  Wiederherstellungs-Liste und lassen sich gezielt löschen.
+
+### Hinweis
+Felder, die nicht aus den Notifications rekonstruierbar sind (Marke, Lagerort, Foto,
+Menge, Barcode), bleiben bei der Wiederherstellung leer und können nachträglich
+ergänzt werden. Die `itemID` wird wiederverwendet, damit nichts doppelt entsteht.
+
+---
+
 ## [1.5.3] – 2026-05-22
 
 ### Behoben

@@ -16,6 +16,7 @@ final class AppViewModel: ObservableObject {
     @Published var isLoadingProduct: Bool = false
     @Published var toastMessage: String?
     @Published var scanRequested: Bool = false
+    @Published private(set) var orphanedNotifications: [OrphanedNotification] = []
 
     @AppStorage("globalReminderDays") var globalReminderDays: Int = 7
 
@@ -65,7 +66,7 @@ final class AppViewModel: ObservableObject {
         let days = item.customReminderDays ?? globalReminderDays
         item.notificationIdentifiers = await NotificationService.shared
             .scheduleNotifications(for: item, reminderDays: days)
-        try? modelContext.save()
+        saveContext()
         updatePendingCount()
         updateWidgetSnapshot()
 
@@ -82,7 +83,7 @@ final class AppViewModel: ObservableObject {
         // releases the image file on disk immediately during the same save.
         item.imageData = nil
         modelContext.delete(item)
-        try? modelContext.save()
+        saveContext()
         updatePendingCount()
         updateWidgetSnapshot()
     }
@@ -91,7 +92,7 @@ final class AppViewModel: ObservableObject {
         let days = item.customReminderDays ?? globalReminderDays
         item.notificationIdentifiers = await NotificationService.shared
             .scheduleNotifications(for: item, reminderDays: days)
-        try? modelContext.save()
+        saveContext()
         updateWidgetSnapshot()
     }
 
@@ -102,7 +103,7 @@ final class AppViewModel: ObservableObject {
             deleteFoodItem(item)
             return
         }
-        try? modelContext.save()
+        saveContext()
         updateWidgetSnapshot()
     }
 
@@ -169,7 +170,7 @@ final class AppViewModel: ObservableObject {
     private func syncItem(_ item: FoodItem) async {
         guard !item.barcode.isEmpty else {
             item.isOfflineEntry = false
-            try? modelContext.save()
+            saveContext()
             return
         }
         if let info = await fetchProductInfo(barcode: item.barcode) {
@@ -178,7 +179,7 @@ final class AppViewModel: ObservableObject {
             if item.imageURL.isEmpty, let url = info.imageURL { item.imageURL = url }
         }
         item.isOfflineEntry = false
-        try? modelContext.save()
+        saveContext()
         if !item.imageURL.isEmpty && item.imageData == nil {
             await downloadAndCacheImage(for: item)
         }
@@ -193,7 +194,7 @@ final class AppViewModel: ObservableObject {
               httpResponse.statusCode == 200,
               !data.isEmpty else { return }
         item.imageData = data
-        try? modelContext.save()
+        saveContext()
     }
 
     // Back-fills imageData for existing items that only have a URL stored.
@@ -222,6 +223,70 @@ final class AppViewModel: ObservableObject {
             item.notificationIdentifiers = await NotificationService.shared
                 .scheduleNotifications(for: item, reminderDays: days)
         }
-        try? modelContext.save()
+        saveContext("rescheduleAllNotifications")
+    }
+
+    // MARK: - Persistence
+    /// Speichert den ModelContext und meldet Fehler, statt sie zu verschlucken.
+    /// Stille Save-Fehler waren mit verlorener Sicht auf Produkte verbunden.
+    @discardableResult
+    func saveContext(_ context: String = #function) -> Bool {
+        do {
+            try modelContext.save()
+            return true
+        } catch {
+            print("[FreshAlert] SwiftData-Save fehlgeschlagen in \(context): \(error)")
+            toastMessage = "Speichern fehlgeschlagen – bitte erneut versuchen."
+            return false
+        }
+    }
+
+    // MARK: - Orphaned Notifications Recovery
+    /// Sucht geplante Notifications, deren Produkt nicht mehr im Datenbestand ist
+    /// (z. B. nach stillem SwiftData-Verlust). Werden in den Einstellungen zur
+    /// Wiederherstellung angeboten.
+    func scanForOrphanedNotifications() async {
+        let allItems = (try? modelContext.fetch(FetchDescriptor<FoodItem>())) ?? []
+        let existing = Set(allItems.map { $0.id })
+        orphanedNotifications = await NotificationService.shared
+            .findOrphanedNotifications(existingIDs: existing)
+    }
+
+    /// Stellt ein verlorenes Produkt aus den Notification-Daten wieder her
+    /// (Name + Ablaufdatum). Andere Felder bleiben leer und können vom Nutzer
+    /// nachträglich ergänzt werden. Die alten Notifs werden gecancelt und neu
+    /// geplant – mit derselben itemID, damit nichts doppelt auftaucht.
+    func recoverOrphanedItem(_ orphan: OrphanedNotification) async {
+        NotificationService.shared.cancelNotifications(
+            withIdentifiers: orphan.notificationIdentifiers
+        )
+        let item = FoodItem(
+            id: orphan.itemID,
+            name: orphan.name,
+            expiryDate: orphan.expiryDate
+        )
+        modelContext.insert(item)
+        let days = item.customReminderDays ?? globalReminderDays
+        item.notificationIdentifiers = await NotificationService.shared
+            .scheduleNotifications(for: item, reminderDays: days)
+        saveContext()
+        orphanedNotifications.removeAll { $0.itemID == orphan.itemID }
+        updateWidgetSnapshot()
+    }
+
+    /// Verwirft ein verwaistes Produkt: cancelt die geplanten Notifs ohne es
+    /// wiederherzustellen. Wird gebraucht, wenn das Produkt vom Nutzer
+    /// tatsächlich aus der Liste entfernt werden sollte.
+    func dismissOrphanedItem(_ orphan: OrphanedNotification) {
+        NotificationService.shared.cancelNotifications(
+            withIdentifiers: orphan.notificationIdentifiers
+        )
+        orphanedNotifications.removeAll { $0.itemID == orphan.itemID }
+    }
+
+    func dismissAllOrphanedNotifications() {
+        let ids = orphanedNotifications.flatMap { $0.notificationIdentifiers }
+        NotificationService.shared.cancelNotifications(withIdentifiers: ids)
+        orphanedNotifications.removeAll()
     }
 }
