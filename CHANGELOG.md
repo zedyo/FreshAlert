@@ -1,5 +1,45 @@
 # Changelog
 
+## [1.7.0] – 2026-05-25
+
+### Quick Actions in Push-Notifications
+
+Bisher musste man die App öffnen, um ein Produkt als verbraucht zu markieren –
+auch wenn die Erinnerungs-Notification gerade noch auf dem Sperrbildschirm lag.
+Jetzt geht das direkt aus der Mitteilung:
+
+- **`NotificationService.registerCategories()`**: Zwei Notification-Kategorien
+  (`freshalert-single`, `freshalert-multi`) mit passenden Action-Buttons werden
+  beim App-Start registriert.
+- **`scheduleNotifications`** setzt `categoryIdentifier` jetzt anhand der
+  aktuellen Menge: bei Menge 1 die Single-Kategorie („Verbraucht"), sonst die
+  Multi-Kategorie („1 verbraucht", „Alle verbraucht").
+- **`AppDelegate`** wird `UNUserNotificationCenterDelegate` und behandelt die
+  Quick-Action-Antworten. Über den vorhandenen App-Group-Queue von
+  `WidgetDataStore` werden die Mutationen beim nächsten App-Start in SwiftData
+  übernommen – derselbe Mechanismus wie das Widget.
+- **`WidgetDataStore.queueDeleteAll`** + Pendant für „Alle verbraucht".
+- **`AppViewModel.decrementQuantity`** plant Notifs neu, sobald die Menge auf 1
+  fällt – damit der Quick-Action-Button von „1 verbraucht / Alle verbraucht" auf
+  das einzelne „Verbraucht" wechselt.
+- **`processPendingWidgetDecrements`** verarbeitet jetzt sowohl Dekrement- als
+  auch Delete-All-Queue beim App-Start.
+- **Vordergrund-Notifications** werden über `willPresent` weiterhin als Banner
+  gezeigt, damit die Buttons auch bei aktiver App erreichbar sind.
+
+### Release-Notes-Workflow
+
+Auf Wunsch eingeführt, damit App-Store-Nutzer in den „Was ist neu"-Notes lesen,
+was sich geändert hat:
+
+- **`fastlane/metadata/de-DE/release_notes.txt`**: Endnutzer-Text für die
+  nächste TestFlight-/App-Store-Veröffentlichung in deutscher Endnutzersprache.
+- **`CLAUDE.md`**: neuer Abschnitt „Release notes" dokumentiert die Konvention –
+  jede nutzersichtbare Änderung kommt zusätzlich zum technischen `CHANGELOG.md`
+  in diese Datei, akkumuliert bis zum nächsten `main`-Merge.
+
+---
+
 ## [1.6.0] – 2026-05-25
 
 ### Robuste Speicherung & Wiederherstellung verlorener Produkte

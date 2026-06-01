@@ -1,0 +1,7 @@
+Was ist neu:
+
+• Verbraucht direkt aus der Mitteilung: Wenn eine Erinnerung kommt, kannst du das Produkt jetzt direkt in der Push-Mitteilung als verbraucht markieren – ohne die App zu öffnen. Bei Produkten mit Menge größer 1 gibt es zwei Buttons: „1 verbraucht" und „Alle verbraucht".
+
+• Vermisste Produkte wiederherstellen: Sollten Produkte aus deiner Liste verschwinden, ihre Erinnerung aber noch geplant sein, taucht das Produkt in den Einstellungen unter „Vermisste Produkte" auf und kann mit einem Tipp zurückgeholt werden.
+
+• Zuverlässigere Speicherung: Speicherfehler werden nicht mehr stillschweigend verschluckt, sondern als Hinweis angezeigt – damit nichts unbemerkt verloren geht.

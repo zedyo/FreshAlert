@@ -97,14 +97,19 @@ final class AppViewModel: ObservableObject {
     }
 
     func decrementQuantity(_ item: FoodItem) {
-        if item.quantity > 1 {
-            item.quantity -= 1
-        } else {
+        guard item.quantity > 1 else {
             deleteFoodItem(item)
             return
         }
+        item.quantity -= 1
         saveContext()
         updateWidgetSnapshot()
+        // Wenn die Menge auf 1 gefallen ist, Notifs neu planen, damit der
+        // Quick-Action-Button von „1 verbraucht / Alle verbraucht" auf das
+        // einzelne „Verbraucht" wechselt.
+        if item.quantity == 1 {
+            Task { await self.updateFoodItem(item) }
+        }
     }
 
     // MARK: - Widget Data
@@ -129,13 +134,21 @@ final class AppViewModel: ObservableObject {
     }
 
     func processPendingWidgetDecrements() {
-        let pending = WidgetDataStore.loadPendingDecrements()
-        guard !pending.isEmpty else { return }
+        let decrements = WidgetDataStore.loadPendingDecrements()
+        let deletions  = WidgetDataStore.loadPendingDeleteAlls()
+        guard !decrements.isEmpty || !deletions.isEmpty else { return }
         WidgetDataStore.clearPendingDecrements()
-        for id in pending {
+        WidgetDataStore.clearPendingDeleteAlls()
+        for id in decrements {
             let descriptor = FetchDescriptor<FoodItem>(predicate: #Predicate { $0.id == id })
             if let item = try? modelContext.fetch(descriptor).first {
                 decrementQuantity(item)
+            }
+        }
+        for id in deletions {
+            let descriptor = FetchDescriptor<FoodItem>(predicate: #Predicate { $0.id == id })
+            if let item = try? modelContext.fetch(descriptor).first {
+                deleteFoodItem(item)
             }
         }
     }

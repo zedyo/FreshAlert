@@ -33,6 +33,7 @@ struct WidgetFoodItem: Codable, Identifiable {
 enum WidgetDataStore {
     static let itemsKey = "widgetFoodItems"
     static let pendingDecrementsKey = "widgetPendingDecrements"
+    static let pendingDeleteAllsKey = "widgetPendingDeleteAlls"
 
     static var defaults: UserDefaults? { UserDefaults(suiteName: freshalertAppGroupID) }
 
@@ -76,5 +77,31 @@ enum WidgetDataStore {
 
     static func clearPendingDecrements() {
         defaults?.removeObject(forKey: pendingDecrementsKey)
+    }
+
+    /// "Alle verbraucht" aus einer Push-Notification: das gesamte Item entfernen,
+    /// nicht nur die Menge dekrementieren. Optimistisch aus dem Snapshot
+    /// streichen; das App-eigene Persistieren passiert beim nächsten Start.
+    static func queueDeleteAll(id: UUID) {
+        var items = loadItems()
+        items.removeAll { $0.id == id }
+        saveItems(items)
+
+        var pending = loadPendingDeleteAlls()
+        pending.append(id)
+        if let data = try? JSONEncoder().encode(pending) {
+            defaults?.set(data, forKey: pendingDeleteAllsKey)
+        }
+    }
+
+    static func loadPendingDeleteAlls() -> [UUID] {
+        guard let data = defaults?.data(forKey: pendingDeleteAllsKey),
+              let ids = try? JSONDecoder().decode([UUID].self, from: data)
+        else { return [] }
+        return ids
+    }
+
+    static func clearPendingDeleteAlls() {
+        defaults?.removeObject(forKey: pendingDeleteAllsKey)
     }
 }

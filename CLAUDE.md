@@ -64,6 +64,15 @@ Every commit bumps the version. `MARKETING_VERSION` + `CURRENT_PROJECT_VERSION`
 appear 6×/6× in `project.pbxproj` (Settings reads them from the bundle).
 Semantic: x.0.0 major · x.y.0 feature · x.y.z bugfix. Add a `CHANGELOG.md` entry.
 
+## Release notes (App-Store-What's-New)
+
+Every user-visible change (new feature, fixed bug the user noticed, behaviour
+change) must also be written in `fastlane/metadata/de-DE/release_notes.txt` in
+the user's voice (German, no jargon). This file holds the **next release's**
+"What's New" text, accumulating since the last App-Store-published version.
+Reset it after a `main` merge ships. `CHANGELOG.md` keeps the full technical
+history; `release_notes.txt` is what TestFlight + App-Store users actually see.
+
 ## Build & test
 
 - Build/run: open `FreshAlert.xcodeproj` in Xcode, run the `FreshAlert` scheme.

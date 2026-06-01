@@ -12,12 +12,48 @@ final class NotificationService {
             .requestAuthorization(options: [.alert, .badge, .sound])) ?? false
     }
 
+    /// Quick-Action-Kategorien für die Push-Notifications. Müssen einmal beim
+    /// App-Start registriert werden, damit das System die Buttons anzeigen kann
+    /// – auch wenn die App selbst nicht läuft.
+    func registerCategories() {
+        let singleUsed = UNNotificationAction(
+            identifier: NotificationActionID.markUsedSingle,
+            title: "Verbraucht",
+            options: []
+        )
+        let multiOne = UNNotificationAction(
+            identifier: NotificationActionID.markUsedOne,
+            title: "1 verbraucht",
+            options: []
+        )
+        let multiAll = UNNotificationAction(
+            identifier: NotificationActionID.markUsedAll,
+            title: "Alle verbraucht",
+            options: [.destructive]
+        )
+        UNUserNotificationCenter.current().setNotificationCategories([
+            UNNotificationCategory(
+                identifier: NotificationCategoryID.single,
+                actions: [singleUsed],
+                intentIdentifiers: [], options: []
+            ),
+            UNNotificationCategory(
+                identifier: NotificationCategoryID.multi,
+                actions: [multiOne, multiAll],
+                intentIdentifiers: [], options: []
+            )
+        ])
+    }
+
     /// Schedules reminder + expiry-day notifications. Returns notification identifiers.
     func scheduleNotifications(for item: FoodItem, reminderDays: Int) async -> [String] {
         // Cancel existing first
         cancelNotifications(for: item)
 
         var identifiers: [String] = []
+        let categoryID = item.quantity > 1
+            ? NotificationCategoryID.multi
+            : NotificationCategoryID.single
 
         // 1. Reminder notification (X days before expiry)
         if let reminderDate = Calendar.current.date(
@@ -29,6 +65,7 @@ final class NotificationService {
             content.body = "\(item.name) läuft in \(reminderDays) \(reminderDays == 1 ? "Tag" : "Tagen") ab."
             content.sound = .default
             content.userInfo = ["itemId": item.id.uuidString]
+            content.categoryIdentifier = categoryID
 
             var components = Calendar.current.dateComponents([.year, .month, .day], from: reminderDate)
             components.hour = 9
@@ -48,6 +85,7 @@ final class NotificationService {
             content.body = "\(item.name) läuft heute ab. Verwende es noch heute!"
             content.sound = .default
             content.userInfo = ["itemId": item.id.uuidString]
+            content.categoryIdentifier = categoryID
 
             var components = Calendar.current.dateComponents([.year, .month, .day], from: item.expiryDate)
             components.hour = 8
@@ -143,4 +181,15 @@ private struct OrphanAggregate {
     var name: String?
     var expiryDate: Date?
     var identifiers: [String] = []
+}
+
+enum NotificationCategoryID {
+    static let single = "freshalert-single"
+    static let multi  = "freshalert-multi"
+}
+
+enum NotificationActionID {
+    static let markUsedSingle = "freshalert-mark-used-single"
+    static let markUsedOne    = "freshalert-mark-used-one"
+    static let markUsedAll    = "freshalert-mark-used-all"
 }
