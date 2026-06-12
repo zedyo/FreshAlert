@@ -16,11 +16,13 @@ jobs:
   lint:
     name: SwiftLint
     runs-on: macos-15
-    # SwiftLint ist auf den GitHub-macOS-Images vorinstalliert — kein
-    # `brew install` nötig. Läuft als eigener Job parallel zu Build & Test.
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+      - name: Install SwiftLint
+        # Nicht auf dem macos-15-Image vorinstalliert (verifiziert via
+        # Lauf 27433532721: "swiftlint: command not found").
+        run: brew install swiftlint
       - name: SwiftLint
         run: swiftlint lint --reporter github-actions-logging
 
@@ -30,7 +32,7 @@ jobs:
     # Puffer für Runner-Schwankungen; Build+Tests laufen typisch ~10-20 min.
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1

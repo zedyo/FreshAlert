@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.8.1] – 2026-06-12
+
+### CI-Fix (PR #8, Lauf 27433532721)
+- **SwiftLint-Job**: `brew install swiftlint` ergänzt — SwiftLint ist auf dem
+  `macos-15`-Runner-Image entgegen der Annahme **nicht** vorinstalliert
+  (`swiftlint: command not found`).
+- **`actions/checkout` v4 → v5** in `ci.yml` (beide Jobs) und `release.yml`.
+  GitHub erzwingt ab 16.06.2026 Node 24 für Actions; v4 (Node 20) ist
+  deprecated und hätte in vier Tagen brechen können.
+
+---
+
 ## [1.8.0] – 2026-06-12
 
 ### CI / Tooling
