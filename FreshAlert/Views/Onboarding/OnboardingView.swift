@@ -5,6 +5,7 @@ import SwiftData
 // storage locations to start with. Shown only when no locations exist yet.
 struct OnboardingView: View {
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var viewModel: AppViewModel
     let onFinish: () -> Void
 
     @State private var page = 0
@@ -199,7 +200,7 @@ struct OnboardingView: View {
             )
             sortOrder += 1
         }
-        try? modelContext.save()
+        viewModel.saveContext("OnboardingView.finish")
         onFinish()
     }
 }

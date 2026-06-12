@@ -3,6 +3,7 @@ import SwiftData
 
 struct StorageLocationsView: View {
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var viewModel: AppViewModel
     @Query(sort: \StorageLocation.sortOrder) private var locations: [StorageLocation]
 
     @State private var showAddSheet = false
@@ -86,7 +87,7 @@ struct StorageLocationsView: View {
                 var arr = locations
                 arr.move(fromOffsets: from, toOffset: to)
                 for (index, loc) in arr.enumerated() { loc.sortOrder = index }
-                try? modelContext.save()
+                viewModel.saveContext("StorageLocationsView.reorder")
             }
         }
         .listStyle(.insetGrouped)
@@ -114,7 +115,7 @@ struct StorageLocationsView: View {
 
     private func delete(_ location: StorageLocation) {
         modelContext.delete(location)
-        try? modelContext.save()
+        viewModel.saveContext("StorageLocationsView.delete")
     }
 }
 

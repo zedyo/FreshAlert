@@ -20,7 +20,18 @@ actor OpenFoodFactsService {
     }
 
     func fetchProduct(barcode: String) async throws -> ProductInfo {
-        guard let url = URL(string: "\(baseURL)/\(barcode).json") else {
+        // Eingang validieren bevor in die URL gebaut wird. Der Scanner
+        // akzeptiert auch QR-/Code128-Payloads, die theoretisch
+        // Pfad-/Query-Zeichen enthalten könnten. Open-Food-Facts-Codes sind
+        // numerische GTINs (EAN-8/13, UPC) — ein ASCII-Ziffern-Check ist
+        // damit funktional ausreichend UND blockt Injection-Versuche.
+        let trimmed = barcode.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty,
+              trimmed.count <= 20,
+              trimmed.allSatisfy({ $0.isASCII && $0.isNumber }) else {
+            throw OFFError.invalidBarcode
+        }
+        guard let url = URL(string: "\(baseURL)/\(trimmed).json") else {
             throw OFFError.invalidURL
         }
         let (data, response) = try await session.data(from: url)
@@ -45,12 +56,14 @@ actor OpenFoodFactsService {
 }
 
 enum OFFError: LocalizedError {
+    case invalidBarcode
     case invalidURL
     case invalidResponse
     case productNotFound
 
     var errorDescription: String? {
         switch self {
+        case .invalidBarcode:   return "Ungültiger Barcode"
         case .invalidURL:       return "Ungültige URL"
         case .invalidResponse:  return "Ungültige Server-Antwort"
         case .productNotFound:  return "Produkt nicht in der Datenbank gefunden"

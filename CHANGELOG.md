@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.7.5] – 2026-06-12
+
+### Geändert
+- **Onboarding-, Lagerorte- und „Lagerort hinzufügen/bearbeiten"-Views** speichern
+  jetzt über `viewModel.saveContext(...)` statt direkt mit `try? modelContext.save()`.
+  Stille Save-Fehler beim Lagerort-Anlegen/Sortieren/Löschen oder beim
+  Onboarding-Abschluss werden damit geloggt (`os.Logger`) und sichtbar als
+  Toast gemeldet — bisher Datenverlust ohne Hinweis.
+- **`OpenFoodFactsService.fetchProduct(barcode:)`** validiert die Eingabe (nur
+  ASCII-Ziffern, max. 20 Zeichen) vor dem URL-Bau. Verhindert Pfad-/Query-
+  Injection durch QR-/Code128-Payloads, die der Scanner ebenfalls liest. Neuer
+  Fehlerfall `OFFError.invalidBarcode`.
+- **`WidgetDataStore.queueDeleteAll`** dedupet jetzt — „Alle verbraucht" ist
+  idempotent. Decrement-Queue dedupet weiterhin **nicht** (n Taps = n
+  Dekremente, das ist gewollt).
+
+---
+
 ## [1.7.4] – 2026-06-12
 
 ### Geändert

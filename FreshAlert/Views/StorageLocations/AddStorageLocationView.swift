@@ -4,6 +4,7 @@ import SwiftData
 struct AddStorageLocationView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var viewModel: AppViewModel
 
     var editingLocation: StorageLocation? = nil
     let existingCount: Int
@@ -200,7 +201,7 @@ struct AddStorageLocationView: View {
             )
             modelContext.insert(loc)
         }
-        try? modelContext.save()
+        viewModel.saveContext("AddStorageLocationView.save")
         dismiss()
     }
 }

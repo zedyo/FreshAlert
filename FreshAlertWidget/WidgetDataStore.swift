@@ -82,12 +82,18 @@ enum WidgetDataStore {
     /// "Alle verbraucht" aus einer Push-Notification: das gesamte Item entfernen,
     /// nicht nur die Menge dekrementieren. Optimistisch aus dem Snapshot
     /// streichen; das App-eigene Persistieren passiert beim nächsten Start.
+    ///
+    /// **Dedupe-Politik (bewusst unterschiedlich zur Decrement-Queue):**
+    /// Delete-All ist idempotent — Mehrfach-Taps auf dieselbe Mitteilung sollen
+    /// nicht doppelt verarbeitet werden. Decrement-Queue dedupet **nicht**:
+    /// dort ist jeder Tap ein realer Verbrauch, n Taps = n Dekremente.
     static func queueDeleteAll(id: UUID) {
         var items = loadItems()
         items.removeAll { $0.id == id }
         saveItems(items)
 
         var pending = loadPendingDeleteAlls()
+        guard !pending.contains(id) else { return }
         pending.append(id)
         if let data = try? JSONEncoder().encode(pending) {
             defaults?.set(data, forKey: pendingDeleteAllsKey)
