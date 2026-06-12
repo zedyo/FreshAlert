@@ -110,8 +110,24 @@ final class AppViewModel: ObservableObject {
         // Wenn die Menge auf 1 gefallen ist, Notifs neu planen, damit der
         // Quick-Action-Button von „1 verbraucht / Alle verbraucht" auf das
         // einzelne „Verbraucht" wechselt.
+        //
+        // WICHTIG: nicht das Modell selbst in den Task capturen — der Task
+        // läuft asynchron, und wenn das Item bis dahin gelöscht wurde
+        // (z. B. „Alle verbraucht" direkt nach dem Decrement), crasht der
+        // Zugriff auf das zerstörte SwiftData-Modell mit einem Fatal Error.
+        // Stattdessen die UUID capturen und frisch fetchen; weak self deckt
+        // den Fall ab, dass das ViewModel selbst abgeräumt wurde.
         if item.quantity == 1 {
-            Task { await self.updateFoodItem(item) }
+            let itemID = item.id
+            Task { [weak self] in
+                guard let self else { return }
+                let descriptor = FetchDescriptor<FoodItem>(
+                    predicate: #Predicate { $0.id == itemID }
+                )
+                if let fresh = try? self.modelContext.fetch(descriptor).first {
+                    await self.updateFoodItem(fresh)
+                }
+            }
         }
     }
 

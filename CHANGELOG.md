@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.8.2] – 2026-06-12
+
+### Behoben
+- **Crash-Risiko in `AppViewModel.decrementQuantity` beseitigt** — gefunden
+  durch den neuen Test `AppViewModelCRUDTests` (CI-Lauf 27433532721, Fatal
+  Error `This model instance was destroyed`). Der Reschedule-Task beim
+  Mengenwechsel auf 1 hielt das SwiftData-Modell direkt; wurde das Item vor
+  Task-Ausführung zerstört (z. B. „Alle verbraucht" direkt nach „1 verbraucht"),
+  crashte der Zugriff. Jetzt wird nur die UUID gecaptured, das Item im Task
+  frisch gefetcht und `weak self` verwendet.
+
+---
+
 ## [1.8.1] – 2026-06-12
 
 ### CI-Fix (PR #8, Lauf 27433532721)
