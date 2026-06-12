@@ -4,30 +4,47 @@
 > **Sobald alle offenen Punkte erledigt sind, kann diese Datei gelöscht werden.**
 > Vollständige Versionshistorie: `CHANGELOG.md`.
 
-**Stand:** 2026-06-12 · **Version:** 1.8.3 · **Branch:** `claude/jolly-bardeen-PaCoT`
-**Offener PR:** [#8 — Release-Train v1.8.0+](https://github.com/zedyo/freshalert/pull/8)
+**Stand:** 2026-06-12 · **Version:** 1.8.7 · **Branch:** `claude/jolly-bardeen-PaCoT`
+**Offener PR:** [#8 — Release-Train](https://github.com/zedyo/freshalert/pull/8)
 (Draft, NICHT mergen vor ASC-Setup)
 
-**CI-Status (zuletzt):** Erster voller Lauf (27433532721) war rot — beide
-Ursachen behoben (v1.8.1: SwiftLint nicht vorinstalliert → brew install;
-v1.8.2: echter Crash-Bug in `decrementQuantity`, vom neuen Test gefunden).
-**49/55 → erwartet 55/55** und der gesamte v1.6/v1.7-Code kompiliert.
-Ergebnis des Folge-Laufs prüfen, falls diese Session nichts mehr meldet.
+**CI-Status: ✅ GRÜN** (Lauf 27437075694 auf e66025c/v1.8.6): SwiftLint ✅,
+Build & Test ✅ — **alle 55 Tests bestanden**, gesamter v1.6/v1.7-Code
+kompiliert. Es brauchte vier Fix-Iterationen (siehe unten) — alle Ursachen
+sind strukturell behoben, nicht nur umgangen.
 
 ---
 
 ## Was in dieser Session gemacht wurde
 
-### v1.8.1–v1.8.3 – CI-Fixes + Session-Kontinuität
-- CI-Fix: `brew install swiftlint` (nicht auf macos-15 vorinstalliert),
-  `actions/checkout` v4→v5 (Node-20-Zwangsumstellung 16.06.2026).
-- **Echter Bug gefixt** (von `AppViewModelCRUDTests` gefunden):
-  `decrementQuantity` capturte das SwiftData-Modell in einem async Task →
-  Fatal Error bei zwischenzeitlichem Löschen. Jetzt UUID + weak self + Refetch.
-- **Session-Kontinuität:** `.claude/settings.json` + `.claude/hooks/
-  session-start.sh` — jede neue Session bekommt automatisch Git-Stand,
-  letzte Commits und dieses Handoff injiziert. CLAUDE.md → AI-Arbeitsworkflow
-  Punkt 7: Handoff-Pflege am Session-Ende ist Pflicht.
+### v1.8.1–v1.8.7 – CI grün gekämpft + Session-Kontinuität
+Vier CI-Iterationen, jede mit echter Ursache:
+1. **v1.8.1**: SwiftLint ist auf macos-15 NICHT vorinstalliert → `brew install`;
+   `actions/checkout` v4→v5 (Node-20-Zwangsumstellung 16.06.2026).
+2. **v1.8.2→v1.8.5**: **Echter Crash-Bug** (von `AppViewModelCRUDTests`
+   gefunden): async Task hielt SwiftData-Modell über Suspension-Punkte.
+   Refetch (v1.8.2) reichte nicht — endgültiger Fix (v1.8.5):
+   `FoodItemNotificationSnapshot` (Werte-Kopie) + deterministische
+   Notification-IDs (`NotificationService.identifiers(forItemID:)`) —
+   der gesamte Rescheduling-Pfad fasst nach dem ersten await kein Modell an.
+3. **v1.8.4**: **Build-Race**: Test-Target hatte keine Target-Dependency auf
+   die App (pbxproj) → linkte sporadisch vor der App. Proxy `B…06` +
+   Dependency `B…07` ergänzt.
+4. **v1.8.6**: Fastlane-Flake: `xcodebuild -showBuildSettings`-Timeout (3 s
+   Default) → `FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT=120` in ci.yml + release.yml.
+
+**Session-Kontinuität (v1.8.3):** `.claude/settings.json` + `.claude/hooks/
+session-start.sh` — jede neue Session bekommt automatisch Git-Stand, letzte
+Commits und dieses Handoff injiziert. CLAUDE.md → AI-Arbeitsworkflow Punkt 7:
+Handoff-Pflege am Session-Ende ist Pflicht. **Lessons für CI-Überwachung:**
+Failure-Webhooks kommen nicht zuverlässig an, und Shell-Polling der GitHub-API
+scheitert (privates Repo, kein Token in der Sandbox) → zeitbasierte
+Monitor-Check-ins (~12 min) + Status-Prüfung über die GitHub-MCP-Tools nutzen.
+
+**Beobachtung (nicht akut):** Beim ersten App-Start im Simulator loggt CoreData
+„Failed to create file … parent directory missing" für den App-Group-Store und
+recovered dann. Falls Nutzer-Datenverluste je wieder auftreten: hier zuerst
+graben (Container-Erstanlage im App-Group-Pfad).
 
 ### v1.7.3 – Orphan-Recovery robust + Logger + AppDelegate
 - `NotificationService`: `userInfo` enthält jetzt `itemName` + `expiryDate`.

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.8.7] – 2026-06-12
+
+### Projekt / Dokumentation
+- **`docs/HANDOFF.md`** finalisiert: CI auf PR #8 ist **grün** (Lauf
+  27437075694, alle 55 Tests). Dokumentiert die vier Fix-Iterationen
+  (SwiftLint-Install, Snapshot-Refactor, Test-Target-Dependency,
+  Fastlane-Timeout), die CI-Überwachungs-Lessons (zeitbasierte Check-ins
+  statt Webhook-/API-Polling) und die CoreData-Erstanlage-Beobachtung als
+  Watch-Item für etwaige künftige Datenverlust-Berichte.
+
+---
+
 ## [1.8.6] – 2026-06-12
 
 ### CI-Stabilität
