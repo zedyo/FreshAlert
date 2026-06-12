@@ -20,10 +20,6 @@
 	<string>FreshAlert benötigt Zugriff auf die Kamera, um Barcodes zu scannen und Produktfotos aufzunehmen.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
-	<key>UIRequiredDeviceCapabilities</key>
-	<array>
-		<string>armv7</string>
-	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

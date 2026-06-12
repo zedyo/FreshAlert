@@ -36,6 +36,8 @@
 		E00000000000000000000028 /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000020 /* StoreManager.swift */; };
 		E00000000000000000000029 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000021 /* PaywallView.swift */; };
 		T00000000000000000000005 /* ExpiryLabelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000001B /* ExpiryLabelTests.swift */; };
+		E0000000000000000000002A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000023 /* PrivacyInfo.xcprivacy */; };
+		E0000000000000000000002B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000024 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -97,6 +99,8 @@
 		D00000000000000000000020 /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
 		D00000000000000000000021 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		D00000000000000000000022 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
+		D00000000000000000000023 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D00000000000000000000024 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -155,6 +159,7 @@
 				D00000000000000000000010 /* Info.plist */,
 				D0000000000000000000001D /* FreshAlert.entitlements */,
 				D00000000000000000000022 /* Products.storekit */,
+				D00000000000000000000023 /* PrivacyInfo.xcprivacy */,
 			);
 			path = FreshAlert;
 			sourceTree = "<group>";
@@ -243,6 +248,7 @@
 				D00000000000000000000013 /* WidgetDataStore.swift */,
 				D00000000000000000000017 /* Info.plist */,
 				D0000000000000000000001E /* FreshAlertWidget.entitlements */,
+				D00000000000000000000024 /* PrivacyInfo.xcprivacy */,
 			);
 			path = FreshAlertWidget;
 			sourceTree = "<group>";
@@ -383,6 +389,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E0000000000000000000000F /* Assets.xcassets in Resources */,
+				E0000000000000000000002A /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -390,6 +397,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E0000000000000000000002B /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -580,7 +588,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.5;
+				MARKETING_VERSION = 1.7.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -605,7 +613,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.5;
+				MARKETING_VERSION = 1.7.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -629,7 +637,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.7.5;
+				MARKETING_VERSION = 1.7.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app.widget;
 				PRODUCT_NAME = FreshAlertWidget;
 				SKIP_INSTALL = YES;
@@ -654,7 +662,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.7.5;
+				MARKETING_VERSION = 1.7.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app.widget;
 				PRODUCT_NAME = FreshAlertWidget;
 				SKIP_INSTALL = YES;
@@ -672,7 +680,7 @@
 				CURRENT_PROJECT_VERSION = 21;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.7.5;
+				MARKETING_VERSION = 1.7.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.FreshAlertTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -690,7 +698,7 @@
 				CURRENT_PROJECT_VERSION = 21;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.7.5;
+				MARKETING_VERSION = 1.7.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.FreshAlertTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;

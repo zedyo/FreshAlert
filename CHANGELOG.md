@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.7.6] – 2026-06-12
+
+### Compliance / Privacy
+- **`PrivacyInfo.xcprivacy` für App- und Widget-Target** angelegt. Deklariert
+  `NSPrivacyAccessedAPICategoryUserDefaults` mit den Reason-Codes **CA92.1**
+  (App-eigene Defaults via `@AppStorage`) und **1C8F.1** (App-Group-geteilte
+  Defaults für den Widget-Snapshot). Apple verlangt das Manifest seit
+  iOS 17.4 — ohne wäre der Store-Upload blockiert bzw. mit ITMS-91053
+  beanstandet. Beide Manifeste sind in den Resources-Build-Phasen der jeweiligen
+  Targets registriert.
+- **`UIRequiredDeviceCapabilities`-Block aus `FreshAlert/Info.plist` entfernt**
+  (enthielt nur den obsoleten 32-Bit-Eintrag `armv7`; alle iOS-17-Geräte sind
+  arm64-only).
+
+---
+
 ## [1.7.5] – 2026-06-12
 
 ### Geändert
