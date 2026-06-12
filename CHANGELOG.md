@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.7.8] – 2026-06-12
+
+### Dokumentation
+- **`CLAUDE.md`**: neue Abschnitte „AI-Arbeitsworkflow (verbindlich)" und
+  „Definition of Done" — zentral, was eine autonome AI-Session vor jedem PR
+  prüfen muss. Cloud-Constraint („kann nicht kompilieren"), Branch-/Merge-
+  Regeln, Privacy-Manifest-Pflege, IAP-Bedingung vor `main`-Merge.
+- **`CLAUDE.md` → „Conventions"**: Lokalisierungs-Konvention
+  (`Text("…")`-Literale + `String(localized:)` für Nicht-View-Strings)
+  und Persistenz-Regel (`saveContext(...)` statt `try? save()`) festgehalten.
+- **`CLAUDE.md` → „Project file gotchas"**: konkrete pbxproj-ID-Ranges
+  inklusive nächster freier IDs (D…28, E…2C, T…0C), Resource-vs-Source-
+  Phase-Unterscheidung.
+- **Doku-Konsolidierung** (minimal-invasiv, keine Umbenennungen):
+  `RELEASE_AUTOMATION.md` ist Single Source of Truth für die Pipeline;
+  `APP_STORE.md` und `MONETIZATION.md` bekommen oben einen
+  „Geltungsbereich"-Hinweis mit Querverweisen. `MONETIZATION.md` erwähnt
+  zusätzlich den Paid-Apps-Vertragsstatus, damit AI-Sessions sehen, warum
+  die Paywall noch leer sein könnte.
+- **`docs/HANDOFF.md`** auf v1.7.8 aktualisiert: alle Code-Punkte aus der
+  Session abgehakt, Owner-Aufgaben (ASC-Vertrag/IAPs, Datenschutz-URL,
+  Branch-Ruleset, Geräte-Smoke-Test) geblockt; Roadmap-Ausblick
+  (Suche/Filter, Statistiken, OCR, iCloud-Sync, Rezepte).
+
+---
+
 ## [1.7.7] – 2026-06-12
 
 ### Tests

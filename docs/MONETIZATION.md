@@ -3,6 +3,15 @@
 > Ehrliche Einordnung, wie viel sich verdienen lässt, und ein konkreter
 > Umsetzungsplan für ein Freemium-Modell mit Eintrags-Limit.
 
+> **Geltungsbereich:** Geschäftsmodell, Preise, In-App-Käufe-Setup in App
+> Store Connect (§6). Pipeline → `RELEASE_AUTOMATION.md`. Manuelles
+> App-Store-Onboarding → `APP_STORE.md`. **Wichtig:** Solange der
+> „Paid Applications"-Vertrag in App Store Connect nicht aktiv und die
+> beiden IAPs nicht angelegt sind, lädt `Product.products(for:)` eine
+> **leere** Liste — die Paywall zeigt ab v1.7.4 dafür einen Fehlerzustand
+> mit „Erneut versuchen". Der Owner-Setup-Status steht in
+> `HANDOFF.md` → „Offene Punkte".
+
 ## 1. Wie viel kann man realistisch verdienen?
 
 **Ehrlich vorweg:** Der Umsatz hängt fast vollständig von der **Nutzerzahl** ab –

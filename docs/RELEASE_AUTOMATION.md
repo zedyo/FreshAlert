@@ -4,6 +4,12 @@
 > mit Tests als Qualitäts-Gate, automatischem Upload zu TestFlight und
 > automatischer Einreichung im App Store, sobald nach `main` gemergt wird.
 
+> **Geltungsbereich:** **Single Source of Truth** für die CI/CD-Pipeline
+> (GitHub Actions, Fastlane, Build-Nummern, TestFlight-Upload, App-Store-
+> Einreichung). Manuelle App-Store-Connect-Einmaleinrichtung →
+> `APP_STORE.md`. Monetarisierungs-Setup (IAPs, Verträge) →
+> `MONETIZATION.md`.
+
 ## So sieht der Alltag aus
 
 1. Änderung umsetzen (oder umsetzen lassen) → Commit auf einem **Branch** →

@@ -4,6 +4,11 @@
 > Stand 2025, Xcode 26. Apple benennt Menüpunkte gelegentlich um – die
 > Bezeichnungen können minimal abweichen.
 
+> **Geltungsbereich:** Manuelle Ersteinrichtung (Developer-Account, App-ID,
+> Store-Listing, Screenshots). Die laufende Pipeline und alles, was nach dem
+> ersten Release automatisch passiert, steht in `RELEASE_AUTOMATION.md`
+> (Single Source of Truth). Monetarisierung → `MONETIZATION.md`.
+
 Sobald die automatische Pipeline eingerichtet ist (siehe
 `RELEASE_AUTOMATION.md`), brauchst du diese manuellen Schritte nicht mehr für
 jedes Update – aber die **einmalige Einrichtung** (Abschnitte 1–6) ist trotzdem
