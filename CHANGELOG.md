@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.7.4] – 2026-06-12
+
+### Geändert
+- **`PaywallView` zeigt jetzt einen Fehlerzustand mit „Erneut versuchen"-Button**,
+  wenn die StoreKit-Produkte nicht geladen werden können — vorher: endloser
+  Lade-Spinner. Ein häufiger Auslöser ist ein noch nicht aktiver
+  „Paid Applications"-Vertrag in App Store Connect: Apple wirft in dem Fall
+  keinen Fehler, sondern liefert eine **leere** Produktliste.
+- **`StoreManager`**: neue `@Published`-Flags `isLoadingProducts` und
+  `productsLoadFailed`, neue Methode `retryLoadProducts()`. Leeres
+  Produkt-Ergebnis wird jetzt explizit als Fehler markiert (mit Logger-Hinweis).
+
+---
+
 ## [1.7.3] – 2026-06-12
 
 ### Geändert

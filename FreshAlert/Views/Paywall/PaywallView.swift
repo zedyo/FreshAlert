@@ -60,16 +60,7 @@ struct PaywallView: View {
 
     private var productsSection: some View {
         VStack(spacing: 12) {
-            if store.products.isEmpty {
-                ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: 80)
-            } else {
-                ForEach(store.products) { product in
-                    ProductButton(product: product, isPurchasing: store.isPurchasing) {
-                        Task { await buy(product) }
-                    }
-                }
-            }
+            productsContent
 
             if let error = errorMessage {
                 Text(error)
@@ -79,6 +70,44 @@ struct PaywallView: View {
             }
         }
         .padding(.horizontal, 16)
+    }
+
+    @ViewBuilder
+    private var productsContent: some View {
+        if store.productsLoadFailed {
+            VStack(spacing: 10) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.orange)
+                Text("Produkte konnten nicht geladen werden.")
+                    .font(.subheadline.weight(.semibold))
+                    .multilineTextAlignment(.center)
+                Text("Bitte prüfe deine Internetverbindung und versuche es erneut.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                Button {
+                    Task { await store.retryLoadProducts() }
+                } label: {
+                    Label("Erneut versuchen", systemImage: "arrow.clockwise")
+                        .font(.subheadline.weight(.semibold))
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color.freshGreen)
+                .disabled(store.isLoadingProducts)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+        } else if store.products.isEmpty {
+            ProgressView()
+                .frame(maxWidth: .infinity, minHeight: 80)
+        } else {
+            ForEach(store.products) { product in
+                ProductButton(product: product, isPurchasing: store.isPurchasing) {
+                    Task { await buy(product) }
+                }
+            }
+        }
     }
 
     private var legalSection: some View {
