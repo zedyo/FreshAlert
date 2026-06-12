@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.8.4] – 2026-06-12
+
+### Behoben
+- **Build-Race behoben: `FreshAlertTests` hat jetzt eine explizite
+  Target-Dependency auf `FreshAlert`** (PBXContainerItemProxy `B…06` +
+  PBXTargetDependency `B…07`). Ohne sie linkte das Test-Bundle im
+  Parallel-Build sporadisch, bevor die Host-App existierte → Linker-Fehler
+  `file cannot be open()ed … FreshAlert.app/FreshAlert` (CI-Lauf 27434773022;
+  Xcode warnte explizit „missing a dependency"). Der Fehler war
+  nicht-deterministisch — der vorherige Lauf hatte zufällig die richtige
+  Reihenfolge.
+- `CLAUDE.md` → „Project file gotchas": B…-ID-Belegung korrigiert und um die
+  neue Dependency dokumentiert.
+
+---
+
 ## [1.8.3] – 2026-06-12
 
 ### AI-Infrastruktur / Session-Kontinuität

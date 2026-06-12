@@ -126,7 +126,12 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   go into `PBXResourcesBuildPhase` instead of `PBXSourcesBuildPhase`.
 - Hex ID prefixes & ranges (Stand 1.7.7, beim Erweitern fortfahren):
   - `A…` PBXGroups (App + Subgruppen, Widget, Tests).
-  - `B…` Projekt / NativeTargets (`B…02` App, `B…03` Widget, `B…04` Tests).
+  - `B…` Projekt / NativeTargets / Target-Dependencies (`B…01` Projekt,
+    `B…02` App, `B…03` Widget; `B…04`+`B…05` Proxy/Dependency App→Widget,
+    `B…06`+`B…07` Proxy/Dependency Tests→App — **nächste freie: `B…08`**).
+    Test-NativeTarget ist `T…01`. **Wichtig:** Test-Target braucht die
+    explizite Dependency auf die App, sonst linkt es im Parallel-Build
+    sporadisch vor der App („file cannot be open()ed … FreshAlert.app").
   - `C…` BuildPhases. `C…03` = App-Resources, `C…06` = Widget-Resources.
   - `D…` FileReferences, **nächste freie: `D…28`**.
   - `E…` BuildFiles für App + Widget, **nächste freie: `E…2C`**.
