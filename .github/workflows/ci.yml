@@ -47,3 +47,9 @@ jobs:
 
       - name: Run tests
         run: bundle exec fastlane test
+        env:
+          # Default 3 s ist auf geteilten macOS-Runnern zu aggressiv —
+          # `xcodebuild -showBuildSettings` braucht beim Kaltstart gern
+          # länger (Flake in CI-Lauf 27436390758).
+          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: "120"
+          FASTLANE_XCODEBUILD_SETTINGS_RETRIES: "4"

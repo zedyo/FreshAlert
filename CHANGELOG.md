@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.8.6] – 2026-06-12
+
+### CI-Stabilität
+- **`FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT=120` / `…_RETRIES=4`** in `ci.yml`
+  und `release.yml`. Fastlanes Default-Timeout von 3 s für
+  `xcodebuild -showBuildSettings` ist auf geteilten macOS-Runnern zu knapp —
+  CI-Lauf 27436390758 scheiterte daran, bevor überhaupt gebaut wurde
+  (reiner Infrastruktur-Flake, kein Code-Fehler).
+
+---
+
 ## [1.8.5] – 2026-06-12
 
 ### Behoben

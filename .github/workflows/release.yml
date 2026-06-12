@@ -42,6 +42,10 @@ jobs:
       - name: Build, upload to TestFlight & submit to App Store
         run: bundle exec fastlane release
         env:
+          # Siehe ci.yml — xcodebuild -showBuildSettings braucht auf
+          # geteilten Runnern beim Kaltstart länger als das 3-s-Default.
+          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: "120"
+          FASTLANE_XCODEBUILD_SETTINGS_RETRIES: "4"
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
