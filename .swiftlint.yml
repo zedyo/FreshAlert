@@ -1,0 +1,43 @@
+# SwiftLint-Konfiguration für FreshAlert
+#
+# Philosophie: Bestand-schonend, errors-only. Wir lassen Rules deaktiviert,
+# die im aktuellen Code viel Lärm machen würden, ohne echte Bugs zu finden —
+# das hält den Lint-Job grün und macht ihn später (wenn der Owner es will)
+# als Required-Check aktivierbar, ohne dass alle bestehenden Dateien
+# umgeschrieben werden müssen.
+
+included:
+  - FreshAlert
+  - FreshAlertWidget
+  - FreshAlertTests
+
+excluded:
+  - fastlane
+  - vendor
+
+disabled_rules:
+  # TODOs sind hier bewusste Arbeitsanker (z. B. Datenschutz-URL in PaywallView).
+  - todo
+  # Kurze Namen wie `id`, `loc`, `n` sind im Bestand verbreitet und idiomatisch.
+  - identifier_name
+  - trailing_comma
+  # Bestand mischt Brace-Stile, kein echter Bug.
+  - opening_brace
+
+line_length:
+  warning: 140
+  error: 200
+  ignores_urls: true
+  ignores_comments: true
+
+file_length:
+  warning: 600
+
+type_body_length:
+  warning: 400
+
+function_body_length:
+  warning: 80
+
+cyclomatic_complexity:
+  warning: 15

@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.8.0] – 2026-06-12
+
+### CI / Tooling
+- **`ci.yml`**: neuer Job **`lint` (SwiftLint)** parallel zu Build & Test
+  (vorinstalliert auf `macos-15`, kein extra `brew install`). Reporter
+  `github-actions-logging` zeigt Verstöße direkt in der PR-Annotation.
+  `timeout-minutes` für beide Jobs ergänzt (Lint 10 min, Build & Test 40 min).
+- **`.swiftlint.yml`** (neu) — bewusst Bestand-schonend: deaktiviert `todo`,
+  `identifier_name`, `trailing_comma`, `opening_brace`; großzügige
+  `line_length` (warning 140) und `file_length`/`function_body_length`-Werte.
+  Hält den Lint-Job grün, sodass der Owner ihn später ohne Massen-Refactor
+  als Required-Check aktivieren kann.
+- **`.github/pull_request_template.md`** (neu) — Definition-of-Done-Checkliste
+  mit der **Merge-Konsequenz-Warnung** (`main` = automatisches Release) ganz
+  oben. Spiegelt die Regeln aus `CLAUDE.md`.
+- **`release.yml` → `paths-ignore`** für `docs/**`, `**/*.md`, `.github/**`.
+  Reine Doku-/Workflow-Merges lösen damit kein App-Store-Release mehr aus.
+  Mischmerges (Code + Doku) releasen weiterhin wie gehabt.
+
+### Release-Notes (Endnutzer)
+- `fastlane/metadata/de-DE/release_notes.txt` aktualisiert: Paywall-Retry-
+  Hinweis ergänzt. Datei deckt alle nutzersichtbaren Änderungen seit der
+  letzten App-Store-Veröffentlichung ab.
+
+---
+
 ## [1.7.8] – 2026-06-12
 
 ### Dokumentation

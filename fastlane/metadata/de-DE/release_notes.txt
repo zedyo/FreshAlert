@@ -5,3 +5,5 @@ Was ist neu:
 • Vermisste Produkte wiederherstellen: Sollten Produkte aus deiner Liste verschwinden, ihre Erinnerung aber noch geplant sein, taucht das Produkt in den Einstellungen unter „Vermisste Produkte" auf und kann mit einem Tipp zurückgeholt werden.
 
 • Zuverlässigere Speicherung: Speicherfehler werden nicht mehr stillschweigend verschluckt, sondern als Hinweis angezeigt – damit nichts unbemerkt verloren geht.
+
+• Bessere Paywall: Wenn die Pro-Produkte einmal nicht geladen werden können, siehst du jetzt einen klaren Hinweis und einen „Erneut versuchen"-Button statt eines endlosen Lade-Kreisels.

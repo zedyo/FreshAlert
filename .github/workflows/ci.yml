@@ -13,9 +13,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint:
+    name: SwiftLint
+    runs-on: macos-15
+    # SwiftLint ist auf den GitHub-macOS-Images vorinstalliert — kein
+    # `brew install` nötig. Läuft als eigener Job parallel zu Build & Test.
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: SwiftLint
+        run: swiftlint lint --reporter github-actions-logging
+
   test:
     name: Build & Test
     runs-on: macos-15
+    # Puffer für Runner-Schwankungen; Build+Tests laufen typisch ~10-20 min.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
 

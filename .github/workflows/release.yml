@@ -11,6 +11,13 @@ name: Release
 on:
   push:
     branches: [main]
+    # Reine Doku-/Workflow-Merges lösen kein Release aus — verhindert,
+    # dass z. B. ein CHANGELOG-Tippfehler-Merge eine App-Store-Einreichung
+    # triggert. Code- + Doku-Mischmerges releasen weiterhin normal.
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/**'
 
 jobs:
   release:
