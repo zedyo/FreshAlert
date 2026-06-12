@@ -35,7 +35,12 @@ enum WidgetDataStore {
     static let pendingDecrementsKey = "widgetPendingDecrements"
     static let pendingDeleteAllsKey = "widgetPendingDeleteAlls"
 
-    static var defaults: UserDefaults? { UserDefaults(suiteName: freshalertAppGroupID) }
+    /// `UserDefaults`-Suite für App-Group-geteilte Daten. **Variable**, damit
+    /// Tests sie auf eine eigene, transiente Suite umstellen können
+    /// (`WidgetDataStore.defaults = UserDefaults(suiteName: "test-…")`). In
+    /// Produktion bleibt der Standardwert; die Property selbst wird nur beim
+    /// App-Start einmal initialisiert.
+    nonisolated(unsafe) static var defaults: UserDefaults? = UserDefaults(suiteName: freshalertAppGroupID)
 
     static func saveItems(_ items: [WidgetFoodItem]) {
         guard let data = try? JSONEncoder().encode(items) else { return }

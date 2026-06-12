@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.7.7] – 2026-06-12
+
+### Tests
+- **`OrphanedNotificationParsingTests`** (neu): testet `aggregate(...)` mit
+  echten `UNNotificationRequest`-Objekten. Deckt userInfo-Primärpfad,
+  Body-Fallback (Reminder + Expiry), Aggregation Reminder+Expiry desselben
+  Items, existierende-IDs-Skip, kaputte/leere Bodies und Sortierung ab.
+- **`WidgetDataStoreTests`** (neu): testet die Queue-Semantik
+  (Decrement-Duplikate bleiben, Delete-All dedupet), optimistische Snapshot-
+  Updates (Menge>1 dekrementiert, Menge==1 entfernt), Roundtrips. Nutzt eine
+  eigene `UserDefaults`-Suite pro Test über die jetzt injizierbare
+  `WidgetDataStore.defaults`.
+- **`AppViewModelCRUDTests`** (neu): SwiftData in-memory
+  (`isStoredInMemoryOnly: true`), `@MainActor`. Add/Delete/Decrement,
+  `recoverOrphanedItem` (gleiche UUID!), `processPendingWidgetDecrements`
+  für Decrements und Delete-Alls.
+- **`ExpiryLabelTests`** ergänzt: Status-Boundaries 4 Tage, 7 Tage, 8 Tage —
+  sichert die `0...3`/`4...7`-Ranges gegen versehentliche Verschiebung.
+
+### Geändert
+- **`WidgetDataStore.defaults`** ist jetzt eine gespeicherte
+  `nonisolated(unsafe) static var` statt einer computed Property. Macht die
+  Suite in Tests injizierbar (siehe oben) und ist im Produktivbetrieb
+  funktional unverändert.
+
+---
+
 ## [1.7.6] – 2026-06-12
 
 ### Compliance / Privacy

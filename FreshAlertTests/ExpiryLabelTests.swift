@@ -56,6 +56,22 @@ final class ExpiryLabelTests: XCTestCase {
     func testStatusGood() {
         XCTAssertEqual(makeItem(daysOffset: 14).expiryStatus, .good)
     }
+
+    // Boundary-Tests an den Status-Übergängen 3→4 (critical→warning)
+    // und 7→8 (warning→good). Stellt sicher, dass die Range-Cases
+    // (0...3, 4...7) nicht versehentlich verschoben werden.
+
+    func testStatusBoundary4DaysIsWarning() {
+        XCTAssertEqual(makeItem(daysOffset: 4).expiryStatus, .warning)
+    }
+
+    func testStatusBoundary7DaysIsWarning() {
+        XCTAssertEqual(makeItem(daysOffset: 7).expiryStatus, .warning)
+    }
+
+    func testStatusBoundary8DaysIsGood() {
+        XCTAssertEqual(makeItem(daysOffset: 8).expiryStatus, .good)
+    }
 }
 
 // MARK: - WidgetFoodItem expiry label tests

@@ -38,6 +38,9 @@
 		T00000000000000000000005 /* ExpiryLabelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000001B /* ExpiryLabelTests.swift */; };
 		E0000000000000000000002A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000023 /* PrivacyInfo.xcprivacy */; };
 		E0000000000000000000002B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000024 /* PrivacyInfo.xcprivacy */; };
+		T00000000000000000000009 /* OrphanedNotificationParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000025 /* OrphanedNotificationParsingTests.swift */; };
+		T0000000000000000000000A /* WidgetDataStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000026 /* WidgetDataStoreTests.swift */; };
+		T0000000000000000000000B /* AppViewModelCRUDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000027 /* AppViewModelCRUDTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -101,6 +104,9 @@
 		D00000000000000000000022 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
 		D00000000000000000000023 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		D00000000000000000000024 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D00000000000000000000025 /* OrphanedNotificationParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrphanedNotificationParsingTests.swift; sourceTree = "<group>"; };
+		D00000000000000000000026 /* WidgetDataStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDataStoreTests.swift; sourceTree = "<group>"; };
+		D00000000000000000000027 /* AppViewModelCRUDTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModelCRUDTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -282,6 +288,9 @@
 			isa = PBXGroup;
 			children = (
 				D0000000000000000000001B /* ExpiryLabelTests.swift */,
+				D00000000000000000000025 /* OrphanedNotificationParsingTests.swift */,
+				D00000000000000000000026 /* WidgetDataStoreTests.swift */,
+				D00000000000000000000027 /* AppViewModelCRUDTests.swift */,
 			);
 			path = FreshAlertTests;
 			sourceTree = "<group>";
@@ -446,6 +455,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				T00000000000000000000005 /* ExpiryLabelTests.swift in Sources */,
+				T00000000000000000000009 /* OrphanedNotificationParsingTests.swift in Sources */,
+				T0000000000000000000000A /* WidgetDataStoreTests.swift in Sources */,
+				T0000000000000000000000B /* AppViewModelCRUDTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -588,7 +600,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.6;
+				MARKETING_VERSION = 1.7.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -613,7 +625,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.6;
+				MARKETING_VERSION = 1.7.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -637,7 +649,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.7.6;
+				MARKETING_VERSION = 1.7.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app.widget;
 				PRODUCT_NAME = FreshAlertWidget;
 				SKIP_INSTALL = YES;
@@ -662,7 +674,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.7.6;
+				MARKETING_VERSION = 1.7.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.app.widget;
 				PRODUCT_NAME = FreshAlertWidget;
 				SKIP_INSTALL = YES;
@@ -680,7 +692,7 @@
 				CURRENT_PROJECT_VERSION = 21;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.7.6;
+				MARKETING_VERSION = 1.7.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.FreshAlertTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -698,7 +710,7 @@
 				CURRENT_PROJECT_VERSION = 21;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.7.6;
+				MARKETING_VERSION = 1.7.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freshalert.FreshAlertTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
