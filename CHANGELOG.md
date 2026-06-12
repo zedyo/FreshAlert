@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.8.3] – 2026-06-12
+
+### AI-Infrastruktur / Session-Kontinuität
+- **`.claude/settings.json` + `.claude/hooks/session-start.sh`** (neu,
+  eingecheckt): SessionStart-Hook injiziert bei jedem Start einer
+  Claude-Code-Session automatisch den Git-Stand (Branch, uncommittete
+  Änderungen, letzte 5 Commits), das komplette `docs/HANDOFF.md` und die
+  verbindlichen Workflow-Regeln in den Session-Kontext. Neue Sessions können
+  damit ohne manuelles Antriggern nahtlos weiterarbeiten.
+- **`CLAUDE.md` → „AI-Arbeitsworkflow"**, neuer Pflichtpunkt 7:
+  `docs/HANDOFF.md` muss am Ende jeder Session aktualisiert werden — der
+  Hook liest genau diese Datei, ein veraltetes Handoff ist
+  Informationsverlust. Bewusst **kein** Stop-Hook (feuert nach jedem
+  Antwort-Turn, nicht nur am Session-Ende → Dauerlärm).
+
+---
+
 ## [1.8.2] – 2026-06-12
 
 ### Behoben

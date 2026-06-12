@@ -23,6 +23,12 @@ der GitHub-Actions-Check **„Build & Test"** auf einem Pull Request.
    einrichten.
 5. Bei **rotem CI**: Fehler lesen, fix-forward committen, push, erneut warten.
 6. **Niemals** zum Mergen drücken — der Owner mergt.
+7. **Session-Abschluss:** `docs/HANDOFF.md` aktualisieren (was getan, was
+   offen, PR-/CI-Status). Pflicht, kein optionaler Schritt — der
+   SessionStart-Hook (`.claude/hooks/session-start.sh`, konfiguriert in
+   `.claude/settings.json`) injiziert diese Datei automatisch in jede neue
+   Session. Ein veraltetes Handoff = Informationsverlust für die nächste
+   Session.
 
 **`main` ist heilig:** jeder Push auf `main` löst über `release.yml` automatisch
 einen TestFlight-Upload **und** eine App-Store-Einreichung aus. Vor jedem Merge

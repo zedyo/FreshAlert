@@ -4,13 +4,30 @@
 > **Sobald alle offenen Punkte erledigt sind, kann diese Datei gelöscht werden.**
 > Vollständige Versionshistorie: `CHANGELOG.md`.
 
-**Stand:** 2026-06-12 · **Version:** 1.7.8 · **Branch:** `claude/jolly-bardeen-PaCoT`
-**Offener PR:** [#8 — Release-Train v1.8.0](https://github.com/zedyo/freshalert/pull/8)
+**Stand:** 2026-06-12 · **Version:** 1.8.3 · **Branch:** `claude/jolly-bardeen-PaCoT`
+**Offener PR:** [#8 — Release-Train v1.8.0+](https://github.com/zedyo/freshalert/pull/8)
 (Draft, NICHT mergen vor ASC-Setup)
+
+**CI-Status (zuletzt):** Erster voller Lauf (27433532721) war rot — beide
+Ursachen behoben (v1.8.1: SwiftLint nicht vorinstalliert → brew install;
+v1.8.2: echter Crash-Bug in `decrementQuantity`, vom neuen Test gefunden).
+**49/55 → erwartet 55/55** und der gesamte v1.6/v1.7-Code kompiliert.
+Ergebnis des Folge-Laufs prüfen, falls diese Session nichts mehr meldet.
 
 ---
 
 ## Was in dieser Session gemacht wurde
+
+### v1.8.1–v1.8.3 – CI-Fixes + Session-Kontinuität
+- CI-Fix: `brew install swiftlint` (nicht auf macos-15 vorinstalliert),
+  `actions/checkout` v4→v5 (Node-20-Zwangsumstellung 16.06.2026).
+- **Echter Bug gefixt** (von `AppViewModelCRUDTests` gefunden):
+  `decrementQuantity` capturte das SwiftData-Modell in einem async Task →
+  Fatal Error bei zwischenzeitlichem Löschen. Jetzt UUID + weak self + Refetch.
+- **Session-Kontinuität:** `.claude/settings.json` + `.claude/hooks/
+  session-start.sh` — jede neue Session bekommt automatisch Git-Stand,
+  letzte Commits und dieses Handoff injiziert. CLAUDE.md → AI-Arbeitsworkflow
+  Punkt 7: Handoff-Pflege am Session-Ende ist Pflicht.
 
 ### v1.7.3 – Orphan-Recovery robust + Logger + AppDelegate
 - `NotificationService`: `userInfo` enthält jetzt `itemName` + `expiryDate`.
