@@ -4,9 +4,12 @@ import SwiftUI
 import UIKit
 import Network
 import WidgetKit
+import os
 
 @MainActor
 final class AppViewModel: ObservableObject {
+    private static let logger = Logger(subsystem: "com.freshalert.app", category: "persistence")
+
     private let modelContext: ModelContext
     private let monitor = NWPathMonitor()
     private let monitorQueue = DispatchQueue(label: "com.freshalert.network")
@@ -248,7 +251,9 @@ final class AppViewModel: ObservableObject {
             try modelContext.save()
             return true
         } catch {
-            print("[FreshAlert] SwiftData-Save fehlgeschlagen in \(context): \(error)")
+            Self.logger.error(
+                "SwiftData-Save fehlgeschlagen in \(context, privacy: .public): \(String(describing: error), privacy: .public)"
+            )
             toastMessage = "Speichern fehlgeschlagen – bitte erneut versuchen."
             return false
         }

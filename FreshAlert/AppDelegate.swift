@@ -14,7 +14,13 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     ) -> Bool {
         let center = UNUserNotificationCenter.current()
         center.delegate = self
-        Task { @MainActor in NotificationService.shared.registerCategories() }
+        // UIKit ruft didFinishLaunching auf dem Main-Thread auf — der Compiler
+        // weiß das nicht statisch, deshalb assumeIsolated. Direkter Aufruf
+        // statt Task-Hop: die Kategorien müssen vor der ersten Notification-
+        // Zustellung registriert sein, ein Task-Sprung wäre race-anfällig.
+        MainActor.assumeIsolated {
+            NotificationService.shared.registerCategories()
+        }
         return true
     }
 

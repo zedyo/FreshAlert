@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.7.3] – 2026-06-12
+
+### Geändert
+- **`NotificationService`**: Beim Planen der Notifications werden `itemName`
+  und `expiryDate` (TimeInterval) jetzt strukturiert in `content.userInfo`
+  mitgegeben. Die Orphan-Recovery liest sie primär von dort, statt den
+  lokalisierten Body-Text zu zerlegen — fragile String-Range-Logik war ein
+  bekanntes Risiko.
+- **`OrphanedNotificationParser`**: Reine, von `UNUserNotificationCenter`
+  entkoppelte Parser-Funktion (`enum`/`static func aggregate`). Body-Parsing
+  bleibt als Fallback für Notifications aus Pre-1.8-Versionen erhalten.
+  Vorteil: direkt unit-testbar ohne Notification-Center.
+- **`AppViewModel.saveContext`**: `print` durch `os.Logger`
+  (`subsystem: com.freshalert.app`, `category: persistence`) ersetzt — auf
+  TestFlight/Produktion via Console.app sichtbar.
+- **`AppDelegate.didFinishLaunching`**: `Task { @MainActor in ... }`-Wrapper
+  um `registerCategories()` durch `MainActor.assumeIsolated { ... }` ersetzt.
+  UIKit ruft den Callback auf dem Main-Thread auf; der Task-Sprung war
+  unnötig und race-anfällig vor der ersten Notification-Zustellung.
+
+---
+
 ## [1.7.1] – 2026-06-12
 
 ### Projekt / Dokumentation
