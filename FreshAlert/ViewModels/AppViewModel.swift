@@ -92,11 +92,17 @@ final class AppViewModel: ObservableObject {
     }
 
     func updateFoodItem(_ item: FoodItem) async {
+        // Alle Modellzugriffe passieren VOR dem ersten await: Snapshot bauen,
+        // deterministische IDs zuweisen, speichern. Das eigentliche
+        // System-Scheduling läuft danach rein wertbasiert — ein zwischen-
+        // zeitlich gelöschtes Item kann so keinen Crash mehr auslösen.
         let days = item.customReminderDays ?? globalReminderDays
-        item.notificationIdentifiers = await NotificationService.shared
-            .scheduleNotifications(for: item, reminderDays: days)
+        let snapshot = FoodItemNotificationSnapshot(item: item)
+        item.notificationIdentifiers = NotificationService.identifiers(forItemID: item.id)
         saveContext()
         updateWidgetSnapshot()
+        _ = await NotificationService.shared
+            .scheduleNotifications(snapshot: snapshot, reminderDays: days)
     }
 
     func decrementQuantity(_ item: FoodItem) {
@@ -111,22 +117,20 @@ final class AppViewModel: ObservableObject {
         // Quick-Action-Button von „1 verbraucht / Alle verbraucht" auf das
         // einzelne „Verbraucht" wechselt.
         //
-        // WICHTIG: nicht das Modell selbst in den Task capturen — der Task
-        // läuft asynchron, und wenn das Item bis dahin gelöscht wurde
-        // (z. B. „Alle verbraucht" direkt nach dem Decrement), crasht der
-        // Zugriff auf das zerstörte SwiftData-Modell mit einem Fatal Error.
-        // Stattdessen die UUID capturen und frisch fetchen; weak self deckt
-        // den Fall ab, dass das ViewModel selbst abgeräumt wurde.
+        // WICHTIG: Der Task arbeitet rein wertbasiert (Snapshot) — er hält
+        // weder das Modell noch self/ModelContext. Ein Refetch im Task (alter
+        // Ansatz, v1.8.2) reichte nicht: Der Task suspendiert beim System-
+        // Scheduling erneut, und wurde das Item/der Context in dieser Lücke
+        // zerstört, crashte der anschließende Modellzugriff mit
+        // "This model instance was destroyed" (CI-Lauf 27435500288).
+        // Die Notification-IDs sind deterministisch und ändern sich beim
+        // Reschedule nicht — es gibt nichts ins Modell zurückzuschreiben.
         if item.quantity == 1 {
-            let itemID = item.id
-            Task { [weak self] in
-                guard let self else { return }
-                let descriptor = FetchDescriptor<FoodItem>(
-                    predicate: #Predicate { $0.id == itemID }
-                )
-                if let fresh = try? self.modelContext.fetch(descriptor).first {
-                    await self.updateFoodItem(fresh)
-                }
+            let snapshot = FoodItemNotificationSnapshot(item: item)
+            let days = item.customReminderDays ?? globalReminderDays
+            Task {
+                _ = await NotificationService.shared
+                    .scheduleNotifications(snapshot: snapshot, reminderDays: days)
             }
         }
     }

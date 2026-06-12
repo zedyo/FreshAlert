@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.8.5] – 2026-06-12
+
+### Behoben
+- **Notification-Rescheduling jetzt vollständig wertbasiert** — der v1.8.2-Fix
+  (Refetch im Task) reichte nicht: Der Task suspendiert beim System-Scheduling
+  erneut, und wenn Item/ModelContext genau in dieser Lücke zerstört wurden,
+  crashte der anschließende Modellzugriff weiterhin (CI-Lauf 27435500288,
+  gleicher Fatal Error wie zuvor). Jetzt:
+  - **`FoodItemNotificationSnapshot`** (Werte-Kopie von id/name/expiryDate/
+    quantity), wird synchron vor dem ersten `await` gebaut.
+  - **`scheduleNotifications(snapshot:reminderDays:)`** als Kern-API — fasst
+    nie ein SwiftData-Modell an; die bisherige `for item:`-Signatur bleibt als
+    dünner Wrapper erhalten (Snapshot synchron am Eintritt).
+  - **`NotificationService.identifiers(forItemID:)`**: deterministische IDs,
+    `updateFoodItem` weist sie synchron zu statt nach dem await — kein
+    Modellzugriff mehr hinter Suspension-Punkten.
+  - `decrementQuantity`-Task arbeitet nur noch mit dem Snapshot (kein self,
+    kein Context, kein Modell).
+
+---
+
 ## [1.8.4] – 2026-06-12
 
 ### Behoben

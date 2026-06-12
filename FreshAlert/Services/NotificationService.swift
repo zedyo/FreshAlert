@@ -48,13 +48,38 @@ final class NotificationService {
         ])
     }
 
+    /// Deterministische Notification-IDs eines Items. Stabil über Reschedules
+    /// hinweg — Cancel mit nicht (mehr) geplanten IDs ist ein No-op.
+    static func identifiers(forItemID id: UUID) -> [String] {
+        [
+            "freshalert-reminder-\(id.uuidString)",
+            "freshalert-expiry-\(id.uuidString)"
+        ]
+    }
+
     /// Schedules reminder + expiry-day notifications. Returns notification identifiers.
+    /// Liest das Modell nur synchron beim Aufruf (Snapshot) — sicher gegenüber
+    /// gleichzeitigem Löschen während der awaits.
     func scheduleNotifications(for item: FoodItem, reminderDays: Int) async -> [String] {
-        // Cancel existing first
-        cancelNotifications(for: item)
+        await scheduleNotifications(
+            snapshot: FoodItemNotificationSnapshot(item: item),
+            reminderDays: reminderDays
+        )
+    }
+
+    /// Kern-Implementierung auf Werte-Basis: fasst NIE ein SwiftData-Modell an.
+    /// Kann deshalb gefahrlos aus unstrukturierten Tasks aufgerufen werden,
+    /// auch wenn Item oder ModelContext zwischenzeitlich zerstört werden
+    /// (Crash-Ursache in CI-Lauf 27434773022/27435500288).
+    func scheduleNotifications(
+        snapshot: FoodItemNotificationSnapshot,
+        reminderDays: Int
+    ) async -> [String] {
+        // Cancel existing first — deterministische IDs, kein Modellzugriff.
+        cancelNotifications(withIdentifiers: Self.identifiers(forItemID: snapshot.id))
 
         var identifiers: [String] = []
-        let categoryID = item.quantity > 1
+        let categoryID = snapshot.quantity > 1
             ? NotificationCategoryID.multi
             : NotificationCategoryID.single
 
@@ -62,19 +87,19 @@ final class NotificationService {
         // Orphan-Parser primär gelesen — Body-Parsing ist nur Fallback für
         // Alt-Notifications aus Versionen vor 1.8.
         let baseUserInfo: [AnyHashable: Any] = [
-            NotificationUserInfoKey.itemID: item.id.uuidString,
-            NotificationUserInfoKey.itemName: item.name,
-            NotificationUserInfoKey.expiryDate: item.expiryDate.timeIntervalSince1970
+            NotificationUserInfoKey.itemID: snapshot.id.uuidString,
+            NotificationUserInfoKey.itemName: snapshot.name,
+            NotificationUserInfoKey.expiryDate: snapshot.expiryDate.timeIntervalSince1970
         ]
 
         // 1. Reminder notification (X days before expiry)
         if let reminderDate = Calendar.current.date(
-            byAdding: .day, value: -reminderDays, to: item.expiryDate
+            byAdding: .day, value: -reminderDays, to: snapshot.expiryDate
         ), reminderDate > Date() {
-            let id = "freshalert-reminder-\(item.id.uuidString)"
+            let id = "freshalert-reminder-\(snapshot.id.uuidString)"
             let content = UNMutableNotificationContent()
             content.title = "FreshAlert – Bald ablaufend"
-            content.body = "\(item.name) läuft in \(reminderDays) \(reminderDays == 1 ? "Tag" : "Tagen") ab."
+            content.body = "\(snapshot.name) läuft in \(reminderDays) \(reminderDays == 1 ? "Tag" : "Tagen") ab."
             content.sound = .default
             content.userInfo = baseUserInfo
             content.categoryIdentifier = categoryID
@@ -90,16 +115,16 @@ final class NotificationService {
         }
 
         // 2. Expiry-day notification
-        if item.expiryDate > Date() {
-            let id = "freshalert-expiry-\(item.id.uuidString)"
+        if snapshot.expiryDate > Date() {
+            let id = "freshalert-expiry-\(snapshot.id.uuidString)"
             let content = UNMutableNotificationContent()
             content.title = "FreshAlert – Heute ablaufend!"
-            content.body = "\(item.name) läuft heute ab. Verwende es noch heute!"
+            content.body = "\(snapshot.name) läuft heute ab. Verwende es noch heute!"
             content.sound = .default
             content.userInfo = baseUserInfo
             content.categoryIdentifier = categoryID
 
-            var components = Calendar.current.dateComponents([.year, .month, .day], from: item.expiryDate)
+            var components = Calendar.current.dateComponents([.year, .month, .day], from: snapshot.expiryDate)
             components.hour = 8
             components.minute = 0
             let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
@@ -133,6 +158,24 @@ final class NotificationService {
 }
 
 // MARK: - Shared types
+
+/// Werte-Snapshot eines FoodItems für das Notification-Scheduling. Wird
+/// synchron (vor dem ersten await) aus dem Modell gebaut, damit async-Pfade
+/// kein SwiftData-Modell über Suspension-Punkte hinweg festhalten.
+struct FoodItemNotificationSnapshot: Sendable {
+    let id: UUID
+    let name: String
+    let expiryDate: Date
+    let quantity: Int
+
+    @MainActor
+    init(item: FoodItem) {
+        self.id = item.id
+        self.name = item.name
+        self.expiryDate = item.expiryDate
+        self.quantity = item.quantity
+    }
+}
 
 struct OrphanedNotification: Identifiable, Hashable {
     let itemID: UUID
