@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.7.1] – 2026-06-12
+
+### Projekt / Dokumentation
+- **`docs/HANDOFF.md`** vollständig aktualisiert: dokumentiert den
+  TestFlight-Stand (erster interner Build läuft, Signing-Team korrigiert,
+  DSA-/Bank-Verifizierung eingereicht) und die offenen Punkte. Wichtigster
+  nächster Schritt: **Adresse in App Store Connect korrigieren**, dann
+  Paid-Applications-Vertrag aktivieren und die beiden IAPs anlegen, damit die
+  Paywall in TestFlight Produkte lädt (Sandbox-Käufe sind für Tester gratis,
+  kein Coupon-Mechanismus nötig). Enthält außerdem die fertigen Texte für die
+  Beta App Review als Anhang.
+
+---
+
 ## [1.7.0] – 2026-05-25
 
 ### Quick Actions in Push-Notifications
