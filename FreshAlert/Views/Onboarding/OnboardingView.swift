@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UserNotifications
 
 // First-launch setup wizard. Explains the app and lets the user pick the
 // storage locations to start with. Shown only when no locations exist yet.
@@ -8,11 +9,16 @@ struct OnboardingView: View {
     let onFinish: () -> Void
 
     @State private var page = 0
-    @State private var selectedTemplates: Set<Int> = Set(StorageLocation.defaultTemplates.indices)
-    @State private var didRequestNotifications = false
+    // Alle Standardorte vorausgewählt, nur "Keller" nicht: den hat nicht jeder.
+    @State private var selectedTemplates: Set<Int> = Set(
+        StorageLocation.defaultTemplates.indices.filter {
+            StorageLocation.defaultTemplates[$0].name != "Keller"
+        }
+    )
+    @State private var notificationsGranted = false
+    @State private var isRequestingNotifications = false
 
     private let lastPage = 4
-    private let reminderPage = 2
 
     var body: some View {
         VStack(spacing: 0) {
@@ -31,11 +37,7 @@ struct OnboardingView: View {
                     text: "Scanne den Barcode eines Produkts. Name, Marke und Bild werden automatisch geladen. Kein Barcode? Trag das Produkt einfach manuell ein."
                 ).tag(1)
 
-                infoPage(
-                    icon: "bell.badge.fill",
-                    title: "Rechtzeitig erinnert",
-                    text: "FreshAlert benachrichtigt dich, bevor etwas abläuft. Wische ein Produkt nach rechts, sobald du es verbraucht hast."
-                ).tag(2)
+                reminderPage.tag(2)
 
                 locationPage.tag(3)
 
@@ -47,18 +49,12 @@ struct OnboardingView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
             .indexViewStyle(.page(backgroundDisplayMode: .always))
-            .onChange(of: page) { _, newPage in
-                // Ask for notification permission once the reminder step has
-                // been read and the user moves past it.
-                if newPage > reminderPage {
-                    Task { await requestNotificationsOnce() }
-                }
-            }
 
             primaryButton
         }
         .background(Color(.systemBackground))
         .interactiveDismissDisabled()
+        .task { await loadNotificationStatus() }
     }
 
     // MARK: - Bars
@@ -67,7 +63,7 @@ struct OnboardingView: View {
         HStack {
             Spacer()
             if page < lastPage {
-                Button("Überspringen") { finish(insertAll: true) }
+                Button("Überspringen") { finish() }
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -82,7 +78,7 @@ struct OnboardingView: View {
             if page < lastPage {
                 withAnimation { page += 1 }
             } else {
-                finish(insertAll: false)
+                finish()
             }
         } label: {
             Text(page < lastPage ? "Weiter" : "Los geht’s")
@@ -116,6 +112,56 @@ struct OnboardingView: View {
             Spacer()
         }
         .padding(.horizontal, 32)
+    }
+
+    // Seite 3: Erinnerungen erklären und die Berechtigung per Knopf holen,
+    // nicht automatisch beim Weiterblättern. "Weiter" geht auch ohne.
+    private var reminderPage: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            Image(systemName: "bell.badge.fill")
+                .font(.system(size: 88))
+                .foregroundStyle(Color.freshGreen)
+            Text("Rechtzeitig erinnert")
+                .font(.title.bold())
+                .multilineTextAlignment(.center)
+            Text("FreshAlert benachrichtigt dich, bevor etwas abläuft. Wische ein Produkt nach links, sobald du es verbraucht hast.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            notificationButton
+
+            Spacer()
+            Spacer()
+        }
+        .padding(.horizontal, 32)
+    }
+
+    @ViewBuilder
+    private var notificationButton: some View {
+        if notificationsGranted {
+            Label("Erinnerungen aktiv", systemImage: "checkmark.circle.fill")
+                .font(.headline)
+                .foregroundStyle(Color.freshGreen)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 20)
+                .background(Color.freshGreen.opacity(0.12))
+                .clipShape(Capsule())
+        } else {
+            Button {
+                Task { await requestNotifications() }
+            } label: {
+                Label("Erinnerungen aktivieren", systemImage: "bell.fill")
+                    .font(.headline)
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 8)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .tint(.freshGreen)
+            .disabled(isRequestingNotifications)
+        }
     }
 
     private var locationPage: some View {
@@ -175,20 +221,27 @@ struct OnboardingView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Finish
+    // MARK: - Notifications
 
-    private func requestNotificationsOnce() async {
-        guard !didRequestNotifications else { return }
-        didRequestNotifications = true
-        await NotificationService.shared.requestPermission()
+    private func loadNotificationStatus() async {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        notificationsGranted = settings.authorizationStatus == .authorized
+            || settings.authorizationStatus == .provisional
     }
 
-    private func finish(insertAll: Bool) {
-        // Covers skipping past the reminder step without ever triggering it.
-        Task { await requestNotificationsOnce() }
+    private func requestNotifications() async {
+        isRequestingNotifications = true
+        defer { isRequestingNotifications = false }
+        notificationsGranted = await NotificationService.shared.requestPermission()
+    }
+
+    // MARK: - Finish
+
+    /// Legt die gewählten Lagerorte an. Beim Überspringen gilt die Vorauswahl.
+    private func finish() {
         var sortOrder = 0
         for (index, template) in StorageLocation.defaultTemplates.enumerated() {
-            guard insertAll || selectedTemplates.contains(index) else { continue }
+            guard selectedTemplates.contains(index) else { continue }
             modelContext.insert(
                 StorageLocation(
                     name: template.name,
