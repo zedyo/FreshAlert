@@ -45,6 +45,11 @@
 		E00000000000000000000037 /* RemindersOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000037 /* RemindersOverviewView.swift */; };
 		E00000000000000000000038 /* ReminderDigestPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000038 /* ReminderDigestPlanner.swift */; };
 		E00000000000000000000039 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000003A /* SafariView.swift */; };
+		E00000000000000000000050 /* ExpiryDateRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000050 /* ExpiryDateRecognizer.swift */; };
+		E00000000000000000000051 /* ShelfLifeSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000051 /* ShelfLifeSuggestion.swift */; };
+		E00000000000000000000052 /* ExpiryDateScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000052 /* ExpiryDateScannerView.swift */; };
+		T00000000000000000000020 /* ExpiryDateParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000053 /* ExpiryDateParsingTests.swift */; };
+		T00000000000000000000021 /* ShelfLifeSuggestionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000054 /* ShelfLifeSuggestionTests.swift */; };
 		T00000000000000000000005 /* ExpiryLabelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000001B /* ExpiryLabelTests.swift */; };
 		T0000000000000000000000B /* ReminderDigestPlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000039 /* ReminderDigestPlannerTests.swift */; };
 		T0000000000000000000000C /* OpenFoodFactsParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000003B /* OpenFoodFactsParsingTests.swift */; };
@@ -126,6 +131,11 @@
 		D0000000000000000000003A /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
 		D0000000000000000000003B /* OpenFoodFactsParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenFoodFactsParsingTests.swift; sourceTree = "<group>"; };
 		D0000000000000000000003C /* StorageLocationSuggestionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageLocationSuggestionTests.swift; sourceTree = "<group>"; };
+		D00000000000000000000050 /* ExpiryDateRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiryDateRecognizer.swift; sourceTree = "<group>"; };
+		D00000000000000000000051 /* ShelfLifeSuggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfLifeSuggestion.swift; sourceTree = "<group>"; };
+		D00000000000000000000052 /* ExpiryDateScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiryDateScannerView.swift; sourceTree = "<group>"; };
+		D00000000000000000000053 /* ExpiryDateParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiryDateParsingTests.swift; sourceTree = "<group>"; };
+		D00000000000000000000054 /* ShelfLifeSuggestionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfLifeSuggestionTests.swift; sourceTree = "<group>"; };
 		D0000000000000000000001F /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		D00000000000000000000020 /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
 		D00000000000000000000021 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
@@ -232,6 +242,7 @@
 				D00000000000000000000007 /* BarcodeScannerView.swift */,
 				D00000000000000000000008 /* AddFoodItemView.swift */,
 				D0000000000000000000003A /* SafariView.swift */,
+				D00000000000000000000052 /* ExpiryDateScannerView.swift */,
 			);
 			path = Scanner;
 			sourceTree = "<group>";
@@ -264,6 +275,8 @@
 				D00000000000000000000033 /* AppEnvironment.swift */,
 				D00000000000000000000034 /* TestDataSeeder.swift */,
 				D00000000000000000000038 /* ReminderDigestPlanner.swift */,
+				D00000000000000000000050 /* ExpiryDateRecognizer.swift */,
+				D00000000000000000000051 /* ShelfLifeSuggestion.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -330,6 +343,8 @@
 				D00000000000000000000039 /* ReminderDigestPlannerTests.swift */,
 				D0000000000000000000003B /* OpenFoodFactsParsingTests.swift */,
 				D0000000000000000000003C /* StorageLocationSuggestionTests.swift */,
+				D00000000000000000000053 /* ExpiryDateParsingTests.swift */,
+				D00000000000000000000054 /* ShelfLifeSuggestionTests.swift */,
 			);
 			path = FreshAlertTests;
 			sourceTree = "<group>";
@@ -484,6 +499,9 @@
 				E00000000000000000000038 /* ReminderDigestPlanner.swift in Sources */,
 				E00000000000000000000039 /* SafariView.swift in Sources */,
 				E00000000000000000000029 /* PaywallView.swift in Sources */,
+				E00000000000000000000050 /* ExpiryDateRecognizer.swift in Sources */,
+				E00000000000000000000051 /* ShelfLifeSuggestion.swift in Sources */,
+				E00000000000000000000052 /* ExpiryDateScannerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -506,6 +524,8 @@
 				T0000000000000000000000B /* ReminderDigestPlannerTests.swift in Sources */,
 				T0000000000000000000000C /* OpenFoodFactsParsingTests.swift in Sources */,
 				T0000000000000000000000D /* StorageLocationSuggestionTests.swift in Sources */,
+				T00000000000000000000020 /* ExpiryDateParsingTests.swift in Sources */,
+				T00000000000000000000021 /* ShelfLifeSuggestionTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

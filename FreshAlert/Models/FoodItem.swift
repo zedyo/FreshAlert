@@ -17,6 +17,9 @@ final class FoodItem {
     var notificationIdentifiers: [String]
     var isOfflineEntry: Bool
     var addedAt: Date
+    /// Wann das Produkt geöffnet wurde. `nil` heißt ungeöffnet. Optional mit
+    /// Standard nil, damit bestehende Datenbanken leicht migrieren.
+    var openedAt: Date?
 
     init(
         id: UUID = UUID(),
@@ -31,7 +34,8 @@ final class FoodItem {
         customReminderDays: Int? = nil,
         notificationIdentifiers: [String] = [],
         isOfflineEntry: Bool = false,
-        addedAt: Date = Date()
+        addedAt: Date = Date(),
+        openedAt: Date? = nil
     ) {
         self.id = id
         self.barcode = barcode
@@ -46,6 +50,7 @@ final class FoodItem {
         self.notificationIdentifiers = notificationIdentifiers
         self.isOfflineEntry = isOfflineEntry
         self.addedAt = addedAt
+        self.openedAt = openedAt
     }
 
     var daysUntilExpiry: Int {
