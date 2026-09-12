@@ -15,7 +15,16 @@ final class AppViewModel: ObservableObject {
     @Published var pendingSyncCount: Int = 0
     @Published var isLoadingProduct: Bool = false
     @Published var toastMessage: String?
+    @Published var toastAction: ToastAction?
     @Published var scanRequested: Bool = false
+    @Published var selectedTab: Int = 0
+
+    /// Schnappschuss des zuletzt entfernten Produkts, für "Rückgängig".
+    /// Verfällt nach `undoWindow` Sekunden oder beim nächsten Entfernen.
+    private var lastRemovedSnapshot: RemovedItemSnapshot?
+    private var undoExpiryTask: Task<Void, Never>?
+    private var toastDismissTask: Task<Void, Never>?
+    private let undoWindow: TimeInterval = 6
 
     @AppStorage("globalReminderDays") var globalReminderDays: Int = 7
 
@@ -82,15 +91,9 @@ final class AppViewModel: ObservableObject {
         }
     }
 
+    /// Löscht das Produkt und bietet 6 Sekunden lang "Rückgängig" an.
     func deleteFoodItem(_ item: FoodItem) {
-        NotificationService.shared.cancelNotifications(for: item)
-        // Explicitly nil out external storage before deletion so SwiftData
-        // releases the image file on disk immediately during the same save.
-        item.imageData = nil
-        modelContext.delete(item)
-        try? modelContext.save()
-        updatePendingCount()
-        updateWidgetSnapshot()
+        remove(item, toast: "\(item.name) gelöscht")
     }
 
     func updateFoodItem(_ item: FoodItem) async {
@@ -101,15 +104,85 @@ final class AppViewModel: ObservableObject {
         updateWidgetSnapshot()
     }
 
+    /// Verbraucht ein Exemplar. Bei Menge 1 wird das Produkt entfernt,
+    /// mit "Rückgängig" statt Nachfrage.
     func decrementQuantity(_ item: FoodItem) {
         if item.quantity > 1 {
             item.quantity -= 1
         } else {
-            deleteFoodItem(item)
+            remove(item, toast: "\(item.name) verbraucht")
             return
         }
         try? modelContext.save()
         updateWidgetSnapshot()
+    }
+
+    // MARK: - Entfernen mit Undo
+
+    private func remove(_ item: FoodItem, toast message: String) {
+        lastRemovedSnapshot = RemovedItemSnapshot(item)
+        NotificationService.shared.cancelNotifications(for: item)
+        // Explicitly nil out external storage before deletion so SwiftData
+        // releases the image file on disk immediately during the same save.
+        item.imageData = nil
+        modelContext.delete(item)
+        try? modelContext.save()
+        updatePendingCount()
+        updateWidgetSnapshot()
+
+        undoExpiryTask?.cancel()
+        undoExpiryTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(self?.undoWindow ?? 6))
+            guard !Task.isCancelled else { return }
+            self?.lastRemovedSnapshot = nil
+        }
+        showToast(message, actionTitle: "Rückgängig") { [weak self] in
+            self?.undoLastRemoval()
+        }
+    }
+
+    /// Stellt das zuletzt entfernte Produkt aus dem Schnappschuss wieder her.
+    func undoLastRemoval() {
+        guard let snapshot = lastRemovedSnapshot else { return }
+        lastRemovedSnapshot = nil
+        undoExpiryTask?.cancel()
+        dismissToast()
+
+        let item = snapshot.makeItem()
+        modelContext.insert(item)
+        try? modelContext.save()
+        updatePendingCount()
+        updateWidgetSnapshot()
+
+        Task { @MainActor in
+            let days = item.customReminderDays ?? globalReminderDays
+            item.notificationIdentifiers = await NotificationService.shared
+                .scheduleNotifications(for: item, reminderDays: days)
+            try? modelContext.save()
+        }
+    }
+
+    // MARK: - Toast
+
+    func showToast(_ message: String, actionTitle: String? = nil, handler: (() -> Void)? = nil) {
+        toastDismissTask?.cancel()
+        toastMessage = message
+        if let actionTitle, let handler {
+            toastAction = ToastAction(title: actionTitle, handler: handler)
+        } else {
+            toastAction = nil
+        }
+        toastDismissTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled else { return }
+            self?.dismissToast()
+        }
+    }
+
+    func dismissToast() {
+        toastDismissTask?.cancel()
+        toastMessage = nil
+        toastAction = nil
     }
 
     /// Für Dubletten beim Scannen: statt eines zweiten Eintrags nur die Menge erhöhen.
@@ -117,7 +190,7 @@ final class AppViewModel: ObservableObject {
         item.quantity += 1
         try? modelContext.save()
         updateWidgetSnapshot()
-        toastMessage = "\(item.name): jetzt \(item.quantity)×"
+        showToast("\(item.name): jetzt \(item.quantity)×")
     }
 
     // MARK: - Widget Data
@@ -176,7 +249,7 @@ final class AppViewModel: ObservableObject {
         }
         updatePendingCount()
         if !items.isEmpty {
-            toastMessage = "\(items.count) Einträge synchronisiert"
+            showToast("\(items.count) Produkte synchronisiert")
         }
     }
 
@@ -237,5 +310,61 @@ final class AppViewModel: ObservableObject {
                 .scheduleNotifications(for: item, reminderDays: days)
         }
         try? modelContext.save()
+    }
+}
+
+// MARK: - Hilfstypen
+
+struct ToastAction {
+    let title: String
+    let handler: () -> Void
+}
+
+/// Alle Felder eines FoodItem, damit es nach dem Löschen wiederhergestellt
+/// werden kann. Der Lagerort bleibt als Referenz erhalten, er wird nicht gelöscht.
+struct RemovedItemSnapshot {
+    let id: UUID
+    let barcode: String
+    let name: String
+    let brand: String
+    let imageURL: String
+    let imageData: Data?
+    let expiryDate: Date
+    let quantity: Int
+    let storageLocation: StorageLocation?
+    let customReminderDays: Int?
+    let isOfflineEntry: Bool
+    let addedAt: Date
+
+    init(_ item: FoodItem) {
+        id = item.id
+        barcode = item.barcode
+        name = item.name
+        brand = item.brand
+        imageURL = item.imageURL
+        imageData = item.imageData
+        expiryDate = item.expiryDate
+        quantity = item.quantity
+        storageLocation = item.storageLocation
+        customReminderDays = item.customReminderDays
+        isOfflineEntry = item.isOfflineEntry
+        addedAt = item.addedAt
+    }
+
+    func makeItem() -> FoodItem {
+        FoodItem(
+            id: id,
+            barcode: barcode,
+            name: name,
+            brand: brand,
+            imageURL: imageURL,
+            imageData: imageData,
+            expiryDate: expiryDate,
+            quantity: quantity,
+            storageLocation: storageLocation,
+            customReminderDays: customReminderDays,
+            isOfflineEntry: isOfflineEntry,
+            addedAt: addedAt
+        )
     }
 }

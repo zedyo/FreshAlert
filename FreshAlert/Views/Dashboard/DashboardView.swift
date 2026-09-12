@@ -10,8 +10,6 @@ struct DashboardView: View {
     @State private var searchText = ""
     @State private var selectedFilter: FilterOption = .all
     @State private var selectedLocationID: UUID?
-    @State private var itemToDelete: FoodItem?
-    @State private var showDeleteAlert = false
 
     enum FilterOption {
         case all, expiringSoon, expired
@@ -54,8 +52,8 @@ struct DashboardView: View {
                     .id("firstSection")
                 }
 
-                // Location chips
-                if !locations.isEmpty {
+                // Location chips (erst, wenn es Produkte gibt)
+                if !locations.isEmpty && !allItems.isEmpty {
                     Section {
                         locationBar
                             .listRowBackground(Color.clear)
@@ -84,16 +82,16 @@ struct DashboardView: View {
                                         Feedback.itemUsed()
                                     } label: {
                                         Label(
-                                            item.quantity > 1 ? "1 verwendet" : "Verwendet",
+                                            item.quantity > 1 ? "1 verbraucht" : "Verbraucht",
                                             systemImage: "checkmark.circle.fill"
                                         )
                                     }
                                     .tint(Color.freshGreen)
                                 }
+                                // Kein Alert: "Rückgängig" im Toast deckt Fehlgriffe ab.
                                 .swipeActions(edge: .leading, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
-                                        itemToDelete = item
-                                        showDeleteAlert = true
+                                        viewModel.deleteFoodItem(item)
                                     } label: {
                                         Label("Löschen", systemImage: "trash")
                                     }
@@ -104,13 +102,12 @@ struct DashboardView: View {
                                         Feedback.itemUsed()
                                     } label: {
                                         Label(
-                                            item.quantity > 1 ? "1 Exemplar verbraucht" : "Als verwendet markieren",
+                                            item.quantity > 1 ? "1 verbraucht" : "Verbraucht",
                                             systemImage: "checkmark.circle"
                                         )
                                     }
                                     Button(role: .destructive) {
-                                        itemToDelete = item
-                                        showDeleteAlert = true
+                                        viewModel.deleteFoodItem(item)
                                     } label: {
                                         Label("Löschen", systemImage: "trash")
                                     }
@@ -124,17 +121,11 @@ struct DashboardView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("FreshAlert")
             .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $searchText, placement: .automatic, prompt: "Produkt suchen …")
+            .searchableIf(!allItems.isEmpty, text: $searchText, prompt: "Produkt suchen …")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if viewModel.pendingSyncCount > 0 { syncBadge }
                 }
-            }
-            .alert("Produkt löschen?", isPresented: $showDeleteAlert, presenting: itemToDelete) { item in
-                Button("Löschen", role: .destructive) { viewModel.deleteFoodItem(item) }
-                Button("Abbrechen", role: .cancel) {}
-            } message: { item in
-                Text("\"\(item.name)\" wird aus der Liste entfernt.")
             }
             .task {
                 proxy.scrollTo("firstSection", anchor: .top)
@@ -194,23 +185,55 @@ struct DashboardView: View {
         }
     }
 
+    @ViewBuilder
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: searchText.isEmpty ? "cart.badge.plus" : "magnifyingglass")
-                .font(.system(size: 52))
-                .foregroundStyle(.secondary)
-            Text(searchText.isEmpty ? "Noch keine Produkte" : "Keine Ergebnisse")
-                .font(.title3.weight(.semibold))
-            Text(searchText.isEmpty
-                 ? "Scanne einen Barcode unter \"Scannen\" um zu beginnen."
-                 : "Versuche einen anderen Suchbegriff.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+        if allItems.isEmpty {
+            // Noch gar nichts erfasst: direkt zum Scanner führen.
+            VStack(spacing: 16) {
+                Image(systemName: "cart.badge.plus")
+                    .font(.system(size: 52))
+                    .foregroundStyle(.secondary)
+                Text("Noch keine Produkte")
+                    .font(.title3.weight(.semibold))
+                Text("Scanne den Barcode eines Produkts, FreshAlert erinnert dich, bevor es abläuft.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                Button {
+                    viewModel.selectedTab = 1
+                } label: {
+                    Label("Ersten Barcode scannen", systemImage: "barcode.viewfinder")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 4)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .tint(Color.freshGreen)
+                .padding(.top, 8)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, 48)
+            .padding(.horizontal, 32)
+        } else {
+            // Es gibt Produkte, aber Suche oder Filter treffen nichts.
+            VStack(spacing: 16) {
+                Image(systemName: searchText.isEmpty ? "line.3.horizontal.decrease.circle" : "magnifyingglass")
+                    .font(.system(size: 52))
+                    .foregroundStyle(.secondary)
+                Text("Keine Ergebnisse")
+                    .font(.title3.weight(.semibold))
+                Text(searchText.isEmpty
+                     ? "In dieser Auswahl gibt es gerade nichts."
+                     : "Versuche einen anderen Suchbegriff.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, 48)
+            .padding(.horizontal, 32)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 48)
-        .padding(.horizontal, 32)
     }
 
     private var syncBadge: some View {
@@ -226,6 +249,18 @@ struct DashboardView: View {
 }
 
 // MARK: - Helper Components
+
+private extension View {
+    /// Suchfeld nur zeigen, wenn es etwas zu suchen gibt.
+    @ViewBuilder
+    func searchableIf(_ condition: Bool, text: Binding<String>, prompt: String) -> some View {
+        if condition {
+            searchable(text: text, placement: .automatic, prompt: prompt)
+        } else {
+            self
+        }
+    }
+}
 
 struct InteractiveStatCard: View {
     let value: String

@@ -435,7 +435,7 @@ struct AddFoodItemView: View {
         isSaving = true
         lastStorageLocationID = selectedLocation?.id.uuidString ?? ""
         viewModel.addFoodItem(item)
-        viewModel.toastMessage = "\(trimmedName) gespeichert, haltbar bis \(Self.shortDateString(expiryDate))"
+        viewModel.showToast("\(trimmedName) gespeichert, haltbar bis \(Self.shortDateString(expiryDate))")
         Feedback.itemSaved()
         dismiss()
     }

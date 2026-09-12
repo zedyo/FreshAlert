@@ -8,11 +8,10 @@ struct ContentView: View {
     @Query private var locations: [StorageLocation]
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
-    @State private var selectedTab = 0
     @State private var showOnboarding = false
 
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: $viewModel.selectedTab) {
             DashboardView()
                 .tabItem {
                     Label("Übersicht", systemImage: "house.fill")
@@ -32,19 +31,32 @@ struct ContentView: View {
                 .tag(2)
         }
         .tint(Color.freshGreen)
-        .onChange(of: selectedTab) { _, _ in
+        // Über der TabView, damit der Toast auf jedem Tab sichtbar ist,
+        // auch im Scanner, wo man nach dem Speichern landet.
+        .overlay(alignment: .bottom) {
+            if let message = viewModel.toastMessage {
+                ToastView(message: message, action: viewModel.toastAction) {
+                    viewModel.dismissToast()
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 64)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(response: 0.35), value: viewModel.toastMessage)
+        .onChange(of: viewModel.selectedTab) { _, _ in
             Feedback.tabChanged()
         }
         .onAppear {
             if viewModel.scanRequested {
-                selectedTab = 1
+                viewModel.selectedTab = 1
                 viewModel.scanRequested = false
             }
             resolveOnboarding()
         }
         .onChange(of: viewModel.scanRequested) { _, requested in
             guard requested else { return }
-            selectedTab = 1
+            viewModel.selectedTab = 1
             viewModel.scanRequested = false
         }
         .fullScreenCover(isPresented: $showOnboarding) {
@@ -65,6 +77,49 @@ struct ContentView: View {
         } else {
             hasCompletedOnboarding = true
         }
+    }
+}
+
+// MARK: - Toast
+
+/// Kurze Meldung unten über der Tab-Leiste, optional mit Aktionsknopf
+/// ("Rückgängig"). Verschwindet von selbst, siehe AppViewModel.showToast.
+struct ToastView: View {
+    let message: String
+    let action: ToastAction?
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(message)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.white)
+                .lineLimit(2)
+            Spacer(minLength: 0)
+            if let action {
+                Button(action.title) {
+                    action.handler()
+                }
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.freshGreen)
+                .buttonStyle(.plain)
+            } else {
+                Button {
+                    onDismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Meldung schließen")
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color(.darkGray).opacity(0.95))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .shadow(color: .black.opacity(0.2), radius: 8, y: 3)
     }
 }
 

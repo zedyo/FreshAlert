@@ -2,8 +2,16 @@ import SwiftUI
 import SwiftData
 
 struct FoodItemCardView: View {
+    @EnvironmentObject var viewModel: AppViewModel
     let item: FoodItem
     @State private var showDetail = false
+    @State private var deleteAfterDismiss = false
+
+    private static let shortDate: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "dd.MM."
+        return f
+    }()
 
     var body: some View {
         Button { showDetail = true } label: {
@@ -39,6 +47,9 @@ struct FoodItemCardView: View {
                             .font(.caption)
                         Text(item.expiryLabel)
                             .font(.caption.weight(.medium))
+                        Text(Self.shortDate.string(from: item.expiryDate))
+                            .font(.caption)
+                            .opacity(0.75)
                     }
                     .foregroundStyle(item.expiryStatus.color)
                     .padding(.horizontal, 8)
@@ -52,7 +63,7 @@ struct FoodItemCardView: View {
                 // Quantity badge + chevron
                 VStack(alignment: .trailing, spacing: 8) {
                     if item.quantity > 1 {
-                        Text("x\(item.quantity)")
+                        Text("\(item.quantity)×")
                             .font(.caption.bold())
                             .foregroundStyle(.white)
                             .padding(.horizontal, 7)
@@ -75,8 +86,21 @@ struct FoodItemCardView: View {
             )
         }
         .buttonStyle(.plain)
-        .sheet(isPresented: $showDetail) {
-            FoodItemDetailView(item: item)
+        .sheet(isPresented: $showDetail, onDismiss: handleDismiss) {
+            FoodItemDetailView(item: item) {
+                // Erst das Sheet schließen, dann löschen: sonst rendert das
+                // Sheet ein gelöschtes @Model und die App stürzt ab.
+                deleteAfterDismiss = true
+            }
+        }
+    }
+
+    private func handleDismiss() {
+        guard deleteAfterDismiss else { return }
+        deleteAfterDismiss = false
+        let item = self.item
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            viewModel.deleteFoodItem(item)
         }
     }
 
@@ -122,8 +146,12 @@ struct FoodItemDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var viewModel: AppViewModel
     let item: FoodItem
+    /// Wird aufgerufen, nachdem Löschen bestätigt wurde. Das eigentliche
+    /// Löschen übernimmt der Parent nach dem Schließen des Sheets.
+    let onDelete: () -> Void
 
     @State private var editMode = false
+    @State private var showDeleteConfirmation = false
     @State private var editedName: String = ""
     @State private var editedExpiryDate: Date = Date()
     @State private var editedQuantity: Int = 1
@@ -204,7 +232,7 @@ struct FoodItemDetailView: View {
                 .background(Color(.secondarySystemBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
-                DatePicker("MHD", selection: $editedExpiryDate, displayedComponents: .date)
+                DatePicker("Haltbar bis", selection: $editedExpiryDate, displayedComponents: .date)
                     .padding()
                     .background(Color(.secondarySystemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -241,9 +269,9 @@ struct FoodItemDetailView: View {
 
             } else {
                 // Read-only
-                DetailRow(label: "MHD", value: item.expiryDate.formatted(date: .long, time: .omitted))
+                DetailRow(label: "Haltbar bis", value: item.expiryDate.formatted(date: .long, time: .omitted))
                 DetailRow(label: "Status", value: item.expiryLabel, color: item.expiryStatus.color)
-                DetailRow(label: "Menge", value: "\(item.quantity)x")
+                DetailRow(label: "Menge", value: "\(item.quantity)×")
                 if !item.brand.isEmpty {
                     DetailRow(label: "Marke", value: item.brand)
                 }
@@ -251,13 +279,13 @@ struct FoodItemDetailView: View {
                     DetailRow(label: "Lagerort", value: loc.name)
                 }
                 if let reminder = item.customReminderDays {
-                    DetailRow(label: "Erinnerung", value: "\(reminder) Tage vorher")
+                    DetailRow(label: "Erinnerung", value: "\(reminderText(reminder)) (eigene)")
                 } else {
-                    DetailRow(label: "Erinnerung", value: "Global (\(viewModel.globalReminderDays) Tage)")
+                    DetailRow(label: "Erinnerung", value: "\(reminderText(viewModel.globalReminderDays)) (Standard)")
                 }
                 DetailRow(label: "Hinzugefügt", value: item.addedAt.formatted(date: .abbreviated, time: .omitted))
                 if item.isOfflineEntry {
-                    DetailRow(label: "Status", value: "Offline – warte auf Sync", color: .orange)
+                    DetailRow(label: "Status", value: "Offline, wartet auf Sync", color: .orange)
                 }
             }
         }
@@ -265,8 +293,7 @@ struct FoodItemDetailView: View {
 
     private var dangerSection: some View {
         Button(role: .destructive) {
-            viewModel.deleteFoodItem(item)
-            dismiss()
+            showDeleteConfirmation = true
         } label: {
             Label("Produkt löschen", systemImage: "trash")
                 .frame(maxWidth: .infinity)
@@ -274,6 +301,21 @@ struct FoodItemDetailView: View {
                 .background(Color.red.opacity(0.1))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
         }
+        .confirmationDialog(
+            "\(item.name) löschen?",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Produkt löschen", role: .destructive) {
+                onDelete()
+                dismiss()
+            }
+            Button("Abbrechen", role: .cancel) {}
+        }
+    }
+
+    private func reminderText(_ days: Int) -> String {
+        "\(days) \(days == 1 ? "Tag" : "Tage") vorher"
     }
 
     private func startEditing() {
