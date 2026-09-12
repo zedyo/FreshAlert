@@ -51,6 +51,15 @@ struct AddFoodItemView: View {
     /// Keine der Produktdatenbanken kennt den Barcode: Nachtragen anbieten.
     @State private var productNotFound = false
     @State private var showContributeSheet = false
+    /// Kamera-Ansicht, die das Haltbarkeitsdatum vom Etikett liest.
+    @State private var showDateScanner = false
+    /// Kurze Meldung im Formular. Der Toast der App liegt hinter dem Sheet,
+    /// deshalb hier eine eigene, gleich aussehende Einblendung.
+    @State private var scanToast: String?
+    /// Vorschlag aus der Kategorie des gefundenen Produkts.
+    @State private var shelfLife: ShelfLife?
+    @State private var isOpened = false
+    @State private var openedAt = Date()
     @FocusState private var focusedField: Field?
 
     /// Zuletzt gewählter Lagerort, als UUID-String. Leer heißt "noch nie gespeichert",
@@ -81,6 +90,8 @@ struct AddFoodItemView: View {
             _selectedLocation = State(initialValue: item.storageLocation)
             _useCustomReminder = State(initialValue: item.customReminderDays != nil)
             _customReminderDays = State(initialValue: item.customReminderDays ?? 7)
+            _isOpened = State(initialValue: item.openedAt != nil)
+            _openedAt = State(initialValue: item.openedAt ?? Date())
         }
     }
 
@@ -121,7 +132,11 @@ struct AddFoodItemView: View {
                 }
 
                 Section {
-                    quickExpiryRow
+                    HStack(spacing: 10) {
+                        quickExpiryRow
+                        scanDateButton
+                    }
+                    shelfLifeSuggestionRow
                     expiryResultRow
                     DatePicker(
                         "Anderes Datum",
@@ -134,6 +149,8 @@ struct AddFoodItemView: View {
                 } header: {
                     Text("Haltbar bis")
                 }
+
+                openedSection
 
                 Section {
                     Toggle("Individuelle Erinnerung", isOn: $useCustomReminder.animation())
@@ -180,6 +197,21 @@ struct AddFoodItemView: View {
             .onAppear { preselectLastLocation() }
             .interactiveDismissDisabled(isEditMode)
             .sheet(isPresented: $showPaywall) { PaywallView() }
+            .sheet(isPresented: $showDateScanner) {
+                ExpiryDateScannerView { date in
+                    withAnimation(.spring(response: 0.25)) { expiryDate = date }
+                    showScanToast("Datum erkannt: \(ExpiryDateScannerView.dateString(date))")
+                }
+            }
+            .overlay(alignment: .bottom) {
+                if let scanToast {
+                    ToastView(message: scanToast, action: nil) { self.scanToast = nil }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 24)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .animation(.spring(response: 0.35), value: scanToast)
         }
     }
 
@@ -382,6 +414,83 @@ struct AddFoodItemView: View {
         }
     }
 
+    /// Öffnet die Kamera, die das Datum vom Etikett liest.
+    private var scanDateButton: some View {
+        Button {
+            showDateScanner = true
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "text.viewfinder")
+                    .font(.subheadline.weight(.semibold))
+                Text("Datum scannen")
+                    .font(.subheadline.weight(.medium))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(Color.freshGreen)
+            .padding(.horizontal, 12)
+            .frame(minHeight: 40)
+            .background(Color.freshGreen.opacity(0.12))
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .fixedSize()
+        .accessibilityLabel("Haltbarkeitsdatum scannen")
+    }
+
+    /// Dezenter Hinweis aus der Kategorie. Nur beim Anlegen und nur, solange
+    /// noch kein Datum steht: gesetzt wird es erst auf Tipp.
+    @ViewBuilder
+    private var shelfLifeSuggestionRow: some View {
+        if !isEditMode, expiryDate == nil, let shelfLife {
+            suggestionRow(text: ShelfLifeSuggestion.sentence(for: shelfLife)) {
+                expiryDate = ShelfLifeSuggestion.date(addingDays: shelfLife.unopenedDays, to: Date())
+            }
+        }
+    }
+
+    private func suggestionRow(text: String, action: @escaping () -> Void) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "lightbulb")
+                .foregroundStyle(.secondary)
+            Text(text)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer(minLength: 8)
+            Button("Übernehmen") {
+                withAnimation(.spring(response: 0.25)) { action() }
+            }
+            .font(.caption.weight(.semibold))
+            .buttonStyle(.borderless)
+            .tint(Color.freshGreen)
+        }
+    }
+
+    /// Geöffnete Produkte halten kürzer. Datum und Vorschlag, nichts automatisch.
+    private var openedSection: some View {
+        Section {
+            Toggle("Schon geöffnet", isOn: $isOpened.animation())
+                .tint(Color.freshGreen)
+            if isOpened {
+                DatePicker(
+                    "Geöffnet am",
+                    selection: $openedAt,
+                    in: ...Date(),
+                    displayedComponents: .date
+                )
+                .datePickerStyle(.compact)
+                .tint(Color.freshGreen)
+
+                if let shelfLife {
+                    suggestionRow(text: ShelfLifeSuggestion.openedSentence(for: shelfLife)) {
+                        expiryDate = ShelfLifeSuggestion.date(addingDays: shelfLife.openedDays, to: openedAt)
+                    }
+                }
+            }
+        } header: {
+            Text("Geöffnet")
+        }
+    }
+
     @ViewBuilder
     private var expiryResultRow: some View {
         if let date = expiryDate {
@@ -481,14 +590,26 @@ struct AddFoodItemView: View {
         guard viewModel.isOnline else { beginEditing(); return }
         switch await viewModel.lookupProduct(barcode: barcode) {
         case .found(let info):
-            name     = info.name
-            brand    = info.brand
-            imageURL = info.imageURL ?? ""
+            name      = info.name
+            brand     = info.brand
+            imageURL  = info.imageURL ?? ""
+            shelfLife = info.shelfLife
         case .notFound:
             productNotFound = true
             beginEditing()
         case .unavailable:
             beginEditing()
+        }
+    }
+
+    /// Kurze Meldung im Formular, verschwindet von selbst.
+    private func showScanToast(_ message: String) {
+        scanToast = message
+        Task {
+            try? await Task.sleep(for: .seconds(3))
+            await MainActor.run {
+                if scanToast == message { scanToast = nil }
+            }
         }
     }
 
@@ -541,7 +662,8 @@ struct AddFoodItemView: View {
             quantity: quantity,
             storageLocation: selectedLocation,
             customReminderDays: useCustomReminder ? customReminderDays : nil,
-            isOfflineEntry: !viewModel.isOnline
+            isOfflineEntry: !viewModel.isOnline,
+            openedAt: isOpened ? Calendar.current.startOfDay(for: openedAt) : nil
         )
         // Speichern ist sofort erledigt, der Bilddownload und die Erinnerungen
         // laufen im Hintergrund weiter. Vorher wartete der Sheet bis zu 60 s auf
@@ -566,6 +688,7 @@ struct AddFoodItemView: View {
         item.quantity = quantity
         item.storageLocation = selectedLocation
         item.customReminderDays = useCustomReminder ? customReminderDays : nil
+        item.openedAt = isOpened ? Calendar.current.startOfDay(for: openedAt) : nil
         Task { await viewModel.updateFoodItem(item) }
         viewModel.showToast("\(trimmedName) gespeichert, haltbar bis \(Self.shortDateString(expiryDate))")
         Feedback.itemSaved()

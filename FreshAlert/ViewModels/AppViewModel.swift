@@ -454,6 +454,7 @@ struct RemovedItemSnapshot {
     let customReminderDays: Int?
     let isOfflineEntry: Bool
     let addedAt: Date
+    let openedAt: Date?
 
     init(_ item: FoodItem) {
         id = item.id
@@ -468,6 +469,7 @@ struct RemovedItemSnapshot {
         customReminderDays = item.customReminderDays
         isOfflineEntry = item.isOfflineEntry
         addedAt = item.addedAt
+        openedAt = item.openedAt
     }
 
     func makeItem() -> FoodItem {
@@ -483,7 +485,8 @@ struct RemovedItemSnapshot {
             storageLocation: storageLocation,
             customReminderDays: customReminderDays,
             isOfflineEntry: isOfflineEntry,
-            addedAt: addedAt
+            addedAt: addedAt,
+            openedAt: openedAt
         )
     }
 }

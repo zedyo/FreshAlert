@@ -4,6 +4,19 @@ struct ProductInfo {
     let name: String
     let brand: String
     let imageURL: String?
+    /// `categories_tags` aus Open Food Facts, vom allgemeinen zum spezifischen
+    /// Tag, etwa ["en:dairies", "en:fermented-milk-products", "en:yogurts"].
+    let categoryTags: [String]
+
+    init(name: String, brand: String, imageURL: String?, categoryTags: [String] = []) {
+        self.name = name
+        self.brand = brand
+        self.imageURL = imageURL
+        self.categoryTags = categoryTags
+    }
+
+    /// Vorschlag für die Haltbarkeit, aus der Kategorie abgeleitet.
+    var shelfLife: ShelfLife? { ShelfLifeSuggestion.suggestion(for: categoryTags) }
 }
 
 /// Sucht einen Barcode nacheinander in Open Food Facts, Open Products Facts und
@@ -88,7 +101,8 @@ actor OpenFoodFactsService {
         return ProductInfo(
             name: name,
             brand: nonEmpty(product.brands) ?? "",
-            imageURL: nonEmpty(product.imageFrontSmallURL)
+            imageURL: nonEmpty(product.imageFrontSmallURL),
+            categoryTags: product.categoriesTags ?? []
         )
     }
 
@@ -134,11 +148,13 @@ private struct OFFProduct: Decodable {
     let productNameDe: String?
     let brands: String?
     let imageFrontSmallURL: String?
+    let categoriesTags: [String]?
 
     enum CodingKeys: String, CodingKey {
         case productName        = "product_name"
         case productNameDe      = "product_name_de"
         case brands
         case imageFrontSmallURL = "image_front_small_url"
+        case categoriesTags     = "categories_tags"
     }
 }
