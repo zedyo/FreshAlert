@@ -12,6 +12,7 @@ struct DashboardView: View {
     @State private var selectedLocationID: UUID?
     /// Chip "Ohne Ort": nur Produkte ohne Lagerort. Schließt `selectedLocationID` aus.
     @State private var filterWithoutLocation = false
+    @State private var showReminders = false
 
     enum FilterOption {
         case all, expiringSoon, expired
@@ -45,6 +46,8 @@ struct DashboardView: View {
 
     var expiringThisWeek: Int { allItems.filter { $0.daysUntilExpiry >= 0 && $0.daysUntilExpiry <= 7 }.count }
     var expiredCount: Int     { allItems.filter { $0.daysUntilExpiry < 0 }.count }
+    /// Heute fällig oder schon abgelaufen: die Zahl an der Glocke.
+    var dueCount: Int         { allItems.filter { $0.daysUntilExpiry <= 0 }.count }
 
     var body: some View {
         NavigationStack {
@@ -133,12 +136,27 @@ struct DashboardView: View {
             .searchableIf(!allItems.isEmpty, text: $searchText, prompt: "Produkt suchen …")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    if viewModel.pendingSyncCount > 0 { syncBadge }
+                    HStack(spacing: 12) {
+                        if viewModel.pendingSyncCount > 0 { syncBadge }
+                        reminderBell
+                    }
+                }
+            }
+            .sheet(isPresented: $showReminders) {
+                NavigationStack {
+                    RemindersOverviewView()
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarTrailing) {
+                                Button("Fertig") { showReminders = false }
+                            }
+                        }
                 }
             }
             .task {
                 proxy.scrollTo("firstSection", anchor: .top)
             }
+            .onAppear { applyPendingFilter() }
+            .onChange(of: viewModel.pendingDashboardFilter) { _, _ in applyPendingFilter() }
             // Letztes Produkt ohne Ort zugeordnet: Chip verschwindet, Filter zurück auf "Alle Orte".
             .onChange(of: hasItemsWithoutLocation) { _, stillAny in
                 if !stillAny && filterWithoutLocation {
@@ -149,7 +167,43 @@ struct DashboardView: View {
         }
     }
 
+    /// Von einer angetippten Mitteilung vorgemerkt: Kachel "Bald ablaufend" setzen,
+    /// dann das Feld leeren. Nicht im View-Update zurücksetzen, sonst warnt SwiftUI.
+    private func applyPendingFilter() {
+        guard let pending = viewModel.pendingDashboardFilter else { return }
+        switch pending {
+        case .expiringSoon:
+            withAnimation(.spring(response: 0.3)) { selectedFilter = .expiringSoon }
+        }
+        DispatchQueue.main.async { viewModel.pendingDashboardFilter = nil }
+    }
+
     // MARK: - Subviews
+
+    private var reminderBell: some View {
+        Button {
+            showReminders = true
+        } label: {
+            Image(systemName: "bell")
+                .font(.body)
+                .overlay(alignment: .topTrailing) {
+                    if dueCount > 0 {
+                        Text(dueCount > 99 ? "99+" : "\(dueCount)")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(Capsule().fill(.red))
+                            .offset(x: 10, y: -8)
+                    }
+                }
+        }
+        .accessibilityLabel(
+            dueCount == 0
+                ? "Erinnerungen"
+                : "Erinnerungen, \(dueCount) \(dueCount == 1 ? "Produkt" : "Produkte") heute fällig oder abgelaufen"
+        )
+    }
 
     private var statsRow: some View {
         HStack(spacing: 12) {

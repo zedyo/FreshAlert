@@ -48,6 +48,9 @@ struct AddFoodItemView: View {
     @State private var showImageSourceDialog = false
     @State private var showPaywall = false
     @State private var isSaving = false
+    /// Keine der Produktdatenbanken kennt den Barcode: Nachtragen anbieten.
+    @State private var productNotFound = false
+    @State private var showContributeSheet = false
     @FocusState private var focusedField: Field?
 
     /// Zuletzt gewählter Lagerort, als UUID-String. Leer heißt "noch nie gespeichert",
@@ -96,6 +99,9 @@ struct AddFoodItemView: View {
             Form {
                 Section {
                     productInfoHeader
+                    if productNotFound, let contributeURL {
+                        contributeRow(url: contributeURL)
+                    }
                 } header: {
                     Text("Produkt")
                 }
@@ -473,12 +479,41 @@ struct AddFoodItemView: View {
         defer { isLoadingProduct = false }
         // Offline oder Produkt unbekannt: Nik füllt die Felder selbst aus.
         guard viewModel.isOnline else { beginEditing(); return }
-        if let info = await viewModel.fetchProductInfo(barcode: barcode) {
+        switch await viewModel.lookupProduct(barcode: barcode) {
+        case .found(let info):
             name     = info.name
             brand    = info.brand
             imageURL = info.imageURL ?? ""
-        } else {
+        case .notFound:
+            productNotFound = true
             beginEditing()
+        case .unavailable:
+            beginEditing()
+        }
+    }
+
+    private var contributeURL: URL? {
+        guard !isEditMode, !barcode.isEmpty else { return nil }
+        return Legal.openFoodFactsContributeURL(barcode: barcode)
+    }
+
+    /// Dezente Zeile unter dem Produktkopf, wenn der Barcode nirgends bekannt ist.
+    private func contributeRow(url: URL) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "plus.circle")
+                .foregroundStyle(.secondary)
+            Text("Nicht in Open Food Facts. Nachtragen hilft allen.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Button("Nachtragen") { showContributeSheet = true }
+                .font(.caption.weight(.semibold))
+                .buttonStyle(.borderless)
+                .tint(Color.freshGreen)
+        }
+        .sheet(isPresented: $showContributeSheet) {
+            SafariView(url: url)
+                .ignoresSafeArea()
         }
     }
 

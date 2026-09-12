@@ -223,14 +223,18 @@ final class AppViewModel: ObservableObject {
     }
 
     // MARK: - Product Fetch
-    func fetchProductInfo(barcode: String) async -> ProductInfo? {
-        guard isOnline else { return nil }
+    /// Offline und Netzfehler landen in `.unavailable` (Offline-Pfad), ein Barcode,
+    /// den keine der drei Datenbanken kennt, in `.notFound` (Nachtragen anbieten).
+    func lookupProduct(barcode: String) async -> ProductLookup {
+        guard isOnline else { return .unavailable }
         isLoadingProduct = true
         defer { isLoadingProduct = false }
         do {
-            return try await OpenFoodFactsService.shared.fetchProduct(barcode: barcode)
+            return .found(try await OpenFoodFactsService.shared.fetchProduct(barcode: barcode))
+        } catch let error as OFFError where error.isProductNotFound {
+            return .notFound
         } catch {
-            return nil
+            return .unavailable
         }
     }
 
@@ -255,7 +259,7 @@ final class AppViewModel: ObservableObject {
             try? modelContext.save()
             return
         }
-        if let info = await fetchProductInfo(barcode: item.barcode) {
+        if case .found(let info) = await lookupProduct(barcode: item.barcode) {
             if item.name.isEmpty { item.name = info.name }
             if item.brand.isEmpty { item.brand = info.brand }
             if item.imageURL.isEmpty, let url = info.imageURL { item.imageURL = url }
@@ -330,6 +334,13 @@ final class AppViewModel: ObservableObject {
 /// Filter, den die Übersicht nach dem Tipp auf eine Mitteilung anwendet.
 enum DashboardFilter: Equatable {
     case expiringSoon
+}
+
+/// Ergebnis einer Barcode-Suche in den Produktdatenbanken.
+enum ProductLookup {
+    case found(ProductInfo)
+    case notFound
+    case unavailable
 }
 
 // MARK: - Hilfstypen

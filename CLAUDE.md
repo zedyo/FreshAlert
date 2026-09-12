@@ -68,7 +68,7 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   `PBXBuildFile`, `PBXFileReference`, `PBXGroup`, `PBXSourcesBuildPhase`
   (resources such as `PrivacyInfo.xcprivacy` go into `PBXResourcesBuildPhase`).
   Hex ID prefixes: `D…` file refs, `E…` app build files, `T…` test, widget reuse.
-  Highest IDs in use: `D…39`, `E…38`, `T…0B`. Continue from there.
+  Highest IDs in use: `D…3C`, `E…39`, `T…0D`. Continue from there.
 - `FreshAlertTests` depends on the app target (`T…0A`); keep that dependency,
   otherwise `xcodebuild test` fails with "Unable to find module dependency".
 - Both targets ship a `PrivacyInfo.xcprivacy` (UserDefaults, reasons CA92.1 and

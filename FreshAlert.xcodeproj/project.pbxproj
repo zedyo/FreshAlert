@@ -44,8 +44,11 @@
 		E00000000000000000000032 /* Legal.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000032 /* Legal.swift */; };
 		E00000000000000000000037 /* RemindersOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000037 /* RemindersOverviewView.swift */; };
 		E00000000000000000000038 /* ReminderDigestPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000038 /* ReminderDigestPlanner.swift */; };
+		E00000000000000000000039 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000003A /* SafariView.swift */; };
 		T00000000000000000000005 /* ExpiryLabelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000001B /* ExpiryLabelTests.swift */; };
 		T0000000000000000000000B /* ReminderDigestPlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000039 /* ReminderDigestPlannerTests.swift */; };
+		T0000000000000000000000C /* OpenFoodFactsParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000003B /* OpenFoodFactsParsingTests.swift */; };
+		T0000000000000000000000D /* StorageLocationSuggestionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000003C /* StorageLocationSuggestionTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -120,6 +123,9 @@
 		D00000000000000000000037 /* RemindersOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersOverviewView.swift; sourceTree = "<group>"; };
 		D00000000000000000000038 /* ReminderDigestPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderDigestPlanner.swift; sourceTree = "<group>"; };
 		D00000000000000000000039 /* ReminderDigestPlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderDigestPlannerTests.swift; sourceTree = "<group>"; };
+		D0000000000000000000003A /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
+		D0000000000000000000003B /* OpenFoodFactsParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenFoodFactsParsingTests.swift; sourceTree = "<group>"; };
+		D0000000000000000000003C /* StorageLocationSuggestionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageLocationSuggestionTests.swift; sourceTree = "<group>"; };
 		D0000000000000000000001F /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		D00000000000000000000020 /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
 		D00000000000000000000021 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
@@ -225,6 +231,7 @@
 			children = (
 				D00000000000000000000007 /* BarcodeScannerView.swift */,
 				D00000000000000000000008 /* AddFoodItemView.swift */,
+				D0000000000000000000003A /* SafariView.swift */,
 			);
 			path = Scanner;
 			sourceTree = "<group>";
@@ -321,6 +328,8 @@
 			children = (
 				D0000000000000000000001B /* ExpiryLabelTests.swift */,
 				D00000000000000000000039 /* ReminderDigestPlannerTests.swift */,
+				D0000000000000000000003B /* OpenFoodFactsParsingTests.swift */,
+				D0000000000000000000003C /* StorageLocationSuggestionTests.swift */,
 			);
 			path = FreshAlertTests;
 			sourceTree = "<group>";
@@ -473,6 +482,7 @@
 				E00000000000000000000035 /* DeveloperMenuView.swift in Sources */,
 				E00000000000000000000037 /* RemindersOverviewView.swift in Sources */,
 				E00000000000000000000038 /* ReminderDigestPlanner.swift in Sources */,
+				E00000000000000000000039 /* SafariView.swift in Sources */,
 				E00000000000000000000029 /* PaywallView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -494,6 +504,8 @@
 			files = (
 				T00000000000000000000005 /* ExpiryLabelTests.swift in Sources */,
 				T0000000000000000000000B /* ReminderDigestPlannerTests.swift in Sources */,
+				T0000000000000000000000C /* OpenFoodFactsParsingTests.swift in Sources */,
+				T0000000000000000000000D /* StorageLocationSuggestionTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
