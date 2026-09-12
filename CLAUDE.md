@@ -68,7 +68,7 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   `PBXBuildFile`, `PBXFileReference`, `PBXGroup`, `PBXSourcesBuildPhase`
   (resources such as `PrivacyInfo.xcprivacy` go into `PBXResourcesBuildPhase`).
   Hex ID prefixes: `D…` file refs, `E…` app build files, `T…` test, widget reuse.
-  Highest IDs in use: `D…32`, `E…32`, `T…0A`. Continue from there.
+  Highest IDs in use: `D…36`, `E…36`, `T…0A`. Continue from there.
 - `FreshAlertTests` depends on the app target (`T…0A`); keep that dependency,
   otherwise `xcodebuild test` fails with "Unable to find module dependency".
 - Both targets ship a `PrivacyInfo.xcprivacy` (UserDefaults, reasons CA92.1 and
@@ -95,6 +95,18 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   The test target is only built for the test action, not for a plain build.
 - Unsigned device build (what CI does):
   `xcodebuild build -project FreshAlert.xcodeproj -scheme FreshAlert -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO`.
+- **Test data in the simulator:** the launch argument `-seedTestData` fills an
+  *empty* database with the 50 products from `FreshAlert/TestData/testprodukte.json`
+  (real Open Food Facts items with images, mixed expiry dates) and skips onboarding.
+  Build for the simulator, install, then:
+  `xcrun simctl launch "iPhone 17 Pro" com.freshalert.app -seedTestData`.
+  Seeding only runs when there are no items and no locations; uninstall first
+  (`xcrun simctl uninstall "iPhone 17 Pro" com.freshalert.app`) to start over.
+- **Developer menu** (Einstellungen → Entwickler → Entwicklermenü): only in Debug
+  builds, TestFlight (sandbox receipt / `AppTransaction.environment == .sandbox`)
+  or with launch argument `-developerMenu`. Never in App Store builds. Offers seed,
+  delete all items, full reset (back to onboarding) and the list of pending
+  notifications (`AppEnvironment.swift`, `TestDataSeeder.swift`, `DeveloperMenuView.swift`).
 
 ## Release & deployment
 

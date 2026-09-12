@@ -1,0 +1,456 @@
+{
+ "stand": "2026-09-12",
+ "quelle": "Open Food Facts, de.openfoodfacts.org, ODbL",
+ "produkte": [
+  {
+   "barcode": "5411188112709",
+   "name": "Geröstete Mandel Ohne Zucker",
+   "marke": "alpro",
+   "bildURL": "https://images.openfoodfacts.org/images/products/541/118/811/2709/front_de.942.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 3,
+   "haltbarInTagen": -1
+  },
+  {
+   "barcode": "3229820019307",
+   "name": "Flocons d'avoine",
+   "marke": "Bjorg",
+   "bildURL": "https://images.openfoodfacts.org/images/products/322/982/001/9307/front_fr.300.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": -2
+  },
+  {
+   "barcode": "4056489620938",
+   "name": "Crema de cacahuete",
+   "marke": "Maribel",
+   "bildURL": "https://images.openfoodfacts.org/images/products/405/648/962/0938/front_de.37.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": -3
+  },
+  {
+   "barcode": "5411188115366",
+   "name": "Hafer Original",
+   "marke": "alpro",
+   "bildURL": "https://images.openfoodfacts.org/images/products/541/118/811/5366/front_de.88.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": -4
+  },
+  {
+   "barcode": "6111266960336",
+   "name": "Perly fromage",
+   "marke": "jaouda",
+   "bildURL": "https://images.openfoodfacts.org/images/products/611/126/696/0336/front_fr.37.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 2,
+   "haltbarInTagen": -1
+  },
+  {
+   "barcode": "3412290070071",
+   "name": "Le Fromage Fouetté Nature au Sel de Guérande",
+   "marke": "Paysan Breton",
+   "bildURL": "https://images.openfoodfacts.org/images/products/341/229/007/0071/front_fr.97.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": -2
+  },
+  {
+   "barcode": "5411188119098",
+   "name": "Natur mit Kokosnuss",
+   "marke": "alpro",
+   "bildURL": "https://images.openfoodfacts.org/images/products/541/118/811/9098/front_de.102.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 1
+  },
+  {
+   "barcode": "20003166",
+   "name": "Haferflocken",
+   "marke": "Crownfield",
+   "bildURL": "https://images.openfoodfacts.org/images/products/000/002/000/3166/front_de.289.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 2
+  },
+  {
+   "barcode": "3045140105502",
+   "name": "Schokolade (Alpenmilch Schokolade)",
+   "marke": "Milka",
+   "bildURL": "https://images.openfoodfacts.org/images/products/304/514/010/5502/front_de.529.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 2,
+   "haltbarInTagen": 3
+  },
+  {
+   "barcode": "5411188125808",
+   "name": "Mango Ohne Zuckerzusatz",
+   "marke": "alpro",
+   "bildURL": "https://images.openfoodfacts.org/images/products/541/118/812/5808/front_de.590.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 2,
+   "haltbarInTagen": 1
+  },
+  {
+   "barcode": "3073781131888",
+   "name": "verse smeltkaas",
+   "marke": "KIRI",
+   "bildURL": "https://images.openfoodfacts.org/images/products/307/378/113/1888/front_en.769.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 2
+  },
+  {
+   "barcode": "3161711001971",
+   "name": "Fromage de France",
+   "marke": "Caprice des Dieux",
+   "bildURL": "https://images.openfoodfacts.org/images/products/316/171/100/1971/front_en.152.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 3
+  },
+  {
+   "barcode": "3155251205500",
+   "name": "Beurre doux gastronomique",
+   "marke": "Président",
+   "bildURL": "https://images.openfoodfacts.org/images/products/315/525/120/5500/front_fr.227.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 2,
+   "haltbarInTagen": 1
+  },
+  {
+   "barcode": "5411188115472",
+   "name": "Soyamilch",
+   "marke": "alpro",
+   "bildURL": "https://images.openfoodfacts.org/images/products/541/118/811/5472/front_de.222.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 2
+  },
+  {
+   "barcode": "7622300441937",
+   "name": "Philadelphia Original",
+   "marke": "Mondelez International",
+   "bildURL": "https://images.openfoodfacts.org/images/products/762/230/044/1937/front_de.137.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 3
+  },
+  {
+   "barcode": "3523230030793",
+   "name": "Butter demi sel aux crisraux de sel de Mer de Noirmoutier",
+   "marke": "grand fermage",
+   "bildURL": "https://images.openfoodfacts.org/images/products/352/323/003/0793/front_fr.73.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 1
+  },
+  {
+   "barcode": "3033491454080",
+   "name": "SKYR",
+   "marke": "Danone",
+   "bildURL": "https://images.openfoodfacts.org/images/products/303/349/145/4080/front_fr.134.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 2,
+   "haltbarInTagen": 4
+  },
+  {
+   "barcode": "20002183",
+   "name": "Fiocchi di latte",
+   "marke": "Milbona",
+   "bildURL": "https://images.openfoodfacts.org/images/products/000/002/000/2183/front_it.422.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 5
+  },
+  {
+   "barcode": "8711327373105",
+   "name": "Cookie Dough",
+   "marke": "Ben & Jerry's",
+   "bildURL": "https://images.openfoodfacts.org/images/products/871/132/737/3105/front_de.86.200.jpg",
+   "ort": "Tiefkühler",
+   "menge": 2,
+   "haltbarInTagen": 6
+  },
+  {
+   "barcode": "4001724039143",
+   "name": "Ristorante Pizza Vegetale",
+   "marke": "Dr. August Oetker Nahrungsmittel KG Bereich Tiefkühlkost",
+   "bildURL": "https://images.openfoodfacts.org/images/products/400/172/403/9143/front_de.83.200.jpg",
+   "ort": "Tiefkühler",
+   "menge": 1,
+   "haltbarInTagen": 7
+  },
+  {
+   "barcode": "8720182461247",
+   "name": "Moutarde de Dijon Forte",
+   "marke": "Amora",
+   "bildURL": "https://images.openfoodfacts.org/images/products/872/018/246/1247/front_fr.81.200.jpg",
+   "ort": "Tiefkühler",
+   "menge": 2,
+   "haltbarInTagen": 4
+  },
+  {
+   "barcode": "4001724038993",
+   "name": "Pizza Tonno Ristorante",
+   "marke": "Dr. Oetker",
+   "bildURL": "https://images.openfoodfacts.org/images/products/400/172/403/8993/front_de.92.200.jpg",
+   "ort": "Tiefkühler",
+   "menge": 1,
+   "haltbarInTagen": 5
+  },
+  {
+   "barcode": "8000500425183",
+   "name": "Nutella-Eis",
+   "marke": "Nutella",
+   "bildURL": "https://images.openfoodfacts.org/images/products/800/050/042/5183/front_de.43.200.jpg",
+   "ort": "Tiefkühler",
+   "menge": 1,
+   "haltbarInTagen": 6
+  },
+  {
+   "barcode": "8000500408162",
+   "name": "Mon Cherie",
+   "marke": "Ferrero",
+   "bildURL": "https://images.openfoodfacts.org/images/products/800/050/040/8162/front_de.7.200.jpg",
+   "ort": "Tiefkühler",
+   "menge": 1,
+   "haltbarInTagen": 7
+  },
+  {
+   "barcode": "94001129",
+   "name": "Sungold Kiwi",
+   "marke": "Zespri",
+   "bildURL": "https://images.openfoodfacts.org/images/products/000/009/400/1129/front_de.85.200.jpg",
+   "ort": "Obstkorb",
+   "menge": 2,
+   "haltbarInTagen": 4
+  },
+  {
+   "barcode": "20305819",
+   "name": "Heidelbeeren",
+   "marke": "Lidl",
+   "bildURL": "https://images.openfoodfacts.org/images/products/000/002/030/5819/front_de.88.200.jpg",
+   "ort": "Obstkorb",
+   "menge": 1,
+   "haltbarInTagen": 5
+  },
+  {
+   "barcode": "20250263",
+   "name": "Trauben hell, kernlos",
+   "marke": "Hortiful GmbH",
+   "bildURL": "https://images.openfoodfacts.org/images/products/000/002/025/0263/front_de.78.200.jpg",
+   "ort": "Obstkorb",
+   "menge": 1,
+   "haltbarInTagen": 6
+  },
+  {
+   "barcode": "20240332",
+   "name": "Bio Zitronen",
+   "marke": "Bio Organic",
+   "bildURL": "https://images.openfoodfacts.org/images/products/000/002/024/0332/front_de.78.200.jpg",
+   "ort": "Obstkorb",
+   "menge": 2,
+   "haltbarInTagen": 7
+  },
+  {
+   "barcode": "20449568",
+   "name": "Lemons",
+   "marke": "Garcia Aranda S.L.",
+   "bildURL": "https://images.openfoodfacts.org/images/products/000/002/044/9568/front_en.61.200.jpg",
+   "ort": "Obstkorb",
+   "menge": 2,
+   "haltbarInTagen": 26
+  },
+  {
+   "barcode": "3266980138721",
+   "name": "Panés de poulet x2",
+   "marke": "le Gaulois",
+   "bildURL": "https://images.openfoodfacts.org/images/products/326/698/013/8721/front_fr.35.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 33
+  },
+  {
+   "barcode": "8480000137784",
+   "name": "Carne de kebab pollo",
+   "marke": "Hacendado",
+   "bildURL": "https://images.openfoodfacts.org/images/products/848/000/013/7784/front_es.77.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 40
+  },
+  {
+   "barcode": "0123456789012",
+   "name": "Rinderfilet",
+   "marke": "Fleischer",
+   "bildURL": "https://images.openfoodfacts.org/images/products/012/345/678/9012/front_es.69.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 47
+  },
+  {
+   "barcode": "20087487",
+   "name": "Jamón Serrano g.t.S.",
+   "marke": "Dulano",
+   "bildURL": "https://images.openfoodfacts.org/images/products/000/002/008/7487/front_en.72.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 2,
+   "haltbarInTagen": 54
+  },
+  {
+   "barcode": "3266980781583",
+   "name": "2 Panés façon milanaise",
+   "marke": "Le gaulois",
+   "bildURL": "https://images.openfoodfacts.org/images/products/326/698/078/1583/front_fr.31.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 61
+  },
+  {
+   "barcode": "6111035000058",
+   "name": "Sidi Ali",
+   "marke": "sidi ali",
+   "bildURL": "https://images.openfoodfacts.org/images/products/611/103/500/0058/front_en.134.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 1,
+   "haltbarInTagen": 68
+  },
+  {
+   "barcode": "3274080005003",
+   "name": "Quellwasser",
+   "marke": "Cristaline",
+   "bildURL": "https://images.openfoodfacts.org/images/products/327/408/000/5003/front_de.871.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 1,
+   "haltbarInTagen": 15
+  },
+  {
+   "barcode": "7622210449283",
+   "name": "Prince",
+   "marke": "LU",
+   "bildURL": "https://images.openfoodfacts.org/images/products/762/221/044/9283/front_fr.687.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 3,
+   "haltbarInTagen": 22
+  },
+  {
+   "barcode": "3046920029759",
+   "name": "Edelbitterschokolade Mild 90%",
+   "marke": "Lindt",
+   "bildURL": "https://images.openfoodfacts.org/images/products/304/692/002/9759/front_de.517.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 1,
+   "haltbarInTagen": 29
+  },
+  {
+   "barcode": "5449000054227",
+   "name": "Coca-Cola Original Taste",
+   "marke": "COCA-COLA SERVICES SA/NV",
+   "bildURL": "https://images.openfoodfacts.org/images/products/544/900/005/4227/front_de.562.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 1,
+   "haltbarInTagen": 36
+  },
+  {
+   "barcode": "3168930010265",
+   "name": "cruesly mélange de noix",
+   "marke": "PEPSICO FRANCE",
+   "bildURL": "https://images.openfoodfacts.org/images/products/316/893/001/0265/front_de.242.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 1,
+   "haltbarInTagen": 43
+  },
+  {
+   "barcode": "3175680011480",
+   "name": "Sésame",
+   "marke": "Gerblé",
+   "bildURL": "https://images.openfoodfacts.org/images/products/317/568/001/1480/front_fr.325.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 2,
+   "haltbarInTagen": 50
+  },
+  {
+   "barcode": "3046920022651",
+   "name": "Noir Intense",
+   "marke": "Lindt",
+   "bildURL": "https://images.openfoodfacts.org/images/products/304/692/002/2651/front_fr.187.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 1,
+   "haltbarInTagen": 57
+  },
+  {
+   "barcode": "3046920022606",
+   "name": "85% kraftvoller schwarzer Kakao",
+   "marke": "Lindt",
+   "bildURL": "https://images.openfoodfacts.org/images/products/304/692/002/2606/front_fr.235.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 1,
+   "haltbarInTagen": 64
+  },
+  {
+   "barcode": "3017620425035",
+   "name": "Nutella",
+   "marke": "Nutella",
+   "bildURL": "https://images.openfoodfacts.org/images/products/301/762/042/5035/front_de.474.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 1,
+   "haltbarInTagen": 11
+  },
+  {
+   "barcode": "3175681851849",
+   "name": "Pomme Noisette",
+   "marke": "Gerblé",
+   "bildURL": "https://images.openfoodfacts.org/images/products/317/568/185/1849/front_fr.267.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 2,
+   "haltbarInTagen": 18
+  },
+  {
+   "barcode": "5449000214799",
+   "name": "Coca-Cola Zero Sugar",
+   "marke": "Coca-Cola",
+   "bildURL": "https://images.openfoodfacts.org/images/products/544/900/021/4799/front_de.237.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 2,
+   "haltbarInTagen": 25
+  },
+  {
+   "barcode": "5449000214911",
+   "name": "Cola-Cola",
+   "marke": "Coca-Cola",
+   "bildURL": "https://images.openfoodfacts.org/images/products/544/900/021/4911/front_fr.335.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 1,
+   "haltbarInTagen": 32
+  },
+  {
+   "barcode": "3268840001008",
+   "name": "CRISTALINE Eau De Source 0.5L",
+   "marke": "Cristaline",
+   "bildURL": "https://images.openfoodfacts.org/images/products/326/884/000/1008/front_fr.422.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 1,
+   "haltbarInTagen": 39
+  },
+  {
+   "barcode": "8000500426494",
+   "name": "Nutella Plant-Based",
+   "marke": "Ferrero",
+   "bildURL": "https://images.openfoodfacts.org/images/products/800/050/042/6494/front_de.50.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 2,
+   "haltbarInTagen": 46
+  },
+  {
+   "barcode": "20724696",
+   "name": "Mandeln naturbelassen",
+   "marke": "Alesto",
+   "bildURL": "https://images.openfoodfacts.org/images/products/000/002/072/4696/front_de.269.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 1,
+   "haltbarInTagen": 53
+  }
+ ]
+}
