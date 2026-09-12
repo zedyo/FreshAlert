@@ -216,6 +216,7 @@ struct BarcodeScannerView: View {
                 .background(.ultraThinMaterial)
                 .clipShape(Circle())
         }
+        .accessibilityLabel(torchOn ? "Taschenlampe ausschalten" : "Taschenlampe einschalten")
     }
 
     private var manualButton: some View {
@@ -227,6 +228,7 @@ struct BarcodeScannerView: View {
                 .background(.ultraThinMaterial)
                 .clipShape(Circle())
         }
+        .accessibilityLabel("Barcode eingeben")
     }
 
     private var manualFormButton: some View {
@@ -345,6 +347,7 @@ struct BarcodeScannerView: View {
 
 struct ScannerOverlay: View {
     let scanStatus: BarcodeScannerView.ScanStatus
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let frameW: CGFloat = 270
     private let frameH: CGFloat = 140
@@ -355,6 +358,17 @@ struct ScannerOverlay: View {
         case .noCodeDetected: return .orange
         case .success:       return .white
         }
+    }
+
+    private func scanLine(width: CGFloat) -> some View {
+        Capsule()
+            .fill(
+                LinearGradient(
+                    colors: [.clear, Color.freshGreen.opacity(0.9), .clear],
+                    startPoint: .leading, endPoint: .trailing)
+            )
+            .frame(width: width, height: 2.5)
+            .accessibilityHidden(true)
     }
 
     var body: some View {
@@ -386,20 +400,20 @@ struct ScannerOverlay: View {
             // a function of the clock, so there is nothing to interpolate,
             // stack or "fly in" — it renders correctly on every frame and
             // resumes seamlessly after a tab switch.
+            // Bei "Bewegung reduzieren" steht die Linie still in der Mitte.
             if scanStatus == .waiting {
-                TimelineView(.animation) { timeline in
-                    let elapsed = timeline.date.timeIntervalSinceReferenceDate
-                    let cycle = 3.2  // seconds for a full down-and-up sweep
-                    let progress = (1 - cos(2 * .pi * elapsed / cycle)) / 2
-                    Capsule()
-                        .fill(
-                            LinearGradient(
-                                colors: [.clear, Color.freshGreen.opacity(0.9), .clear],
-                                startPoint: .leading, endPoint: .trailing)
-                        )
-                        .frame(width: frameW - 20, height: 2.5)
-                        .position(x: geo.size.width / 2,
-                                  y: frameY + CGFloat(progress) * frameH)
+                if reduceMotion {
+                    scanLine(width: frameW - 20)
+                        .position(x: geo.size.width / 2, y: frameY + frameH / 2)
+                } else {
+                    TimelineView(.animation) { timeline in
+                        let elapsed = timeline.date.timeIntervalSinceReferenceDate
+                        let cycle = 3.2  // seconds for a full down-and-up sweep
+                        let progress = (1 - cos(2 * .pi * elapsed / cycle)) / 2
+                        scanLine(width: frameW - 20)
+                            .position(x: geo.size.width / 2,
+                                      y: frameY + CGFloat(progress) * frameH)
+                    }
                 }
             }
         }

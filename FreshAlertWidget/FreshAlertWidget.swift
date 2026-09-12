@@ -145,6 +145,7 @@ struct FreshAlertWidgetEntryView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("\(item.name) als verbraucht markieren")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)

@@ -18,6 +18,8 @@ final class AppViewModel: ObservableObject {
     @Published var toastAction: ToastAction?
     @Published var scanRequested: Bool = false
     @Published var selectedTab: Int = 0
+    /// Von einer angetippten Mitteilung gesetzt, die Übersicht wertet es aus.
+    @Published var pendingDashboardFilter: DashboardFilter?
 
     /// Schnappschuss des zuletzt entfernten Produkts, für "Rückgängig".
     /// Verfällt nach `undoWindow` Sekunden oder beim nächsten Entfernen.
@@ -27,6 +29,11 @@ final class AppViewModel: ObservableObject {
     private let undoWindow: TimeInterval = 6
 
     @AppStorage("globalReminderDays") var globalReminderDays: Int = 7
+    @AppStorage("reminderHour") var reminderHour: Int = 9
+    @AppStorage("reminderMinute") var reminderMinute: Int = 0
+
+    private var replanTask: Task<Void, Never>?
+    private let replanDebounce: Duration = .milliseconds(500)
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -77,12 +84,9 @@ final class AppViewModel: ObservableObject {
         updatePendingCount()
         updateWidgetSnapshot()
 
-        Task { @MainActor in
-            let days = item.customReminderDays ?? globalReminderDays
-            item.notificationIdentifiers = await NotificationService.shared
-                .scheduleNotifications(for: item, reminderDays: days)
-            try? modelContext.save()
+        scheduleReminderReplan()
 
+        Task { @MainActor in
             if item.isOfflineEntry && isOnline {
                 await syncItem(item)
             } else if !item.imageURL.isEmpty && item.imageData == nil {
@@ -97,11 +101,9 @@ final class AppViewModel: ObservableObject {
     }
 
     func updateFoodItem(_ item: FoodItem) async {
-        let days = item.customReminderDays ?? globalReminderDays
-        item.notificationIdentifiers = await NotificationService.shared
-            .scheduleNotifications(for: item, reminderDays: days)
         try? modelContext.save()
         updateWidgetSnapshot()
+        scheduleReminderReplan()
     }
 
     /// Verbraucht ein Exemplar. Bei Menge 1 wird das Produkt entfernt,
@@ -121,7 +123,6 @@ final class AppViewModel: ObservableObject {
 
     private func remove(_ item: FoodItem, toast message: String) {
         lastRemovedSnapshot = RemovedItemSnapshot(item)
-        NotificationService.shared.cancelNotifications(for: item)
         // Explicitly nil out external storage before deletion so SwiftData
         // releases the image file on disk immediately during the same save.
         item.imageData = nil
@@ -129,6 +130,7 @@ final class AppViewModel: ObservableObject {
         try? modelContext.save()
         updatePendingCount()
         updateWidgetSnapshot()
+        scheduleReminderReplan()
 
         undoExpiryTask?.cancel()
         undoExpiryTask = Task { [weak self] in
@@ -153,13 +155,7 @@ final class AppViewModel: ObservableObject {
         try? modelContext.save()
         updatePendingCount()
         updateWidgetSnapshot()
-
-        Task { @MainActor in
-            let days = item.customReminderDays ?? globalReminderDays
-            item.notificationIdentifiers = await NotificationService.shared
-                .scheduleNotifications(for: item, reminderDays: days)
-            try? modelContext.save()
-        }
+        scheduleReminderReplan()
     }
 
     // MARK: - Toast
@@ -302,16 +298,38 @@ final class AppViewModel: ObservableObject {
         pendingSyncCount = (try? modelContext.fetchCount(descriptor)) ?? 0
     }
 
-    // MARK: - Reschedule All
+    // MARK: - Erinnerungen
+
+    /// Plant alle Tagesmitteilungen sofort neu (alle `freshalert.*`-Requests
+    /// weg, dann der frische Plan aus dem aktuellen Bestand).
     func rescheduleAllNotifications() async {
+        replanTask?.cancel()
+        replanTask = nil
         let items = (try? modelContext.fetch(FetchDescriptor<FoodItem>())) ?? []
-        for item in items {
-            let days = item.customReminderDays ?? globalReminderDays
-            item.notificationIdentifiers = await NotificationService.shared
-                .scheduleNotifications(for: item, reminderDays: days)
-        }
-        try? modelContext.save()
+        await NotificationService.shared.rescheduleAll(items: items)
     }
+
+    /// Neuplanen mit 0,5 s Verzögerung: mehrere Änderungen kurz nacheinander
+    /// (Scannen, Undo, Regler) lösen nur einen Lauf aus.
+    func scheduleReminderReplan() {
+        replanTask?.cancel()
+        replanTask = Task { [weak self] in
+            try? await Task.sleep(for: self?.replanDebounce ?? .milliseconds(500))
+            guard !Task.isCancelled, let self else { return }
+            await self.rescheduleAllNotifications()
+        }
+    }
+
+    /// Der aktuelle Plan, ohne iOS anzufassen (Übersichtsseite, Entwicklermenü).
+    func plannedReminders(now: Date = Date()) -> [PlannedReminder] {
+        let items = (try? modelContext.fetch(FetchDescriptor<FoodItem>())) ?? []
+        return NotificationService.plan(for: items, now: now)
+    }
+}
+
+/// Filter, den die Übersicht nach dem Tipp auf eine Mitteilung anwendet.
+enum DashboardFilter: Equatable {
+    case expiringSoon
 }
 
 // MARK: - Hilfstypen
