@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.9.0] – 2026-09-12
+
+Welle 3: weniger tippen beim Einräumen, und die App misst endlich, was sie verspricht.
+
+- **Neu:** Haltbarkeitsdatum vom Etikett scannen. Die Kamera liest das Datum direkt von der Packung, offline auf dem Gerät, ohne dass Daten das iPhone verlassen. Erkennt die üblichen Schreibweisen, auch „MHD 12.10.26“, „mindestens haltbar bis“ und Monat mit Jahr.
+- **Neu:** Vorschlag nach Produktart. Bei einem gescannten Joghurt schlägt FreshAlert etwa zwei Wochen vor, ein Tipp übernimmt das Datum. 66 Produktarten hinterlegt.
+- **Neu:** „Geöffnet“ am Produkt. Angebrochenes hält kürzer, die App rechnet mit der kürzeren Zeit.
+- **Neu:** Statistik. Wie viel du rettest statt wegzuwerfen, als Quote, im Verlauf nach Wochen und mit den drei häufigsten Verlusten. Erreichbar über das Diagramm-Symbol links oben in der Übersicht.
+- **Neu:** Nach dem Löschen fragt der Hinweis unten zusätzlich „Weggeworfen“. Ein Tipp, und die Statistik weiß Bescheid. Wer nichts tippt, verrät nichts.
+- **Behoben:** Das Symbol links oben in der Übersicht verschwand, sobald die Suche eingeblendet war.
+
 ## [1.8.0] – 2026-09-12
 
 Audit Teil 2 und Welle 2: Erinnerungen, die halten, ein Produkt-Detail, das ein Produkt ist, und ein Entwicklermenü für TestFlight.
