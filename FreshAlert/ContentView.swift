@@ -101,6 +101,9 @@ struct ToastView: View {
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(.white)
                 .lineLimit(2)
+                // In der Mitte kürzen: bei langen Produktnamen bleibt sonst
+                // neben zwei Knöpfen nichts vom "gelöscht" übrig.
+                .truncationMode(.middle)
             Spacer(minLength: 0)
             if let action {
                 Button(action.title) {
