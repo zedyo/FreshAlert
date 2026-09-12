@@ -19,6 +19,11 @@ struct ExpiryDateScannerView: View {
     @State private var pendingCandidate: ExpiryDateCandidate?
     @State private var pendingHits = 0
     @State private var isVisible = false
+    /// Was die Kamera gerade tut. Eine Unterbrechung wird gemeldet, statt ein
+    /// eingefrorenes Bild stehen zu lassen.
+    @State private var cameraStatus: CameraStatus = .idle
+    /// Wird hochgezählt, um die Session hart neu aufzubauen.
+    @State private var cameraRebuild = 0
 
     var body: some View {
         NavigationStack {
@@ -54,21 +59,33 @@ struct ExpiryDateScannerView: View {
 
     private var cameraView: some View {
         ZStack {
-            ExpiryTextCameraPreview(isPaused: isPaused) { candidates in
-                handle(candidates)
+            // Die Vorschau steht nur in der Hierarchie, solange sie laufen soll.
+            // Dadurch greift `dismantleUIView` und die Kamera wird sicher frei.
+            if isPaused {
+                Color.black.ignoresSafeArea()
+            } else {
+                ExpiryTextCameraPreview(
+                    status: $cameraStatus,
+                    rebuildToken: cameraRebuild,
+                    onCandidates: { candidates in handle(candidates) }
+                )
+                .ignoresSafeArea()
             }
-            .ignoresSafeArea()
 
             DateScannerOverlay()
                 .ignoresSafeArea()
 
             VStack {
                 Spacer()
-                hintPill
-                if let candidate = bestCandidate {
-                    acceptPill(for: candidate)
-                        .padding(.top, 4)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                if let meldung = cameraStatus.meldung {
+                    stoerungsBox(meldung)
+                } else {
+                    hintPill
+                    if let candidate = bestCandidate {
+                        acceptPill(for: candidate)
+                            .padding(.top, 4)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
                 }
             }
             .padding(.bottom, 48)
@@ -84,6 +101,38 @@ struct ExpiryDateScannerView: View {
             .background(.ultraThinMaterial)
             .clipShape(Capsule())
             .padding(.horizontal, 24)
+    }
+
+    /// Statt eines eingefrorenen Bildes eine deutliche Meldung mit Ausweg.
+    private func stoerungsBox(_ text: String) -> some View {
+        VStack(spacing: 12) {
+            Label(text, systemImage: "exclamationmark.triangle.fill")
+                .font(.subheadline.weight(.medium))
+                .multilineTextAlignment(.leading)
+                .foregroundStyle(.white)
+
+            HStack(spacing: 12) {
+                Button("Erneut versuchen") {
+                    bestCandidate = nil
+                    pendingCandidate = nil
+                    pendingHits = 0
+                    cameraRebuild += 1
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color.freshGreen)
+
+                Button("Datum von Hand wählen") { dismiss() }
+                    .buttonStyle(.bordered)
+                    .tint(.white)
+            }
+        }
+        .padding(18)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16).strokeBorder(.orange.opacity(0.7), lineWidth: 1.5)
+        )
+        .padding(.horizontal, 24)
+        .transition(.opacity)
     }
 
     private func acceptPill(for candidate: ExpiryDateCandidate) -> some View {
@@ -205,29 +254,84 @@ private struct DateScannerOverlay: View {
 
 // MARK: - Kamera mit laufender Texterkennung
 
+/// Hält die Session des Datum-Scanners. Baut sie **vollständig** ab, sobald sie
+/// nicht laufen soll, damit die Rückkamera frei wird.
 final class TextScannerUIView: UIView {
-    var session: AVCaptureSession?
-    var previewLayer: AVCaptureVideoPreviewLayer?
-    var isPaused = false
+    var onStatus: ((CameraStatus) -> Void)?
+    weak var sampleDelegate: AVCaptureVideoDataOutputSampleBufferDelegate?
+    /// Wird beim Aufbau gesetzt: so muss Vision das Bild drehen.
+    var onOrientation: ((CGImagePropertyOrientation) -> Void)?
+
+    private let sessionQueue = DispatchQueue(label: "com.freshalert.datecamera", qos: .userInitiated)
+    private var session: AVCaptureSession?
+    private var previewLayer: AVCaptureVideoPreviewLayer?
+    private var observers: [NSObjectProtocol] = []
+    private var wantsCamera = false
+    private var status: CameraStatus = .idle
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .black
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
 
     override func layoutSubviews() {
         super.layoutSubviews()
         previewLayer?.frame = bounds
     }
-}
 
-struct ExpiryTextCameraPreview: UIViewRepresentable {
-    var isPaused: Bool
-    var onCandidates: ([ExpiryDateCandidate]) -> Void
+    // MARK: Lebenszyklus
 
-    private let sessionQueue = DispatchQueue(label: "com.freshalert.datecamera", qos: .userInitiated)
+    func setWantsCamera(_ wants: Bool) {
+        guard wants != wantsCamera else { return }
+        wantsCamera = wants
+        guard wants else {
+            CameraArbiter.shared.release(self)
+            report(.idle)
+            return
+        }
+        report(.starting)
+        CameraArbiter.shared.acquire(
+            .expiryDate,
+            claimant: self,
+            teardown: { [weak self] fertig in
+                guard let self else { fertig(); return }
+                self.teardown(fertig: fertig)
+            },
+            granted: { [weak self] in self?.buildAndStart() }
+        )
+    }
 
-    func makeCoordinator() -> Coordinator { Coordinator(self) }
+    /// Harter Neuaufbau, nicht nur `startRunning()`.
+    func rebuild() {
+        guard wantsCamera else { return }
+        cameraLog.info("Datum-Scanner: Neuaufbau der Session")
+        setWantsCamera(false)
+        setWantsCamera(true)
+    }
 
-    func makeUIView(context: Context) -> TextScannerUIView {
-        let view = TextScannerUIView()
+    func shutdown() {
+        wantsCamera = false
+        CameraArbiter.shared.release(self)
+    }
+
+    // MARK: Aufbau
+
+    private func buildAndStart() {
+        guard wantsCamera else {
+            CameraArbiter.shared.release(self)
+            return
+        }
+        guard session == nil else { return }
+
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
-              let input = try? AVCaptureDeviceInput(device: device) else { return view }
+              let input = try? AVCaptureDeviceInput(device: device) else {
+            cameraLog.error("Datum-Scanner: keine Rückkamera verfügbar")
+            report(.failed("Es wurde keine Kamera gefunden."))
+            return
+        }
 
         try? device.lockForConfiguration()
         if device.isFocusModeSupported(.continuousAutoFocus) { device.focusMode = .continuousAutoFocus }
@@ -245,7 +349,7 @@ struct ExpiryTextCameraPreview: UIViewRepresentable {
         output.alwaysDiscardsLateVideoFrames = true
         if session.canAddOutput(output) {
             session.addOutput(output)
-            output.setSampleBufferDelegate(context.coordinator, queue: sessionQueue)
+            output.setSampleBufferDelegate(sampleDelegate, queue: sessionQueue)
         }
         session.commitConfiguration()
 
@@ -254,41 +358,147 @@ struct ExpiryTextCameraPreview: UIViewRepresentable {
         if let connection = output.connection(with: .video) {
             if connection.isVideoRotationAngleSupported(90) {
                 connection.videoRotationAngle = 90
-                context.coordinator.orientation = .up
+                onOrientation?(.up)
             } else {
-                context.coordinator.orientation = .right
+                onOrientation?(.right)
             }
         }
 
         let preview = AVCaptureVideoPreviewLayer(session: session)
         preview.videoGravity = .resizeAspectFill
-        view.layer.addSublayer(preview)
-        view.session = session
-        view.previewLayer = preview
+        preview.frame = bounds
+        layer.addSublayer(preview)
+        self.session = session
+        self.previewLayer = preview
+        observe(session)
 
-        sessionQueue.async { session.startRunning() }
+        sessionQueue.async { [weak self] in
+            session.startRunning()
+            aufMainActor {
+                guard let self, self.session === session else { return }
+                self.report(session.isRunning ? .running : .interrupted(.unknown))
+            }
+        }
+    }
+
+    private func teardown(fertig: @escaping @Sendable () -> Void) {
+        removeObservers()
+        let alte = session
+        session = nil
+        previewLayer?.removeFromSuperlayer()
+        previewLayer = nil
+        report(.idle)
+        guard let alte else { fertig(); return }
+        sessionQueue.async {
+            if alte.isRunning { alte.stopRunning() }
+            alte.beginConfiguration()
+            alte.inputs.forEach { alte.removeInput($0) }
+            alte.outputs.forEach { alte.removeOutput($0) }
+            alte.commitConfiguration()
+            cameraLog.info("Datum-Scanner: Session abgebaut, Kamera frei")
+            fertig()
+        }
+    }
+
+    private func report(_ neu: CameraStatus) {
+        guard status != neu else { return }
+        status = neu
+        onStatus?(neu)
+    }
+
+    // MARK: Unterbrechungen
+
+    private func observe(_ session: AVCaptureSession) {
+        let center = NotificationCenter.default
+        observers.append(center.addObserver(
+            forName: AVCaptureSession.wasInterruptedNotification, object: session, queue: .main
+        ) { [weak self] note in
+            let roh = note.userInfo?[AVCaptureSessionInterruptionReasonKey] as? Int
+            aufMainActor { self?.interrupted(roh) }
+        })
+        observers.append(center.addObserver(
+            forName: AVCaptureSession.interruptionEndedNotification, object: session, queue: .main
+        ) { [weak self] _ in
+            aufMainActor { self?.interruptionEnded() }
+        })
+        observers.append(center.addObserver(
+            forName: AVCaptureSession.runtimeErrorNotification, object: session, queue: .main
+        ) { [weak self] note in
+            let fehler = note.userInfo?[AVCaptureSessionErrorKey] as? NSError
+            aufMainActor { self?.runtimeError(fehler) }
+        })
+    }
+
+    private func removeObservers() {
+        observers.forEach { NotificationCenter.default.removeObserver($0) }
+        observers.removeAll()
+    }
+
+    private func interrupted(_ roh: Int?) {
+        let grund = CameraInterruption(rawReason: roh)
+        cameraLog.error("Datum-Scanner unterbrochen: \(grund.protokollname, privacy: .public)")
+        report(.interrupted(grund))
+    }
+
+    /// Genau der Fall aus dem Fehlerbericht: ohne Neustart bleibt das letzte
+    /// Bild stehen, auch wenn die Kamera längst wieder frei ist.
+    private func interruptionEnded() {
+        cameraLog.info("Datum-Scanner: Unterbrechung beendet, Session wird neu aufgebaut")
+        guard wantsCamera else { return }
+        rebuild()
+    }
+
+    private func runtimeError(_ fehler: NSError?) {
+        cameraLog.error("Datum-Scanner: Laufzeitfehler \(fehler?.code ?? -1)")
+        if fehler?.code == AVError.Code.mediaServicesWereReset.rawValue {
+            rebuild()
+        } else {
+            report(.failed("Die Kamera hat einen Fehler gemeldet."))
+        }
+    }
+}
+
+struct ExpiryTextCameraPreview: UIViewRepresentable {
+    @Binding var status: CameraStatus
+    /// Jede Änderung erzwingt einen harten Neuaufbau der Session.
+    var rebuildToken: Int = 0
+    var onCandidates: ([ExpiryDateCandidate]) -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeUIView(context: Context) -> TextScannerUIView {
+        let view = TextScannerUIView()
+        let coordinator = context.coordinator
+        coordinator.rebuildToken = rebuildToken
+        view.sampleDelegate = coordinator
+        view.onOrientation = { [weak coordinator] ausrichtung in
+            coordinator?.orientation = ausrichtung
+        }
+        view.onStatus = { [weak coordinator] neu in
+            // Nicht mitten im SwiftUI-Update schreiben.
+            DispatchQueue.main.async { coordinator?.parent.status = neu }
+        }
+        // Startet erst, wenn der CameraArbiter die Kamera freigibt.
+        view.setWantsCamera(true)
         return view
     }
 
     func updateUIView(_ uiView: TextScannerUIView, context: Context) {
         context.coordinator.parent = self
-        uiView.previewLayer?.frame = uiView.bounds
+        uiView.setNeedsLayout()
 
-        if let session = uiView.session, uiView.isPaused != isPaused {
-            uiView.isPaused = isPaused
-            let shouldRun = !isPaused
-            sessionQueue.async {
-                if shouldRun, !session.isRunning { session.startRunning() }
-                if !shouldRun, session.isRunning { session.stopRunning() }
-            }
+        if context.coordinator.rebuildToken != rebuildToken {
+            context.coordinator.rebuildToken = rebuildToken
+            uiView.rebuild()
         }
     }
 
     static func dismantleUIView(_ uiView: TextScannerUIView, coordinator: Coordinator) {
-        guard let session = uiView.session else { return }
-        DispatchQueue.global(qos: .userInitiated).async {
-            if session.isRunning { session.stopRunning() }
-        }
+        uiView.onStatus = nil
+        uiView.onOrientation = nil
+        uiView.shutdown()
+        let parent = coordinator.parent
+        DispatchQueue.main.async { parent.status = .idle }
     }
 
     // MARK: Coordinator
@@ -296,6 +506,7 @@ struct ExpiryTextCameraPreview: UIViewRepresentable {
     final class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         var parent: ExpiryTextCameraPreview
         var orientation: CGImagePropertyOrientation = .right
+        var rebuildToken = 0
         /// Texterkennung kostet spürbar Rechenzeit, deshalb nicht jedes Bild.
         private let interval: TimeInterval = 0.45
         private var lastRun: Date = .distantPast
@@ -308,7 +519,7 @@ struct ExpiryTextCameraPreview: UIViewRepresentable {
             didOutput sampleBuffer: CMSampleBuffer,
             from connection: AVCaptureConnection
         ) {
-            guard !parent.isPaused, !isRunning else { return }
+            guard !isRunning else { return }
             guard Date().timeIntervalSince(lastRun) > interval else { return }
             guard let buffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
             lastRun = Date()
