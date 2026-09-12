@@ -37,6 +37,10 @@
 		E00000000000000000000029 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000021 /* PaywallView.swift */; };
 		E00000000000000000000030 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000030 /* PrivacyInfo.xcprivacy */; };
 		E00000000000000000000031 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000031 /* PrivacyInfo.xcprivacy */; };
+		E00000000000000000000033 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000033 /* AppEnvironment.swift */; };
+		E00000000000000000000034 /* TestDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000034 /* TestDataSeeder.swift */; };
+		E00000000000000000000035 /* DeveloperMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000035 /* DeveloperMenuView.swift */; };
+		E00000000000000000000036 /* testprodukte.json in Resources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000036 /* testprodukte.json */; };
 		E00000000000000000000032 /* Legal.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000032 /* Legal.swift */; };
 		T00000000000000000000005 /* ExpiryLabelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000001B /* ExpiryLabelTests.swift */; };
 /* End PBXBuildFile section */
@@ -105,6 +109,10 @@
 		D0000000000000000000001E /* FreshAlertWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FreshAlertWidget.entitlements; sourceTree = "<group>"; };
 		D00000000000000000000030 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		D00000000000000000000031 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D00000000000000000000033 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		D00000000000000000000034 /* TestDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDataSeeder.swift; sourceTree = "<group>"; };
+		D00000000000000000000035 /* DeveloperMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperMenuView.swift; sourceTree = "<group>"; };
+		D00000000000000000000036 /* testprodukte.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = testprodukte.json; sourceTree = "<group>"; };
 		D00000000000000000000032 /* Legal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Legal.swift; sourceTree = "<group>"; };
 		D0000000000000000000001F /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		D00000000000000000000020 /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
@@ -164,6 +172,7 @@
 				A00000000000000000000005 /* Views */,
 				A0000000000000000000000A /* Services */,
 				A0000000000000000000000B /* ViewModels */,
+				A0000000000000000000000F /* TestData */,
 				D0000000000000000000000F /* Assets.xcassets */,
 				D00000000000000000000010 /* Info.plist */,
 				D0000000000000000000001D /* FreshAlert.entitlements */,
@@ -227,6 +236,7 @@
 			isa = PBXGroup;
 			children = (
 				D0000000000000000000000B /* SettingsView.swift */,
+				D00000000000000000000035 /* DeveloperMenuView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -237,6 +247,8 @@
 				D0000000000000000000000C /* OpenFoodFactsService.swift */,
 				D0000000000000000000000D /* NotificationService.swift */,
 				D00000000000000000000020 /* StoreManager.swift */,
+				D00000000000000000000033 /* AppEnvironment.swift */,
+				D00000000000000000000034 /* TestDataSeeder.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -277,6 +289,14 @@
 				D00000000000000000000021 /* PaywallView.swift */,
 			);
 			path = Paywall;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000F /* TestData */ = {
+			isa = PBXGroup;
+			children = (
+				D00000000000000000000036 /* testprodukte.json */,
+			);
+			path = TestData;
 			sourceTree = "<group>";
 		};
 		D547F91D2FC05BC80016D1B4 /* Recovered References */ = {
@@ -401,6 +421,7 @@
 			files = (
 				E0000000000000000000000F /* Assets.xcassets in Resources */,
 				E00000000000000000000030 /* PrivacyInfo.xcprivacy in Resources */,
+				E00000000000000000000036 /* testprodukte.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -438,6 +459,9 @@
 				E0000000000000000000000E /* AppViewModel.swift in Sources */,
 				E00000000000000000000010 /* WidgetDataStore.swift in Sources */,
 				E00000000000000000000028 /* StoreManager.swift in Sources */,
+				E00000000000000000000033 /* AppEnvironment.swift in Sources */,
+				E00000000000000000000034 /* TestDataSeeder.swift in Sources */,
+				E00000000000000000000035 /* DeveloperMenuView.swift in Sources */,
 				E00000000000000000000029 /* PaywallView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

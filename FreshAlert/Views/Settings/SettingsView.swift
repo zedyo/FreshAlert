@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var notifStatus: UNAuthorizationStatus = .notDetermined
     @State private var showRescheduleConfirm = false
     @State private var showRescheduleDone = false
+    @ObservedObject private var environment = AppEnvironmentObserver.shared
 
     var body: some View {
         NavigationStack {
@@ -167,9 +168,27 @@ struct SettingsView: View {
                 } header: {
                     Text("Über FreshAlert")
                 }
+
+                // Entwickler (nur Debug und TestFlight, nie App Store)
+                if environment.isDeveloperMenuAvailable {
+                    Section {
+                        NavigationLink {
+                            DeveloperMenuView()
+                        } label: {
+                            Label("Entwicklermenü", systemImage: "hammer")
+                        }
+                    } header: {
+                        Text("Entwickler")
+                    } footer: {
+                        Text("Nur in TestFlight- und Debug-Builds sichtbar.")
+                    }
+                }
             }
             .navigationTitle("Einstellungen")
-            .task { await loadNotifStatus() }
+            .task {
+                await loadNotifStatus()
+                await environment.refresh()
+            }
             .onAppear { refreshItemCount() }
             .sheet(isPresented: $showPaywall, onDismiss: { refreshItemCount() }) {
                 PaywallView(reason: .fromSettings)

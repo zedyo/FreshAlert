@@ -273,7 +273,8 @@ final class AppViewModel: ObservableObject {
 
     // Downloads the product image once and stores it in SwiftData (@externalStorage).
     // After this, the image is shown from local storage and never fetched again.
-    private func downloadAndCacheImage(for item: FoodItem) async {
+    // Intern statt privat: TestDataSeeder nutzt denselben Weg.
+    func downloadAndCacheImage(for item: FoodItem) async {
         guard let url = URL(string: item.imageURL) else { return }
         guard let (data, response) = try? await URLSession.shared.data(from: url),
               let httpResponse = response as? HTTPURLResponse,
