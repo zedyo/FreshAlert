@@ -29,7 +29,8 @@ struct AddFoodItemView: View {
     @State private var isSaving = false
     @FocusState private var focusedField: Field?
 
-    /// Zuletzt gewählter Lagerort, als UUID-String. Leer heißt "Ohne Ort".
+    /// Zuletzt gewählter Lagerort, als UUID-String. Leer heißt "noch nie gespeichert",
+    /// `noLocationMarker` heißt "zuletzt bewusst Ohne Ort".
     @AppStorage("lastStorageLocationID") private var lastStorageLocationID: String = ""
 
     enum Field { case name, brand }
@@ -115,7 +116,9 @@ struct AddFoodItemView: View {
                     }
                 }
             }
-            .navigationTitle("Neues Produkt")
+            // Kurz, weil "Neues Produkt" neben "Abbrechen" und "Speichern"
+            // auf dem iPhone abgeschnitten wird. Der Abschnitt darunter heißt "Produkt".
+            .navigationTitle("Neu")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -382,11 +385,25 @@ struct AddFoodItemView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { focusedField = .name }
     }
 
+    /// Vorbelegung des Lagerorts:
+    /// - zuletzt gewählter Ort, falls er noch existiert
+    /// - "none": Nik hat zuletzt bewusst "Ohne Ort" gewählt, das bleibt so
+    /// - leer (allererstes Produkt): "Kühlschrank", sonst der erste Ort, sonst "Ohne Ort"
     private func preselectLastLocation() {
-        guard selectedLocation == nil, !lastStorageLocationID.isEmpty,
-              let id = UUID(uuidString: lastStorageLocationID) else { return }
-        selectedLocation = locations.first { $0.id == id }
+        guard selectedLocation == nil else { return }
+        if lastStorageLocationID == Self.noLocationMarker { return }
+        if let id = UUID(uuidString: lastStorageLocationID),
+           let last = locations.first(where: { $0.id == id }) {
+            selectedLocation = last
+            return
+        }
+        selectedLocation = locations.first { $0.name.caseInsensitiveCompare("Kühlschrank") == .orderedSame }
+            ?? locations.first
     }
+
+    /// Wert in `lastStorageLocationID`, wenn zuletzt bewusst ohne Ort gespeichert wurde.
+    /// Unterscheidet "noch nie gespeichert" (leer) von "Ohne Ort gewählt".
+    private static let noLocationMarker = "none"
 
     private func loadProduct() async {
         // Manuelles Anlegen: Name ist leer, also direkt ins Namensfeld springen.
@@ -433,7 +450,7 @@ struct AddFoodItemView: View {
         // das Bild, und ein zweiter Tipp erzeugte ein Duplikat.
         guard !isSaving else { return }
         isSaving = true
-        lastStorageLocationID = selectedLocation?.id.uuidString ?? ""
+        lastStorageLocationID = selectedLocation?.id.uuidString ?? Self.noLocationMarker
         viewModel.addFoodItem(item)
         viewModel.showToast("\(trimmedName) gespeichert, haltbar bis \(Self.shortDateString(expiryDate))")
         Feedback.itemSaved()

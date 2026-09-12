@@ -10,9 +10,16 @@ struct DashboardView: View {
     @State private var searchText = ""
     @State private var selectedFilter: FilterOption = .all
     @State private var selectedLocationID: UUID?
+    /// Chip "Ohne Ort": nur Produkte ohne Lagerort. Schließt `selectedLocationID` aus.
+    @State private var filterWithoutLocation = false
 
     enum FilterOption {
         case all, expiringSoon, expired
+    }
+
+    /// Gibt es mindestens ein Produkt ohne Lagerort? Steuert den Chip "Ohne Ort".
+    private var hasItemsWithoutLocation: Bool {
+        allItems.contains { $0.storageLocation == nil }
     }
 
     var filteredItems: [FoodItem] {
@@ -28,7 +35,9 @@ struct DashboardView: View {
         case .expiringSoon: items = items.filter { $0.daysUntilExpiry >= 0 && $0.daysUntilExpiry <= 7 }
         case .expired:      items = items.filter { $0.daysUntilExpiry < 0 }
         }
-        if let locID = selectedLocationID {
+        if filterWithoutLocation {
+            items = items.filter { $0.storageLocation == nil }
+        } else if let locID = selectedLocationID {
             items = items.filter { $0.storageLocation?.id == locID }
         }
         return items
@@ -130,6 +139,12 @@ struct DashboardView: View {
             .task {
                 proxy.scrollTo("firstSection", anchor: .top)
             }
+            // Letztes Produkt ohne Ort zugeordnet: Chip verschwindet, Filter zurück auf "Alle Orte".
+            .onChange(of: hasItemsWithoutLocation) { _, stillAny in
+                if !stillAny && filterWithoutLocation {
+                    withAnimation { filterWithoutLocation = false }
+                }
+            }
             } // ScrollViewReader
         }
     }
@@ -171,12 +186,26 @@ struct DashboardView: View {
     private var locationBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                FilterChip(title: "Alle Orte", isSelected: selectedLocationID == nil) {
-                    withAnimation { selectedLocationID = nil }
+                FilterChip(title: "Alle Orte", isSelected: selectedLocationID == nil && !filterWithoutLocation) {
+                    withAnimation {
+                        selectedLocationID = nil
+                        filterWithoutLocation = false
+                    }
                 }
                 ForEach(locations) { loc in
-                    LocationChip(location: loc, isSelected: selectedLocationID == loc.id) {
-                        withAnimation { selectedLocationID = loc.id }
+                    LocationChip(location: loc, isSelected: selectedLocationID == loc.id && !filterWithoutLocation) {
+                        withAnimation {
+                            selectedLocationID = loc.id
+                            filterWithoutLocation = false
+                        }
+                    }
+                }
+                if hasItemsWithoutLocation {
+                    NoLocationChip(isSelected: filterWithoutLocation) {
+                        withAnimation {
+                            selectedLocationID = nil
+                            filterWithoutLocation = true
+                        }
                     }
                 }
             }
@@ -313,6 +342,25 @@ struct FilterChip: View {
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
+    }
+}
+
+/// Grauer Chip ganz rechts: filtert auf Produkte ohne Lagerort.
+struct NoLocationChip: View {
+    let isSelected: Bool; let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Image(systemName: "questionmark.circle").font(.caption)
+                Text("Ohne Ort").font(.subheadline.weight(isSelected ? .semibold : .regular))
+            }
+            .foregroundStyle(isSelected ? .white : .secondary)
+            .padding(.horizontal, 12).padding(.vertical, 7)
+            .background(isSelected ? Color(.systemGray) : Color(.secondarySystemBackground))
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
