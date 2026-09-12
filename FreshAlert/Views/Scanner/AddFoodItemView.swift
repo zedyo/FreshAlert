@@ -3,12 +3,33 @@ import SwiftData
 import UIKit
 
 struct AddFoodItemView: View {
+    /// Ein Formular für beides: Anlegen (nach Scan oder von Hand) und
+    /// Bearbeiten eines bestehenden Produkts.
+    enum Mode {
+        case create(barcode: String)
+        case edit(FoodItem)
+    }
+
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var viewModel: AppViewModel
     @EnvironmentObject private var store: StoreManager
 
-    let barcode: String
+    let mode: Mode
+
+    private var barcode: String {
+        switch mode {
+        case .create(let barcode): return barcode
+        case .edit(let item): return item.barcode
+        }
+    }
+
+    private var editingItem: FoodItem? {
+        if case .edit(let item) = mode { return item }
+        return nil
+    }
+
+    private var isEditMode: Bool { editingItem != nil }
 
     @State private var name: String = ""
     @State private var brand: String = ""
@@ -36,9 +57,28 @@ struct AddFoodItemView: View {
     enum Field { case name, brand }
 
     init(barcode: String) {
-        self.barcode = barcode
-        _isLoadingProduct = State(initialValue: !barcode.isEmpty)
-        _isEditingProduct = State(initialValue: barcode.isEmpty)
+        self.init(mode: .create(barcode: barcode))
+    }
+
+    init(mode: Mode) {
+        self.mode = mode
+        switch mode {
+        case .create(let barcode):
+            _isLoadingProduct = State(initialValue: !barcode.isEmpty)
+            _isEditingProduct = State(initialValue: barcode.isEmpty)
+        case .edit(let item):
+            _isLoadingProduct = State(initialValue: false)
+            _isEditingProduct = State(initialValue: true)
+            _name = State(initialValue: item.name)
+            _brand = State(initialValue: item.brand)
+            _imageURL = State(initialValue: item.imageURL)
+            _capturedImageData = State(initialValue: item.imageData)
+            _expiryDate = State(initialValue: item.expiryDate)
+            _quantity = State(initialValue: item.quantity)
+            _selectedLocation = State(initialValue: item.storageLocation)
+            _useCustomReminder = State(initialValue: item.customReminderDays != nil)
+            _customReminderDays = State(initialValue: item.customReminderDays ?? 7)
+        }
     }
 
     @Query(sort: \StorageLocation.sortOrder) private var locations: [StorageLocation]
@@ -80,7 +120,7 @@ struct AddFoodItemView: View {
                     DatePicker(
                         "Anderes Datum",
                         selection: datePickerBinding,
-                        in: Calendar.current.startOfDay(for: Date())...,
+                        in: datePickerRange,
                         displayedComponents: .date
                     )
                     .datePickerStyle(.compact)
@@ -105,7 +145,7 @@ struct AddFoodItemView: View {
                     Text("Erinnerung")
                 }
 
-                if !viewModel.isOnline {
+                if !isEditMode && !viewModel.isOnline {
                     Section {
                         HStack(spacing: 8) {
                             Image(systemName: "wifi.slash").foregroundStyle(.orange)
@@ -118,7 +158,7 @@ struct AddFoodItemView: View {
             }
             // Kurz, weil "Neues Produkt" neben "Abbrechen" und "Speichern"
             // auf dem iPhone abgeschnitten wird. Der Abschnitt darunter heißt "Produkt".
-            .navigationTitle("Neu")
+            .navigationTitle(isEditMode ? "Bearbeiten" : "Neu")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -132,6 +172,7 @@ struct AddFoodItemView: View {
             }
             .task { await loadProduct() }
             .onAppear { preselectLastLocation() }
+            .interactiveDismissDisabled(isEditMode)
             .sheet(isPresented: $showPaywall) { PaywallView() }
         }
     }
@@ -193,8 +234,13 @@ struct AddFoodItemView: View {
                 Button("Foto aufnehmen") { photoSource = .camera }
             }
             Button("Aus Mediathek wählen") { photoSource = .library }
-            if capturedImageData != nil {
-                Button("Foto entfernen", role: .destructive) { capturedImageData = nil }
+            if capturedImageData != nil || !imageURL.isEmpty {
+                // Entfernt auch die Bild-URL, sonst taucht das alte Bild
+                // aus Open Food Facts gleich wieder auf.
+                Button("Foto entfernen", role: .destructive) {
+                    capturedImageData = nil
+                    imageURL = ""
+                }
             }
             Button("Abbrechen", role: .cancel) {}
         }
@@ -351,6 +397,16 @@ struct AddFoodItemView: View {
 
     /// Der DatePicker braucht ein nicht optionales Datum. Solange nichts
     /// gewählt ist, zeigt er heute, schreibt aber erst beim Ändern zurück.
+    /// Beim Anlegen nur ab heute. Beim Bearbeiten darf ein abgelaufenes
+    /// Produkt sein altes Datum behalten, sonst springt der Picker auf heute.
+    private var datePickerRange: PartialRangeFrom<Date> {
+        let today = Calendar.current.startOfDay(for: Date())
+        if let existing = editingItem?.expiryDate, existing < today {
+            return Calendar.current.startOfDay(for: existing)...
+        }
+        return today...
+    }
+
     private var datePickerBinding: Binding<Date> {
         Binding(
             get: { expiryDate ?? Calendar.current.startOfDay(for: Date()) },
@@ -390,7 +446,7 @@ struct AddFoodItemView: View {
     /// - "none": Nik hat zuletzt bewusst "Ohne Ort" gewählt, das bleibt so
     /// - leer (allererstes Produkt): "Kühlschrank", sonst der erste Ort, sonst "Ohne Ort"
     private func preselectLastLocation() {
-        guard selectedLocation == nil else { return }
+        guard !isEditMode, selectedLocation == nil else { return }
         if lastStorageLocationID == Self.noLocationMarker { return }
         if let id = UUID(uuidString: lastStorageLocationID),
            let last = locations.first(where: { $0.id == id }) {
@@ -406,6 +462,8 @@ struct AddFoodItemView: View {
     private static let noLocationMarker = "none"
 
     private func loadProduct() async {
+        // Bearbeiten: alles ist schon da, nichts nachladen, kein Fokus-Sprung.
+        guard !isEditMode else { return }
         // Manuelles Anlegen: Name ist leer, also direkt ins Namensfeld springen.
         guard !barcode.isEmpty else {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { focusedField = .name }
@@ -426,6 +484,11 @@ struct AddFoodItemView: View {
 
     private func saveItem() {
         guard !trimmedName.isEmpty, let expiryDate else { return }
+        guard !isSaving else { return }
+        if let item = editingItem {
+            saveEdits(to: item, expiryDate: expiryDate)
+            return
+        }
         if !store.isPro {
             let count = (try? modelContext.fetchCount(FetchDescriptor<FoodItem>())) ?? 0
             if count >= StoreManager.freeLimit {
@@ -448,10 +511,27 @@ struct AddFoodItemView: View {
         // Speichern ist sofort erledigt, der Bilddownload und die Erinnerungen
         // laufen im Hintergrund weiter. Vorher wartete der Sheet bis zu 60 s auf
         // das Bild, und ein zweiter Tipp erzeugte ein Duplikat.
-        guard !isSaving else { return }
         isSaving = true
         lastStorageLocationID = selectedLocation?.id.uuidString ?? Self.noLocationMarker
         viewModel.addFoodItem(item)
+        viewModel.showToast("\(trimmedName) gespeichert, haltbar bis \(Self.shortDateString(expiryDate))")
+        Feedback.itemSaved()
+        dismiss()
+    }
+
+    /// Schreibt die Felder ins bestehende Produkt. `updateFoodItem` plant die
+    /// Erinnerungen neu, das deckt geändertes Datum und geänderte Erinnerung ab.
+    private func saveEdits(to item: FoodItem, expiryDate: Date) {
+        isSaving = true
+        item.name = trimmedName
+        item.brand = brand.trimmingCharacters(in: .whitespaces)
+        item.imageURL = imageURL
+        item.imageData = capturedImageData
+        item.expiryDate = expiryDate
+        item.quantity = quantity
+        item.storageLocation = selectedLocation
+        item.customReminderDays = useCustomReminder ? customReminderDays : nil
+        Task { await viewModel.updateFoodItem(item) }
         viewModel.showToast("\(trimmedName) gespeichert, haltbar bis \(Self.shortDateString(expiryDate))")
         Feedback.itemSaved()
         dismiss()
