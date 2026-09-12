@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.9.2] – 2026-09-13
+
+- **Behoben:** Das Scannen des Haltbarkeitsdatums zeigte ein eingefrorenes Bild und erkannte nichts. Ursache waren zwei Kamerasitzungen gleichzeitig: der Barcode-Scanner hielt die Kamera weiter, obwohl er pausiert war, und die Sitzung des Datum-Scanners wurde von iOS sofort unterbrochen. Die Kamera wird jetzt sauber übergeben, und eine Unterbrechung wird angezeigt statt verschwiegen, mit einem Knopf zum erneuten Versuchen.
+- **Behoben:** Nach einer Unterbrechung lief die Kamera nicht von selbst wieder an, auch wenn sie längst frei war.
+
 ## [1.9.1] – 2026-09-12
 
 - **Intern:** Zweiter Beispieldatensatz für die App-Store-Bilder: 14 deutsche Alltagsprodukte, nichts abgelaufen, vier Lagerorte und eine Verbrauchshistorie mit rund 92 Prozent geretteten Produkten. Startargument `-seedScreenshotData` und ein Knopf im Entwicklermenü.
