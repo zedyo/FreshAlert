@@ -292,11 +292,15 @@ enum TestDataSeeder {
             (name: "Eisbergsalat", ort: "Kühlschrank"),
         ]
 
+        // Sechs Verluste, bewusst überwiegend im älteren Zeitraum: die letzten
+        // 30 Tage (Index bis etwa 22) sollen besser dastehen als die 60 davor,
+        // damit die Statistik einen Fortschritt zeigt statt eines Rückschritts.
+        let lossIndices: Set<Int> = [17, 33, 41, 49, 57, 65]
+
         var created = 0
         var lossIndex = 0
         for index in 0..<total {
-            // Jeder zwölfte Satz ab dem sechsten: sechs Verluste von siebzig.
-            let discarded = index % 12 == 5
+            let discarded = lossIndices.contains(index)
             // Gleichmäßig über 89 Tage, nie heute (sonst läge ein Satz in der Zukunft).
             let daysAgo = 1 + (index * 88) / (total - 1)
             let hour = Int.random(in: 8...20, using: &random)
