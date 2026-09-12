@@ -35,7 +35,11 @@ struct ContentView: View {
         // auch im Scanner, wo man nach dem Speichern landet.
         .overlay(alignment: .bottom) {
             if let message = viewModel.toastMessage {
-                ToastView(message: message, action: viewModel.toastAction) {
+                ToastView(
+                    message: message,
+                    action: viewModel.toastAction,
+                    secondaryAction: viewModel.toastSecondaryAction
+                ) {
                     viewModel.dismissToast()
                 }
                 .padding(.horizontal, 16)
@@ -82,11 +86,13 @@ struct ContentView: View {
 
 // MARK: - Toast
 
-/// Kurze Meldung unten über der Tab-Leiste, optional mit Aktionsknopf
-/// ("Rückgängig"). Verschwindet von selbst, siehe AppViewModel.showToast.
+/// Kurze Meldung unten über der Tab-Leiste, optional mit ein oder zwei
+/// Aktionsknöpfen ("Rückgängig", "Weggeworfen"). Verschwindet von selbst,
+/// siehe AppViewModel.showToast.
 struct ToastView: View {
     let message: String
     let action: ToastAction?
+    var secondaryAction: ToastAction? = nil
     let onDismiss: () -> Void
 
     var body: some View {
@@ -95,6 +101,9 @@ struct ToastView: View {
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(.white)
                 .lineLimit(2)
+                // In der Mitte kürzen: bei langen Produktnamen bleibt sonst
+                // neben zwei Knöpfen nichts vom "gelöscht" übrig.
+                .truncationMode(.middle)
             Spacer(minLength: 0)
             if let action {
                 Button(action.title) {
@@ -103,6 +112,14 @@ struct ToastView: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.freshGreen)
                 .buttonStyle(.plain)
+                if let secondaryAction {
+                    Button(secondaryAction.title) {
+                        secondaryAction.handler()
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.orange)
+                    .buttonStyle(.plain)
+                }
             } else {
                 Button {
                     onDismiss()

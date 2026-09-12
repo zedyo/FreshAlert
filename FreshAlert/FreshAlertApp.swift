@@ -14,7 +14,7 @@ struct FreshAlertApp: App {
 
     init() {
         do {
-            let schema = Schema([FoodItem.self, StorageLocation.self])
+            let schema = Schema([FoodItem.self, StorageLocation.self, ConsumptionRecord.self])
             let config = ModelConfiguration("FreshAlert", schema: schema)
             let container = try ModelContainer(for: schema, configurations: config)
             modelContainer = container

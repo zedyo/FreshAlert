@@ -52,6 +52,11 @@ struct SettingsView: View {
                     } label: {
                         Label("Lagerorte verwalten", systemImage: "archivebox.fill")
                     }
+                    NavigationLink {
+                        StatsView()
+                    } label: {
+                        Label("Statistik", systemImage: "chart.bar.xaxis")
+                    }
                 } header: {
                     Text("Verwaltung")
                 }
