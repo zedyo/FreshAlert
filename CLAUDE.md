@@ -114,8 +114,11 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   merge to `main` → TestFlight (`testflight.yml`, lane `beta`);
   tag `v*` → App Store review (`store.yml`, lane `release`, no automatic release).
 - Secrets needed for the cloud lanes: `ASC_KEY_ID`, `ASC_ISSUER_ID`,
-  `ASC_KEY_CONTENT` (base64 .p8), `MATCH_GIT_URL`, `MATCH_PASSWORD`,
-  `MATCH_GIT_BASIC_AUTHORIZATION`. Without them the TestFlight job skips itself.
+  `ASC_KEY_CONTENT` (base64 of the .p8, key role Admin for cloud signing).
+  No match, no certificate repo: signing uses Apple's cloud-managed certificates.
+  Without the secrets the TestFlight job skips itself.
+- Local upload from the iMac: `xcodebuild archive … -allowProvisioningUpdates`, then
+  `-exportArchive … -authenticationKeyPath ~/.private_keys/AuthKey_<ID>.p8 -authenticationKeyID <ID> -authenticationKeyIssuerID <Issuer>`.
 - Build machine fallback: the owner's iMac (Xcode 26.3, Intel). Same lanes locally.
 - Docs: `docs/RELEASE_AUTOMATION.md` (pipeline + setup), `docs/APP_STORE.md`
   (manual store steps), `docs/MARKETING.md`, `docs/MONETIZATION.md`,

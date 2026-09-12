@@ -20,9 +20,8 @@ jobs:
       - name: Secrets prüfen
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
         run: |
-          if [ -z "$ASC_KEY_ID" ] || [ -z "$MATCH_GIT_URL" ]; then
+          if [ -z "$ASC_KEY_ID" ]; then
             echo "::error::Keine Signier-Secrets hinterlegt, Einreichung nicht möglich"; exit 1
           fi
 
@@ -43,6 +42,3 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
