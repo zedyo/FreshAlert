@@ -25,3 +25,4 @@ fastlane/README.md
 # Ruby / Bundler
 vendor/bundle/
 .bundle/
+.asc_key.p8
