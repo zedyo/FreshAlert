@@ -5,6 +5,7 @@ struct FoodItemCardView: View {
     @EnvironmentObject var viewModel: AppViewModel
     let item: FoodItem
     @State private var showDetail = false
+    @State private var showLocationPicker = false
     @State private var deleteAfterDismiss = false
 
     private static let shortDate: DateFormatter = {
@@ -40,6 +41,23 @@ struct FoodItemCardView: View {
                                 .font(.caption)
                         }
                         .foregroundStyle(loc.color)
+                    } else {
+                        // Kein Ort: Tipp auf die Zeile öffnet die Schnellzuordnung,
+                        // der Rest der Karte führt weiter ins Detail.
+                        Button {
+                            showLocationPicker = true
+                        } label: {
+                            HStack(spacing: 3) {
+                                Image(systemName: "questionmark.circle")
+                                    .font(.caption2)
+                                Text("Kein Lagerort")
+                                    .font(.caption)
+                            }
+                            .foregroundStyle(.orange)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Kein Lagerort, Ort zuordnen")
                     }
 
                     HStack(spacing: 6) {
@@ -93,6 +111,11 @@ struct FoodItemCardView: View {
                 deleteAfterDismiss = true
             }
         }
+        .sheet(isPresented: $showLocationPicker) {
+            LocationQuickPickSheet(item: item)
+                .presentationDetents([.height(220)])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     private func handleDismiss() {
@@ -137,6 +160,73 @@ struct FoodItemCardView: View {
                     .font(.title3)
                     .foregroundStyle(.secondary)
             )
+    }
+}
+
+// MARK: - Schnellzuordnung Lagerort
+/// Kleines Sheet unter der Karte: ein Tipp auf einen Ort speichert sofort.
+struct LocationQuickPickSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var viewModel: AppViewModel
+    @Query(sort: \StorageLocation.sortOrder) private var locations: [StorageLocation]
+    let item: FoodItem
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Wo liegt \(item.name)?")
+                    .font(.headline)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Text("Tippe auf einen Ort, das Produkt wird sofort zugeordnet.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            if locations.isEmpty {
+                Text("Noch keine Lagerorte angelegt. Unter Einstellungen kannst du welche erstellen.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(locations) { loc in
+                            Button {
+                                assign(loc)
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: loc.iconName)
+                                        .font(.caption.weight(.semibold))
+                                    Text(loc.name)
+                                        .font(.caption.weight(.regular))
+                                        .lineLimit(1)
+                                }
+                                .foregroundStyle(loc.color)
+                                .padding(.horizontal, 12)
+                                .frame(minHeight: 40)
+                                .background(loc.color.opacity(0.15))
+                                .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 24)
+        .padding(.bottom, 16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func assign(_ loc: StorageLocation) {
+        item.storageLocation = loc
+        Task { await viewModel.updateFoodItem(item) }
+        viewModel.showToast("\(item.name) liegt jetzt im \(loc.name)")
+        Feedback.itemSaved()
+        dismiss()
     }
 }
 
