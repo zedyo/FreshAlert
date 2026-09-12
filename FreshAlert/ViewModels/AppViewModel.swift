@@ -16,6 +16,8 @@ final class AppViewModel: ObservableObject {
     @Published var isLoadingProduct: Bool = false
     @Published var toastMessage: String?
     @Published var toastAction: ToastAction?
+    /// Zweiter Knopf im Toast, heute nur "Weggeworfen" nach dem Löschen.
+    @Published var toastSecondaryAction: ToastAction?
     @Published var scanRequested: Bool = false
     @Published var selectedTab: Int = 0
     /// Von einer angetippten Mitteilung gesetzt, die Übersicht wertet es aus.
@@ -24,6 +26,8 @@ final class AppViewModel: ObservableObject {
     /// Schnappschuss des zuletzt entfernten Produkts, für "Rückgängig".
     /// Verfällt nach `undoWindow` Sekunden oder beim nächsten Entfernen.
     private var lastRemovedSnapshot: RemovedItemSnapshot?
+    /// Der beim Entfernen geschriebene Statistiksatz, damit "Rückgängig" ihn mitnimmt.
+    private var lastRemovedRecord: ConsumptionRecord?
     private var undoExpiryTask: Task<Void, Never>?
     private var toastDismissTask: Task<Void, Never>?
     private let undoWindow: TimeInterval = 6
@@ -96,8 +100,10 @@ final class AppViewModel: ObservableObject {
     }
 
     /// Löscht das Produkt und bietet 6 Sekunden lang "Rückgängig" an.
+    /// Im selben Toast fragt "Weggeworfen" nach, ob es in den Müll ging.
+    /// Kein Antippen heißt: nur gelöscht, kein Satz für die Statistik.
     func deleteFoodItem(_ item: FoodItem) {
-        remove(item, toast: "\(item.name) gelöscht")
+        remove(item, toast: "\(item.name) gelöscht", offerDiscarded: true)
     }
 
     func updateFoodItem(_ item: FoodItem) async {
@@ -108,21 +114,77 @@ final class AppViewModel: ObservableObject {
 
     /// Verbraucht ein Exemplar. Bei Menge 1 wird das Produkt entfernt,
     /// mit "Rückgängig" statt Nachfrage.
+    /// Ein abgelaufenes Produkt zählt trotzdem als verbraucht: gegessen ist gegessen.
     func decrementQuantity(_ item: FoodItem) {
         if item.quantity > 1 {
             item.quantity -= 1
+            modelContext.insert(makeRecord(for: item, outcome: .consumed))
         } else {
-            remove(item, toast: "\(item.name) verbraucht")
+            // Der Satz muss stehen, solange das Produkt noch da ist.
+            remove(
+                item,
+                toast: "\(item.name) verbraucht",
+                record: makeRecord(for: item, outcome: .consumed)
+            )
             return
         }
         try? modelContext.save()
         updateWidgetSnapshot()
     }
 
+    // MARK: - Statistik
+
+    /// Ein Satz für die Statistik, aus dem Produkt heraus gebaut. Der Lagerort
+    /// wandert als Name hinein, damit ein späteres Löschen nichts kaputt macht.
+    private func makeRecord(
+        for item: FoodItem, outcome: ConsumptionOutcome, quantity: Int = 1
+    ) -> ConsumptionRecord {
+        ConsumptionRecord(
+            productName: item.name,
+            brand: item.brand,
+            barcode: item.barcode,
+            storageLocationName: item.storageLocation?.name ?? "",
+            quantity: quantity,
+            outcome: outcome,
+            expiryDate: item.expiryDate
+        )
+    }
+
+    /// "Weggeworfen" im Toast nach dem Löschen: trägt den Verlust nach.
+    /// "Rückgängig" bleibt danach erreichbar und nimmt den Satz wieder mit.
+    func markLastRemovalDiscarded() {
+        guard let snapshot = lastRemovedSnapshot, lastRemovedRecord == nil else { return }
+        let record = ConsumptionRecord(
+            productName: snapshot.name,
+            brand: snapshot.brand,
+            barcode: snapshot.barcode,
+            storageLocationName: snapshot.storageLocation?.name ?? "",
+            quantity: snapshot.quantity,
+            outcome: .discarded,
+            expiryDate: snapshot.expiryDate
+        )
+        modelContext.insert(record)
+        try? modelContext.save()
+        lastRemovedRecord = record
+        startUndoWindow()
+        showToast(
+            "\(snapshot.name) weggeworfen",
+            actionTitle: "Rückgängig",
+            handler: { [weak self] in self?.undoLastRemoval() }
+        )
+    }
+
     // MARK: - Entfernen mit Undo
 
-    private func remove(_ item: FoodItem, toast message: String) {
+    private func remove(
+        _ item: FoodItem,
+        toast message: String,
+        record: ConsumptionRecord? = nil,
+        offerDiscarded: Bool = false
+    ) {
         lastRemovedSnapshot = RemovedItemSnapshot(item)
+        lastRemovedRecord = record
+        if let record { modelContext.insert(record) }
         // Explicitly nil out external storage before deletion so SwiftData
         // releases the image file on disk immediately during the same save.
         item.imageData = nil
@@ -132,14 +194,24 @@ final class AppViewModel: ObservableObject {
         updateWidgetSnapshot()
         scheduleReminderReplan()
 
+        startUndoWindow()
+        showToast(
+            message,
+            actionTitle: "Rückgängig",
+            secondaryTitle: offerDiscarded ? "Weggeworfen" : nil,
+            secondaryHandler: offerDiscarded ? { [weak self] in self?.markLastRemovalDiscarded() } : nil,
+            handler: { [weak self] in self?.undoLastRemoval() }
+        )
+    }
+
+    /// Startet das Zeitfenster neu, in dem "Rückgängig" noch etwas findet.
+    private func startUndoWindow() {
         undoExpiryTask?.cancel()
         undoExpiryTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(self?.undoWindow ?? 6))
             guard !Task.isCancelled else { return }
             self?.lastRemovedSnapshot = nil
-        }
-        showToast(message, actionTitle: "Rückgängig") { [weak self] in
-            self?.undoLastRemoval()
+            self?.lastRemovedRecord = nil
         }
     }
 
@@ -147,6 +219,11 @@ final class AppViewModel: ObservableObject {
     func undoLastRemoval() {
         guard let snapshot = lastRemovedSnapshot else { return }
         lastRemovedSnapshot = nil
+        // Der Vorgang hat nie stattgefunden, also auch kein Satz darüber.
+        if let record = lastRemovedRecord {
+            modelContext.delete(record)
+            lastRemovedRecord = nil
+        }
         undoExpiryTask?.cancel()
         dismissToast()
 
@@ -160,13 +237,24 @@ final class AppViewModel: ObservableObject {
 
     // MARK: - Toast
 
-    func showToast(_ message: String, actionTitle: String? = nil, handler: (() -> Void)? = nil) {
+    func showToast(
+        _ message: String,
+        actionTitle: String? = nil,
+        secondaryTitle: String? = nil,
+        secondaryHandler: (() -> Void)? = nil,
+        handler: (() -> Void)? = nil
+    ) {
         toastDismissTask?.cancel()
         toastMessage = message
         if let actionTitle, let handler {
             toastAction = ToastAction(title: actionTitle, handler: handler)
         } else {
             toastAction = nil
+        }
+        if let secondaryTitle, let secondaryHandler {
+            toastSecondaryAction = ToastAction(title: secondaryTitle, handler: secondaryHandler)
+        } else {
+            toastSecondaryAction = nil
         }
         toastDismissTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(5))
@@ -179,6 +267,7 @@ final class AppViewModel: ObservableObject {
         toastDismissTask?.cancel()
         toastMessage = nil
         toastAction = nil
+        toastSecondaryAction = nil
     }
 
     /// Für Dubletten beim Scannen: statt eines zweiten Eintrags nur die Menge erhöhen.

@@ -13,6 +13,7 @@ struct DashboardView: View {
     /// Chip "Ohne Ort": nur Produkte ohne Lagerort. Schließt `selectedLocationID` aus.
     @State private var filterWithoutLocation = false
     @State private var showReminders = false
+    @State private var showStats = false
 
     enum FilterOption {
         case all, expiringSoon, expired
@@ -133,13 +134,28 @@ struct DashboardView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("FreshAlert")
             .navigationBarTitleDisplayMode(.large)
-            .searchableIf(!allItems.isEmpty, text: $searchText, prompt: "Produkt suchen …")
+            // Die Leiste vor `searchable`: schaltet das Suchfeld um, weil das
+            // erste Produkt ankommt, verliert die Ansicht sonst das linke Symbol.
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(id: "statistik", placement: .topBarLeading) {
+                    statsButton
+                }
+                ToolbarItem(id: "erinnerungen", placement: .topBarTrailing) {
                     HStack(spacing: 12) {
                         if viewModel.pendingSyncCount > 0 { syncBadge }
                         reminderBell
                     }
+                }
+            }
+            .searchableIf(!allItems.isEmpty, text: $searchText, prompt: "Produkt suchen …")
+            .sheet(isPresented: $showStats) {
+                NavigationStack {
+                    StatsView()
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarTrailing) {
+                                Button("Fertig") { showStats = false }
+                            }
+                        }
                 }
             }
             .sheet(isPresented: $showReminders) {
@@ -179,6 +195,16 @@ struct DashboardView: View {
     }
 
     // MARK: - Subviews
+
+    private var statsButton: some View {
+        Button {
+            showStats = true
+        } label: {
+            Image(systemName: "chart.bar.xaxis")
+                .font(.body)
+        }
+        .accessibilityLabel("Statistik")
+    }
 
     private var reminderBell: some View {
         Button {
