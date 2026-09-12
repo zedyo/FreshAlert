@@ -112,6 +112,14 @@ final class AppViewModel: ObservableObject {
         updateWidgetSnapshot()
     }
 
+    /// Für Dubletten beim Scannen: statt eines zweiten Eintrags nur die Menge erhöhen.
+    func incrementQuantity(_ item: FoodItem) {
+        item.quantity += 1
+        try? modelContext.save()
+        updateWidgetSnapshot()
+        toastMessage = "\(item.name): jetzt \(item.quantity)×"
+    }
+
     // MARK: - Widget Data
     func updateWidgetSnapshot() {
         let descriptor = FetchDescriptor<FoodItem>(

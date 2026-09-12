@@ -19,10 +19,13 @@ struct BarcodeScannerView: View {
     @State private var showManualForm = false
     @State private var showPaywall = false
     @State private var isTabVisible = false
+    /// Bereits vorhandenes Produkt mit demselben Barcode (Dubletten-Dialog).
+    @State private var duplicateItem: FoodItem?
+    @State private var showDuplicateDialog = false
 
     /// Solange ein Sheet offen ist oder der Tab nicht sichtbar, ruht die Kamera.
     private var isScannerPaused: Bool {
-        !isTabVisible || showAddSheet || showManualForm || showPaywall || showManualEntry
+        !isTabVisible || showAddSheet || showManualForm || showPaywall || showManualEntry || showDuplicateDialog
     }
 
     enum ScanStatus { case waiting, noCodeDetected, success }
@@ -49,27 +52,60 @@ struct BarcodeScannerView: View {
                 scanTask?.cancel()
             }
             .onChange(of: scannedBarcode) { _, barcode in
-                guard barcode != nil else { return }
+                guard let barcode else { return }
                 scanStatus = .success
                 scanTask?.cancel()
-                if isAtFreeLimit() {
-                    scannedBarcode = nil
-                    scanStatus = .waiting
-                    startNoCodeTimer()
-                    showPaywall = true
+                // Erst Dublette, dann Limit: die Menge zu erhöhen legt kein neues
+                // Produkt an, braucht also auch kein Pro.
+                if let existing = existingItem(for: barcode) {
+                    duplicateItem = existing
+                    showDuplicateDialog = true
                 } else {
-                    showAddSheet = true
+                    openAddSheetOrPaywall()
                 }
             }
-            .sheet(isPresented: $showPaywall) { PaywallView() }
+            // Paywall aus dem Scanner: der Barcode bleibt erhalten. Wird Pro
+            // gekauft, geht es direkt mit demselben Barcode weiter, sonst wird
+            // er verworfen.
+            .onChange(of: store.isPro) { _, isPro in
+                guard isPro, showPaywall else { return }
+                showPaywall = false
+            }
+            .sheet(isPresented: $showPaywall, onDismiss: {
+                if store.isPro, scannedBarcode != nil {
+                    showAddSheet = true
+                } else {
+                    resetScanner()
+                }
+            }) {
+                PaywallView(reason: .limitReached)
+            }
             .sheet(isPresented: $showAddSheet, onDismiss: {
-                scannedBarcode = nil
-                scanStatus = .waiting
-                startNoCodeTimer()
+                resetScanner()
             }) {
                 if let barcode = scannedBarcode {
                     AddFoodItemView(barcode: barcode)
                 }
+            }
+            .confirmationDialog(
+                "\(duplicateItem?.name ?? "Produkt") ist schon da",
+                isPresented: $showDuplicateDialog,
+                titleVisibility: .visible,
+                presenting: duplicateItem
+            ) { item in
+                Button("Menge um 1 erhöhen") {
+                    viewModel.incrementQuantity(item)
+                    Feedback.itemSaved()
+                    resetScanner()
+                }
+                Button("Als neues Produkt anlegen") {
+                    openAddSheetOrPaywall()
+                }
+                Button("Abbrechen", role: .cancel) {
+                    resetScanner()
+                }
+            } message: { item in
+                Text("\(item.quantity)×, haltbar bis \(item.expiryDate.formatted(date: .numeric, time: .omitted))")
             }
             .sheet(isPresented: $showManualForm, onDismiss: {
                 startNoCodeTimer()
@@ -81,15 +117,12 @@ struct BarcodeScannerView: View {
                     .keyboardType(.numberPad)
                 Button("Abbrechen", role: .cancel) { manualBarcode = "" }
                 Button("Weiter") {
-                    if !manualBarcode.isEmpty {
-                        if isAtFreeLimit() {
-                            manualBarcode = ""
-                            showPaywall = true
-                        } else {
-                            scannedBarcode = manualBarcode
-                            manualBarcode = ""
-                        }
-                    }
+                    let code = manualBarcode.trimmingCharacters(in: .whitespaces)
+                    manualBarcode = ""
+                    guard !code.isEmpty else { return }
+                    // Läuft über denselben Weg wie ein gescannter Code:
+                    // Dubletten-Prüfung, dann Limit oder Formular.
+                    scannedBarcode = code
                 }
             } message: {
                 Text("Gib den Barcode manuell ein.")
@@ -250,6 +283,33 @@ struct BarcodeScannerView: View {
         guard !store.isPro else { return false }
         let count = (try? modelContext.fetchCount(FetchDescriptor<FoodItem>())) ?? 0
         return count >= StoreManager.freeLimit
+    }
+
+    /// Vorhandenes Produkt mit demselben, nicht leeren Barcode.
+    private func existingItem(for barcode: String) -> FoodItem? {
+        guard !barcode.isEmpty else { return nil }
+        let descriptor = FetchDescriptor<FoodItem>(
+            predicate: #Predicate { $0.barcode == barcode }
+        )
+        return try? modelContext.fetch(descriptor).first
+    }
+
+    /// Öffnet das Formular für `scannedBarcode` oder, am Limit, die Paywall.
+    /// Der Barcode bleibt in beiden Fällen gesetzt.
+    private func openAddSheetOrPaywall() {
+        if isAtFreeLimit() {
+            showPaywall = true
+        } else {
+            showAddSheet = true
+        }
+    }
+
+    /// Zurück in den Wartezustand, wie nach dem Schließen des Formulars.
+    private func resetScanner() {
+        scannedBarcode = nil
+        duplicateItem = nil
+        scanStatus = .waiting
+        startNoCodeTimer()
     }
 
     // MARK: - No-code hint timer
