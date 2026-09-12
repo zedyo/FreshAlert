@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.8.0] – 2026-09-12
+
+Audit Teil 2 und Welle 2: Erinnerungen, die halten, ein Produkt-Detail, das ein Produkt ist, und ein Entwicklermenü für TestFlight.
+
+- **Neu:** Eine Tagesmitteilung statt zwei je Produkt. Vorher kappte iOS ab 32 Produkten still (Limit 64), jetzt eine Sammelmitteilung pro Tag mit „Heute läuft ab“, höchstens 30 geplant. Uhrzeit einstellbar, der Vorlauf-Regler plant sofort selbst neu, der Knopf „Alle Erinnerungen neu planen“ entfällt. Tipp auf die Mitteilung öffnet die Übersicht gefiltert auf „Bald ablaufend“, Mitteilungen erscheinen auch bei offener App.
+- **Neu:** Erinnerungsübersicht in den Einstellungen und über die Glocke oben in der Übersicht (mit Zahl der heute fälligen Produkte): nächste Mitteilung, Zeitstrahl nach Tagen, abgelaufene Produkte oben.
+- **Neu:** Produkt-Detail als Produkt: Bild, Name, Marke, Ort, Status; Aktionsreihe „Verbraucht“, Menge, „Bearbeiten“; Details eingeklappt; Löschen klein und grau.
+- **Neu:** Ein Formular für Anlegen und Bearbeiten, auch Foto und Marke nachträglich änderbar.
+- **Neu:** Lagerort-Vorlagen (14) mit fertigem Icon und Farbe, bei eigenem Namen Vorschlag automatisch, Anpassen optional. Icon-Suche versteht deutsche Wörter.
+- **Neu:** Chip „Ohne Ort“ in der Übersicht, sobald es solche Produkte gibt; Karte zeigt „Kein Lagerort“ und lässt den Ort mit einem Tipp nachholen. Beim ersten Produkt ist der Kühlschrank vorbelegt.
+- **Neu:** Open-Food-Facts-Anbindung über die v2-API mit Pflicht-User-Agent, bei „nicht gefunden“ Fallback auf Open Products Facts und Open Beauty Facts. Unbekannte Produkte lassen sich direkt bei Open Food Facts nachtragen.
+- **Neu:** Entwicklermenü, nur in Debug- und TestFlight-Builds: 50 echte Testprodukte laden, alle Produkte löschen, App zurücksetzen, geplante Mitteilungen einsehen.
+- **Geändert:** Barrierefreiheit: Beschriftungen für Symbolknöpfe und das Widget-Häkchen, Scan-Linie respektiert „Bewegung reduzieren“. Einstellungen ohne „Minimales iOS“, mit Erklärtexten.
+- **Intern:** 42 Tests (Planer der Sammelmitteilung, Open-Food-Facts-Parser, Icon-Vorschlag), Startargument `-seedTestData` für den Simulator.
+
 ## [1.7.0] – 2026-09-12
 
 Welle 1 aus dem UX-Audit: die Dinge, die jeder Nutzer in der ersten Woche merkt.
