@@ -73,6 +73,21 @@ platform :ios do
     File.delete(key_path) if key_path && File.exist?(key_path)
   end
 
+  # --- Store-Material -------------------------------------------------------
+  desc "Screenshots aus fastlane/screenshots nach App Store Connect laden. Ändert keine Texte, reicht nichts ein."
+  lane :screenshots do
+    upload_to_app_store(
+      api_key:               asc_api_key,
+      skip_binary_upload:    true,
+      skip_metadata:         true,
+      skip_screenshots:      false,
+      overwrite_screenshots: true,
+      submit_for_review:     false,
+      force:                 true,
+      precheck_include_in_app_purchases: false
+    )
+  end
+
   # --- App Store ------------------------------------------------------------
   desc "Version aus Tag setzen, TestFlight-Build erzeugen, zur Prüfung einreichen. Veröffentlichung bleibt manuell."
   lane :release do |options|
