@@ -12,6 +12,8 @@ final class StoreManager: ObservableObject {
 
     @Published var products: [Product] = []
     @Published var isPro: Bool         = false
+    /// True, wenn das Jahresabo aktiv ist (nicht beim Einmalkauf). Steuert "Abo verwalten".
+    @Published var hasActiveSubscription = false
     @Published var isPurchasing: Bool  = false
 
     nonisolated(unsafe) private var updatesTask: Task<Void, Never>?
@@ -64,15 +66,17 @@ final class StoreManager: ObservableObject {
 
     private func refreshPurchaseStatus() async {
         var hasPro = false
+        var hasSubscription = false
         for await result in Transaction.currentEntitlements {
             if case .verified(let tx) = result,
                Self.productIDs.contains(tx.productID),
                tx.revocationDate == nil {
                 hasPro = true
-                break
+                if tx.productID == Self.yearlyID { hasSubscription = true }
             }
         }
         isPro = hasPro
+        hasActiveSubscription = hasSubscription
     }
 
     private func observeTransactionUpdates() async {

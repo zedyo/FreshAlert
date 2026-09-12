@@ -1,11 +1,23 @@
 import SwiftUI
 import StoreKit
 
+/// Warum die Paywall gezeigt wird. Entscheidet über die Kopfzeile.
+enum PaywallReason {
+    case limitReached
+    case fromSettings
+}
+
 struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var store: StoreManager
 
+    let reason: PaywallReason
+
     @State private var errorMessage: String?
+
+    init(reason: PaywallReason = .limitReached) {
+        self.reason = reason
+    }
 
     var body: some View {
         NavigationStack {
@@ -37,14 +49,30 @@ struct PaywallView: View {
                 .foregroundStyle(Color.freshGreen)
                 .padding(.top, 12)
 
-            Text("Unbegrenzte Produkte")
+            Text(headerTitle)
                 .font(.title2.bold())
 
-            Text("Du hast das Limit von \(StoreManager.freeLimit) Einträgen erreicht. Mit Pro trackst du so viele Produkte du möchtest.")
+            Text(headerSubtitle)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 28)
+        }
+    }
+
+    private var headerTitle: String {
+        switch reason {
+        case .limitReached: return "Unbegrenzte Produkte"
+        case .fromSettings: return "FreshAlert Pro"
+        }
+    }
+
+    private var headerSubtitle: String {
+        switch reason {
+        case .limitReached:
+            return "Du hast das Limit von \(StoreManager.freeLimit) Produkten erreicht. Mit Pro trackst du so viele Produkte, wie du möchtest."
+        case .fromSettings:
+            return "Mehr als \(StoreManager.freeLimit) Produkte, einmal kaufen oder jährlich."
         }
     }
 
