@@ -34,6 +34,7 @@ struct AddFoodItemView: View {
         _isEditingProduct = State(initialValue: barcode.isEmpty)
     }
     @State private var showLocationPicker = false
+    @State private var isSaving = false
 
     @Query(sort: \StorageLocation.sortOrder) private var locations: [StorageLocation]
 
@@ -121,6 +122,7 @@ struct AddFoodItemView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Speichern") { saveItem() }
+                        .disabled(isSaving)
                         .fontWeight(.semibold)
                         .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
@@ -338,11 +340,14 @@ struct AddFoodItemView: View {
             customReminderDays: useCustomReminder ? customReminderDays : nil,
             isOfflineEntry: !viewModel.isOnline
         )
-        Task {
-            await viewModel.addFoodItem(item)
-            Feedback.itemSaved()
-            dismiss()
-        }
+        // Speichern ist sofort erledigt, der Bilddownload und die Erinnerungen
+        // laufen im Hintergrund weiter. Vorher wartete der Sheet bis zu 60 s auf
+        // das Bild, und ein zweiter Tipp erzeugte ein Duplikat.
+        guard !isSaving else { return }
+        isSaving = true
+        viewModel.addFoodItem(item)
+        Feedback.itemSaved()
+        dismiss()
     }
 }
 

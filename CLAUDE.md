@@ -2,9 +2,22 @@
 
 Project guidance for working effectively in this repository.
 
-> **Open work:** see `docs/HANDOFF.md` for the current session handoff — what was
-> done last and which tasks are still open. Delete that file once everything in
-> it is resolved.
+> **Open work:** see `docs/HANDOFF.md` for what is still open before the first
+> App Store submission. Delete that file once everything in it is resolved.
+
+## How work gets merged (AI-driven development)
+
+The owner does not merge or push by hand. Agents work like this:
+
+1. Branch from `main`, commit, push, open a pull request.
+2. CI (`ci.yml`, job "Build & Test") must pass. Enable auto-merge on the PR:
+   `gh pr merge --auto --squash <nr>`. GitHub merges when CI is green.
+3. **`main` means TestFlight**, never App Store. `testflight.yml` builds and uploads
+   on every merge (skipped with a notice while the signing secrets are missing).
+4. **App Store submission only via a tag** `vX.Y.Z` (`store.yml`). The tag is set
+   on the owner's explicit request. Release to the store stays manual in
+   App Store Connect.
+5. Never push to `main` directly, never force-push, never delete `main`.
 
 ## Project
 
@@ -52,31 +65,46 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
 ## Project file gotchas
 
 - `project.pbxproj` is hand-maintained. New files must be added in **all** of:
-  `PBXBuildFile`, `PBXFileReference`, `PBXGroup`, `PBXSourcesBuildPhase`.
+  `PBXBuildFile`, `PBXFileReference`, `PBXGroup`, `PBXSourcesBuildPhase`
+  (resources such as `PrivacyInfo.xcprivacy` go into `PBXResourcesBuildPhase`).
   Hex ID prefixes: `D…` file refs, `E…` app build files, `T…` test, widget reuse.
+  Highest IDs in use: `D…32`, `E…32`, `T…0A`. Continue from there.
+- `FreshAlertTests` depends on the app target (`T…0A`); keep that dependency,
+  otherwise `xcodebuild test` fails with "Unable to find module dependency".
+- Both targets ship a `PrivacyInfo.xcprivacy` (UserDefaults, reasons CA92.1 and
+  1C8F.1, no tracking). Add new Required-Reason APIs there, never delete it.
+- Legal links live in `FreshAlert/Legal.swift` only. CI fails on `apple.com/privacy`.
 - App Group is configured via tracked `.entitlements` files + `CODE_SIGN_ENTITLEMENTS`
   build settings — no manual Xcode capability setup needed.
 - `.gitignore` covers `xcuserdata/`, `*.xcuserstate` etc. Never re-track them.
 
 ## Versioning
 
-Every commit bumps the version. `MARKETING_VERSION` + `CURRENT_PROJECT_VERSION`
-appear 6×/6× in `project.pbxproj` (Settings reads them from the bundle).
-Semantic: x.0.0 major · x.y.0 feature · x.y.z bugfix. Add a `CHANGELOG.md` entry.
+- `MARKETING_VERSION` (6× in `project.pbxproj`) is bumped **per pull request**, not per
+  commit: x.0.0 major · x.y.0 feature · x.y.z bugfix. Add a `CHANGELOG.md` entry.
+- `CURRENT_PROJECT_VERSION` is **not** edited by hand. Fastlane sets it to
+  commit count + 100 on every upload (`VERSIONING_SYSTEM = apple-generic`).
+- A store tag `vX.Y.Z` must match `MARKETING_VERSION`; the `release` lane sets
+  the version from the tag as a safety net.
 
 ## Build & test
 
 - Build/run: open `FreshAlert.xcodeproj` in Xcode, run the `FreshAlert` scheme.
-- Tests: `⌘U` (scheme `FreshAlert` includes `FreshAlertTests` in its TestAction).
-  The test target is built on every build, so test code that stops compiling
-  fails the build immediately.
+- Tests: `⌘U`, or on the command line:
+  `xcodebuild test -project FreshAlert.xcodeproj -scheme FreshAlert -destination 'platform=iOS Simulator,name=iPhone 17 Pro'`.
+  The test target is only built for the test action, not for a plain build.
+- Unsigned device build (what CI does):
+  `xcodebuild build -project FreshAlert.xcodeproj -scheme FreshAlert -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO`.
 
 ## Release & deployment
 
-- CI/CD via GitHub Actions + Fastlane. PR → tests (`ci.yml`); merge to `main` →
-  TestFlight upload **and** App Store submission (`release.yml`, lane `release`).
-  A merge to `main` is a full App Store release — there is no tag step.
-  CI sets the build number from the commit count.
+- CI/CD via GitHub Actions + Fastlane. PR → build + tests (`ci.yml`);
+  merge to `main` → TestFlight (`testflight.yml`, lane `beta`);
+  tag `v*` → App Store review (`store.yml`, lane `release`, no automatic release).
+- Secrets needed for the cloud lanes: `ASC_KEY_ID`, `ASC_ISSUER_ID`,
+  `ASC_KEY_CONTENT` (base64 .p8), `MATCH_GIT_URL`, `MATCH_PASSWORD`,
+  `MATCH_GIT_BASIC_AUTHORIZATION`. Without them the TestFlight job skips itself.
+- Build machine fallback: the owner's iMac (Xcode 26.3, Intel). Same lanes locally.
 - Docs: `docs/RELEASE_AUTOMATION.md` (pipeline + setup), `docs/APP_STORE.md`
   (manual store steps), `docs/MARKETING.md`, `docs/MONETIZATION.md`,
   `docs/PRIVACY_POLICY.md`.

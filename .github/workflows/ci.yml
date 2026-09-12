@@ -1,7 +1,8 @@
 name: CI
 
-# Quality gate: builds the app and runs the unit test suite.
-# Runs on every pull request and on every push to main.
+# Qualitätstor für jeden Pull Request und jeden Push auf main.
+# Muss grün sein, damit GitHub einen PR automatisch mergt (Branch-Schutz).
+# Braucht keine Secrets: Build ohne Signierung, Tests im Simulator.
 
 on:
   pull_request:
@@ -15,20 +16,38 @@ concurrency:
 jobs:
   test:
     name: Build & Test
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode
+      - name: Xcode auswählen
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest-stable
+          xcode-version: "^26.0"
 
-      - name: Set up Ruby & Fastlane
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "3.3"
-          bundler-cache: true
+      - name: Datenschutzmanifeste vorhanden
+        run: |
+          test -f FreshAlert/PrivacyInfo.xcprivacy
+          test -f FreshAlertWidget/PrivacyInfo.xcprivacy
 
-      - name: Run tests
-        run: bundle exec fastlane test
+      - name: Keine Platzhalter-Links im Code
+        run: |
+          if grep -rn "apple.com/privacy" FreshAlert FreshAlertWidget --include='*.swift'; then
+            echo "::error::Platzhalter-Datenschutzlink gefunden, siehe Legal.swift"; exit 1
+          fi
+
+      - name: Build (Gerät, unsigniert)
+        run: |
+          xcodebuild build \
+            -project FreshAlert.xcodeproj -scheme FreshAlert \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO -quiet
+
+      - name: Tests (Simulator)
+        run: |
+          DEVICE=$(xcrun simctl list devices available | grep -E "iPhone" | head -1 | sed -E 's/^ *([^(]+) \(.*/\1/')
+          echo "Simulator: $DEVICE"
+          xcodebuild test \
+            -project FreshAlert.xcodeproj -scheme FreshAlert \
+            -destination "platform=iOS Simulator,name=$DEVICE" \
+            -quiet

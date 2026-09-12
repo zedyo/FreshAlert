@@ -60,19 +60,25 @@ final class AppViewModel: ObservableObject {
     }
 
     // MARK: - Food Items CRUD
-    func addFoodItem(_ item: FoodItem) async {
+    /// Legt das Produkt sofort an. Erinnerungen, Sync und Bilddownload folgen
+    /// im Hintergrund, damit der aufrufende Sheet nicht darauf warten muss.
+    func addFoodItem(_ item: FoodItem) {
         modelContext.insert(item)
-        let days = item.customReminderDays ?? globalReminderDays
-        item.notificationIdentifiers = await NotificationService.shared
-            .scheduleNotifications(for: item, reminderDays: days)
         try? modelContext.save()
         updatePendingCount()
         updateWidgetSnapshot()
 
-        if item.isOfflineEntry && isOnline {
-            await syncItem(item)
-        } else if !item.imageURL.isEmpty && item.imageData == nil {
-            await downloadAndCacheImage(for: item)
+        Task { @MainActor in
+            let days = item.customReminderDays ?? globalReminderDays
+            item.notificationIdentifiers = await NotificationService.shared
+                .scheduleNotifications(for: item, reminderDays: days)
+            try? modelContext.save()
+
+            if item.isOfflineEntry && isOnline {
+                await syncItem(item)
+            } else if !item.imageURL.isEmpty && item.imageData == nil {
+                await downloadAndCacheImage(for: item)
+            }
         }
     }
 

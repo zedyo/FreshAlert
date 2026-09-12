@@ -18,6 +18,12 @@ struct BarcodeScannerView: View {
     @State private var scanTask: Task<Void, Never>?
     @State private var showManualForm = false
     @State private var showPaywall = false
+    @State private var isTabVisible = false
+
+    /// Solange ein Sheet offen ist oder der Tab nicht sichtbar, ruht die Kamera.
+    private var isScannerPaused: Bool {
+        !isTabVisible || showAddSheet || showManualForm || showPaywall || showManualEntry
+    }
 
     enum ScanStatus { case waiting, noCodeDetected, success }
 
@@ -34,10 +40,14 @@ struct BarcodeScannerView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
             .onAppear {
+                isTabVisible = true
                 checkCameraPermission()
                 startNoCodeTimer()
             }
-            .onDisappear { scanTask?.cancel() }
+            .onDisappear {
+                isTabVisible = false
+                scanTask?.cancel()
+            }
             .onChange(of: scannedBarcode) { _, barcode in
                 guard barcode != nil else { return }
                 scanStatus = .success
@@ -90,7 +100,7 @@ struct BarcodeScannerView: View {
     // MARK: - Camera View
     private var cameraView: some View {
         ZStack {
-            CameraPreview(scannedBarcode: $scannedBarcode, torchOn: $torchOn)
+            CameraPreview(scannedBarcode: $scannedBarcode, torchOn: $torchOn, isPaused: isScannerPaused)
                 .ignoresSafeArea()
 
             ScannerOverlay(scanStatus: scanStatus)
@@ -342,6 +352,8 @@ final class ScannerUIView: UIView {
     var session: AVCaptureSession?
     var previewLayer: AVCaptureVideoPreviewLayer?
     var metadataOutput: AVCaptureMetadataOutput?
+    var isPaused = false
+    var torchOn = false
 
     // Scan frame dimensions (must match ScannerOverlay)
     private let frameW: CGFloat = 270
@@ -372,6 +384,7 @@ final class ScannerUIView: UIView {
 struct CameraPreview: UIViewRepresentable {
     @Binding var scannedBarcode: String?
     @Binding var torchOn: Bool
+    var isPaused: Bool = false
 
     private let sessionQueue = DispatchQueue(label: "com.freshalert.camera", qos: .userInitiated)
 
@@ -403,7 +416,9 @@ struct CameraPreview: UIViewRepresentable {
             session.addOutput(output)
             // Process on dedicated queue, not main — prevents dropped frames
             output.setMetadataObjectsDelegate(context.coordinator, queue: sessionQueue)
-            output.metadataObjectTypes = [.ean8, .ean13, .upce, .code128, .code39, .qr]
+            // Nur Handelsbarcodes. QR-Codes sind keine Produktnummern und landeten
+            // vorher als Anfrage bei Open Food Facts.
+            output.metadataObjectTypes = [.ean8, .ean13, .upce, .code128, .code39]
         }
         session.commitConfiguration()
 
@@ -419,12 +434,37 @@ struct CameraPreview: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: ScannerUIView, context: Context) {
+        context.coordinator.parent = self
         uiView.previewLayer?.frame = uiView.bounds
         uiView.updateRectOfInterest()
-        guard let device = AVCaptureDevice.default(for: .video), device.hasTorch else { return }
-        try? device.lockForConfiguration()
-        device.torchMode = torchOn ? .on : .off
-        device.unlockForConfiguration()
+
+        // Kamera nur laufen lassen, wenn der Scanner wirklich sichtbar ist.
+        if let session = uiView.session, uiView.isPaused != isPaused {
+            uiView.isPaused = isPaused
+            let shouldRun = !isPaused
+            sessionQueue.async {
+                if shouldRun, !session.isRunning { session.startRunning() }
+                if !shouldRun, session.isRunning { session.stopRunning() }
+            }
+        }
+
+        // Torch nur anfassen, wenn sich der Wunsch geändert hat. Vorher wurde das
+        // Gerät bei jedem SwiftUI-Update auf dem Main-Thread gesperrt.
+        if uiView.torchOn != torchOn {
+            uiView.torchOn = torchOn
+            if let device = AVCaptureDevice.default(for: .video), device.hasTorch {
+                try? device.lockForConfiguration()
+                device.torchMode = torchOn ? .on : .off
+                device.unlockForConfiguration()
+            }
+        }
+    }
+
+    static func dismantleUIView(_ uiView: ScannerUIView, coordinator: Coordinator) {
+        guard let session = uiView.session else { return }
+        DispatchQueue.global(qos: .userInitiated).async {
+            if session.isRunning { session.stopRunning() }
+        }
     }
 
     // MARK: - Coordinator
@@ -441,6 +481,7 @@ struct CameraPreview: UIViewRepresentable {
             didOutput metadataObjects: [AVMetadataObject],
             from connection: AVCaptureConnection
         ) {
+            guard !parent.isPaused else { return }
             guard Date().timeIntervalSince(lastScan) > debounce else { return }
             guard let obj = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
                   let value = obj.stringValue, !value.isEmpty else { return }

@@ -4,8 +4,17 @@
 > **Sobald alle offenen Punkte erledigt sind, kann diese Datei gelöscht werden.**
 > Vollständige Versionshistorie: `CHANGELOG.md`.
 
-**Stand:** 2026-05-22 · **Version:** 1.5.2 · **Branch:** `claude/food-expiry-tracker-app-rg1F5`
-(alle Commits gepusht, Arbeitsverzeichnis sauber)
+**Stand:** 2026-09-12 · **Version:** 1.6.0 · **Branch:** `main` (PR chore/testflight-readiness)
+
+Erledigt am 12.09.2026: StoreKit-Code kompiliert (Anführungszeichen-Fix), beide
+In-App-Käufe in App Store Connect angelegt (Abo-Gruppe FreshAlert Pro, Jahresabo
+4,99 €, Lifetime 14,99 €), Paid-Apps-Vertrag, Steuer, Bank, DAC7 aktiv. Pipeline
+umgestellt (main = TestFlight, Tag = Store). PrivacyInfo ergänzt.
+
+**Noch offen vor der Einreichung:** Datenschutzerklärung auf eigener Domain hosten
+und `Legal.swift` umstellen (Interim zeigt auf das Repo), Support-URL in ASC,
+Screenshots (App und je einer für die Käufe), App-Datenschutz-Fragebogen,
+Altersfreigabe, GitHub-Secrets für die Cloud-Signierung oder Upload vom iMac.
 
 ---
 
