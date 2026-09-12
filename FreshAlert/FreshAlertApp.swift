@@ -11,6 +11,9 @@ struct FreshAlertApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     /// Launch-Argument `-seedTestData` (Simulator): leere Datenbank mit Testprodukten füllen.
     private let shouldSeedTestData: Bool
+    /// Launch-Argument `-seedScreenshotData` (Simulator): Datenbank leeren und die
+    /// kuratierten Daten für die App-Store-Bilder laden.
+    private let shouldSeedScreenshotData: Bool
 
     init() {
         do {
@@ -22,10 +25,16 @@ struct FreshAlertApp: App {
             _appViewModel = StateObject(wrappedValue: viewModel)
             // Für den Tipp auf eine Mitteilung (AppDelegate leitet in die Übersicht).
             AppDelegate.viewModel = viewModel
-            let seedRequested = AppEnvironment.hasLaunchArgument(AppEnvironment.seedTestDataArgument)
+            let screenshotRequested = AppEnvironment.hasLaunchArgument(
+                AppEnvironment.seedScreenshotDataArgument
+            )
+            // Die Screenshot-Daten räumen selbst auf, sie brauchen keine leere Datenbank.
+            let seedRequested = !screenshotRequested
+                && AppEnvironment.hasLaunchArgument(AppEnvironment.seedTestDataArgument)
                 && TestDataSeeder.isDatabaseEmpty(container.mainContext)
             shouldSeedTestData = seedRequested
-            if seedRequested {
+            shouldSeedScreenshotData = screenshotRequested
+            if seedRequested || screenshotRequested {
                 // Vor dem ersten Rendern, sonst zeigt ContentView das Onboarding.
                 UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
             }
@@ -49,9 +58,16 @@ struct FreshAlertApp: App {
                             into: modelContainer.mainContext, viewModel: appViewModel
                         )
                     }
+                    if shouldSeedScreenshotData {
+                        await TestDataSeeder.seedScreenshotData(
+                            into: modelContainer.mainContext, viewModel: appViewModel
+                        )
+                    }
                     // On a fresh install the notification prompt is deferred to
                     // the onboarding wizard (after the reminder step is explained).
-                    if hasCompletedOnboarding {
+                    // Beim Screenshot-Lauf nie fragen, der Systemdialog läge sonst
+                    // über dem Bild.
+                    if hasCompletedOnboarding && !shouldSeedScreenshotData {
                         await NotificationService.shared.requestPermission()
                     }
                     // Ein frischer Plan bei jedem Start: Uhrzeit oder Bestand können sich

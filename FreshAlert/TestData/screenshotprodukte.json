@@ -1,0 +1,133 @@
+{
+ "stand": "2026-09-12",
+ "quelle": "Open Food Facts, de.openfoodfacts.org, ODbL",
+ "zweck": "Kuratierte Beispieldaten für App-Store-Screenshots",
+ "produkte": [
+  {
+   "barcode": "4008452027602",
+   "name": "H-Milch 3,5 %",
+   "marke": "Weihenstephan",
+   "bildURL": "https://images.openfoodfacts.org/images/products/400/845/202/7602/front_de.197.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 2
+  },
+  {
+   "barcode": "3033490004743",
+   "name": "Skyr Natur",
+   "marke": "Danone",
+   "bildURL": "https://images.openfoodfacts.org/images/products/303/349/000/4743/front_fr.148.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 2,
+   "haltbarInTagen": 4
+  },
+  {
+   "barcode": "20240059",
+   "name": "Strauchtomaten",
+   "marke": "Bio",
+   "bildURL": "https://images.openfoodfacts.org/images/products/000/002/024/0059/front_de.16.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 3
+  },
+  {
+   "barcode": "20239756",
+   "name": "Salatgurke",
+   "marke": "Bio",
+   "bildURL": "https://images.openfoodfacts.org/images/products/000/002/023/9756/front_de.67.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 5
+  },
+  {
+   "barcode": "3029330004233",
+   "name": "Vollkornbrot",
+   "marke": "Jacquet",
+   "bildURL": "https://images.openfoodfacts.org/images/products/302/933/000/4233/front_fr.57.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 1,
+   "haltbarInTagen": 6
+  },
+  {
+   "barcode": "7622300441937",
+   "name": "Frischkäse Natur",
+   "marke": "Philadelphia",
+   "bildURL": "https://images.openfoodfacts.org/images/products/762/230/044/1937/front_de.137.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 9
+  },
+  {
+   "barcode": "4056489238669",
+   "name": "Orangensaft",
+   "marke": "Solevita",
+   "bildURL": "https://images.openfoodfacts.org/images/products/405/648/923/8669/front_de.12.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 2,
+   "haltbarInTagen": 11
+  },
+  {
+   "barcode": "20316488",
+   "name": "Dattelcherrytomaten",
+   "marke": "",
+   "bildURL": "https://images.openfoodfacts.org/images/products/000/002/031/6488/front_de.113.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 7
+  },
+  {
+   "barcode": "20201852",
+   "name": "Eisbergsalat",
+   "marke": "",
+   "bildURL": "https://images.openfoodfacts.org/images/products/000/002/020/1852/front_de.61.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 4
+  },
+  {
+   "barcode": "8076800195057",
+   "name": "Spaghetti Nr. 5",
+   "marke": "Barilla",
+   "bildURL": "https://images.openfoodfacts.org/images/products/807/680/019/5057/front_de.3589.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 2,
+   "haltbarInTagen": 320
+  },
+  {
+   "barcode": "20171841",
+   "name": "Roggen-Knäckebrot",
+   "marke": "Tastino",
+   "bildURL": "https://images.openfoodfacts.org/images/products/000/002/017/1841/front_de.218.200.jpg",
+   "ort": "Vorratsschrank",
+   "menge": 1,
+   "haltbarInTagen": 180
+  },
+  {
+   "barcode": "4056489216230",
+   "name": "Proteinjoghurt Erdbeere",
+   "marke": "Milbona",
+   "bildURL": "https://images.openfoodfacts.org/images/products/405/648/921/6230/front_de.23.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 3,
+   "haltbarInTagen": 8
+  },
+  {
+   "barcode": "3033491454080",
+   "name": "Skyr Vanille",
+   "marke": "Danone",
+   "bildURL": "https://images.openfoodfacts.org/images/products/303/349/145/4080/front_fr.134.200.jpg",
+   "ort": "Kühlschrank",
+   "menge": 1,
+   "haltbarInTagen": 13
+  },
+  {
+   "barcode": "4056489223368",
+   "name": "Mandeleis",
+   "marke": "Bon Gelati",
+   "bildURL": "https://images.openfoodfacts.org/images/products/405/648/922/3368/front_de.118.200.jpg",
+   "ort": "Tiefkühler",
+   "menge": 1,
+   "haltbarInTagen": 150
+  }
+ ]
+}

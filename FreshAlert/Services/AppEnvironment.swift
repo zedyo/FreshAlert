@@ -6,6 +6,7 @@ import StoreKit
 enum AppEnvironment {
     static let developerMenuArgument = "-developerMenu"
     static let seedTestDataArgument = "-seedTestData"
+    static let seedScreenshotDataArgument = "-seedScreenshotData"
 
     static var isDebugBuild: Bool {
         #if DEBUG

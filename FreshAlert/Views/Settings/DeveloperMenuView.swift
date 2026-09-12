@@ -13,9 +13,11 @@ struct DeveloperMenuView: View {
     @State private var isWorking = false
     @State private var showDeleteItemsConfirm = false
     @State private var showResetConfirm = false
+    @State private var showScreenshotConfirm = false
 
     private static let maxPendingNotifications = 64
     private let productCount = TestDataSeeder.productCount
+    private let screenshotProductCount = TestDataSeeder.screenshotProductCount
 
     var body: some View {
         Form {
@@ -31,6 +33,21 @@ struct DeveloperMenuView: View {
                     runSeed()
                 } label: {
                     Label("\(productCount) Testprodukte laden", systemImage: "square.and.arrow.down")
+                }
+                Button {
+                    showScreenshotConfirm = true
+                } label: {
+                    Label("Screenshot-Daten laden", systemImage: "camera.viewfinder")
+                }
+                .confirmationDialog(
+                    "Bestand durch die Screenshot-Daten ersetzen? Produkte, Lagerorte und Statistik werden vorher gelöscht.",
+                    isPresented: $showScreenshotConfirm,
+                    titleVisibility: .visible
+                ) {
+                    Button("Ersetzen", role: .destructive) {
+                        runSeed(fileName: TestDataSeeder.screenshotFileName)
+                    }
+                    Button("Abbrechen", role: .cancel) {}
                 }
                 Button {
                     showDeleteItemsConfirm = true
@@ -70,7 +87,7 @@ struct DeveloperMenuView: View {
             } header: {
                 Text("Testdaten")
             } footer: {
-                Text("Zurücksetzen löscht Produkte, Lagerorte, Erinnerungen und Widget-Daten. Beim nächsten Start kommt das Onboarding.")
+                Text("Die Screenshot-Daten ersetzen den Bestand durch \(screenshotProductCount) kuratierte Produkte für die App-Store-Bilder. Zurücksetzen löscht Produkte, Lagerorte, Erinnerungen und Widget-Daten. Beim nächsten Start kommt das Onboarding.")
             }
             .disabled(isWorking)
 
@@ -114,11 +131,15 @@ struct DeveloperMenuView: View {
         .refreshable { await loadPendingRequests() }
     }
 
-    private func runSeed() {
+    private func runSeed(fileName: String = TestDataSeeder.defaultFileName) {
         guard !isWorking else { return }
         isWorking = true
         Task {
-            await TestDataSeeder.seed(into: modelContext, viewModel: viewModel)
+            if fileName == TestDataSeeder.screenshotFileName {
+                await TestDataSeeder.seedScreenshotData(into: modelContext, viewModel: viewModel)
+            } else {
+                await TestDataSeeder.seed(into: modelContext, viewModel: viewModel, fileName: fileName)
+            }
             await loadPendingRequests()
             isWorking = false
         }

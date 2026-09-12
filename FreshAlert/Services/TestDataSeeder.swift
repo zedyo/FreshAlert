@@ -3,9 +3,12 @@ import SwiftData
 import UserNotifications
 import WidgetKit
 
-/// Lädt die 50 Testprodukte aus `TestData/testprodukte.json` in die Datenbank
-/// und setzt die App auf Wunsch komplett zurück. Nur über das Entwicklermenü
-/// und das Launch-Argument `-seedTestData` erreichbar.
+/// Lädt Beispieldaten aus `TestData/*.json` in die Datenbank und setzt die App
+/// auf Wunsch komplett zurück. Zwei Datensätze: `testprodukte` (50 Produkte,
+/// gemischte Daten, auch abgelaufene) zum Entwickeln und `screenshotprodukte`
+/// (14 deutsche Alltagsprodukte, nichts abgelaufen) für die Store-Bilder.
+/// Nur über das Entwicklermenü und die Launch-Argumente `-seedTestData`
+/// beziehungsweise `-seedScreenshotData` erreichbar.
 @MainActor
 enum TestDataSeeder {
     struct TestProduct: Decodable {
@@ -26,8 +29,13 @@ enum TestDataSeeder {
 
     private static let maxParallelDownloads = 4
 
-    static func loadProducts() -> [TestProduct] {
-        guard let url = Bundle.main.url(forResource: "testprodukte", withExtension: "json"),
+    /// Der Entwickler-Datensatz.
+    nonisolated static let defaultFileName = "testprodukte"
+    /// Der kuratierte Datensatz für die App-Store-Bilder.
+    nonisolated static let screenshotFileName = "screenshotprodukte"
+
+    static func loadProducts(from fileName: String = defaultFileName) -> [TestProduct] {
+        guard let url = Bundle.main.url(forResource: fileName, withExtension: "json"),
               let data = try? Data(contentsOf: url),
               let file = try? JSONDecoder().decode(TestDataFile.self, from: data)
         else { return [] }
@@ -35,6 +43,7 @@ enum TestDataSeeder {
     }
 
     static var productCount: Int { loadProducts().count }
+    static var screenshotProductCount: Int { loadProducts(from: screenshotFileName).count }
 
     static func isDatabaseEmpty(_ context: ModelContext) -> Bool {
         let items = (try? context.fetchCount(FetchDescriptor<FoodItem>())) ?? 0
@@ -48,8 +57,12 @@ enum TestDataSeeder {
     /// plant Erinnerungen und lädt die Bilder nach (höchstens 4 parallel).
     /// Gibt die Zahl der neu angelegten Produkte zurück.
     @discardableResult
-    static func seed(into context: ModelContext, viewModel: AppViewModel) async -> Int {
-        let products = loadProducts()
+    static func seed(
+        into context: ModelContext,
+        viewModel: AppViewModel,
+        fileName: String = defaultFileName
+    ) async -> Int {
+        let products = loadProducts(from: fileName)
         guard !products.isEmpty else {
             viewModel.showToast("Testdaten nicht gefunden")
             return 0
@@ -59,6 +72,24 @@ enum TestDataSeeder {
         // wenn die Produkte schon in der Datenbank stehen.
         seedConsumptionRecords(into: context, products: products)
 
+        return await insert(
+            products,
+            into: context,
+            viewModel: viewModel,
+            successToast: { "\($0) Testprodukte geladen" },
+            nothingNewToast: "Alle Testprodukte sind schon da"
+        )
+    }
+
+    /// Legt die noch fehlenden Produkte an, plant Erinnerungen und wartet, bis
+    /// alle Bilder da sind. Gemeinsamer Teil beider Datensätze.
+    private static func insert(
+        _ products: [TestProduct],
+        into context: ModelContext,
+        viewModel: AppViewModel,
+        successToast: (Int) -> String,
+        nothingNewToast: String
+    ) async -> Int {
         let existingBarcodes = Set(
             ((try? context.fetch(FetchDescriptor<FoodItem>())) ?? []).map(\.barcode)
         )
@@ -89,16 +120,55 @@ enum TestDataSeeder {
         viewModel.updateWidgetSnapshot()
 
         guard !newItems.isEmpty else {
-            viewModel.showToast("Alle Testprodukte sind schon da")
+            viewModel.showToast(nothingNewToast)
             return 0
         }
 
         // Sofort statt mit Verzögerung, damit das Entwicklermenü den Zähler gleich richtig zeigt.
         await viewModel.rescheduleAllNotifications()
-        viewModel.showToast("\(newItems.count) Testprodukte geladen")
+        viewModel.showToast(successToast(newItems.count))
 
         await downloadImages(for: newItems, viewModel: viewModel)
         return newItems.count
+    }
+
+    // MARK: - Screenshot-Daten
+
+    /// Die Lagerorte der Store-Bilder, in dieser Reihenfolge.
+    private static let screenshotLocations = ["Kühlschrank", "Tiefkühler", "Vorratsschrank", "Obstkorb"]
+
+    /// Räumt die Datenbank leer und legt den kuratierten Datensatz an:
+    /// 14 Produkte mit Bild, keines abgelaufen, vier Lagerorte und eine
+    /// Verbrauchshistorie mit guter Quote. Kehrt erst zurück, wenn alle
+    /// Bilder geladen sind, sonst zeigen die Bilder graue Platzhalter.
+    /// Das Onboarding bleibt abgehakt, anders als bei `resetApp`.
+    @discardableResult
+    static func seedScreenshotData(into context: ModelContext, viewModel: AppViewModel) async -> Int {
+        let products = loadProducts(from: screenshotFileName)
+        guard !products.isEmpty else {
+            viewModel.showToast("Screenshot-Daten nicht gefunden")
+            return 0
+        }
+
+        clearDatabase(in: context, viewModel: viewModel)
+
+        // Erst die Orte in fester Reihenfolge, damit die Chips in der Übersicht
+        // immer gleich liegen. Die JSON-Daten nutzen drei davon.
+        var locations: [StorageLocation] = []
+        for name in screenshotLocations {
+            _ = locationNamed(name, in: &locations, context: context)
+        }
+        try? context.save()
+
+        seedScreenshotConsumptionRecords(into: context, products: products)
+
+        return await insert(
+            products,
+            into: context,
+            viewModel: viewModel,
+            successToast: { "\($0) Screenshot-Produkte geladen" },
+            nothingNewToast: "Screenshot-Produkte sind schon da"
+        )
     }
 
     private static func locationNamed(
@@ -201,6 +271,68 @@ enum TestDataSeeder {
         return created
     }
 
+    /// 70 Sätze über die letzten 90 Tage für die Store-Bilder: sechs Verluste,
+    /// also rund 92 Prozent gerettet, gleichmäßig über die Wochen verteilt und
+    /// über die Lagerorte gemischt. Zwei der Verluste liegen in den letzten
+    /// 30 Tagen, damit auch der voreingestellte Zeitraum eine echte Quote zeigt.
+    /// Weggeworfen wird, was im Kühlschrank üblicherweise schlecht wird.
+    @discardableResult
+    static func seedScreenshotConsumptionRecords(
+        into context: ModelContext, products: [TestProduct]
+    ) -> Int {
+        guard !products.isEmpty else { return 0 }
+        // Feste Folge, damit zwei Läufe dasselbe Bild ergeben.
+        var random = SeededGenerator(seed: 20_260_912)
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let total = 70
+        let losses = [
+            (name: "Salatgurke", ort: "Kühlschrank"),
+            (name: "Strauchtomaten", ort: "Obstkorb"),
+            (name: "Eisbergsalat", ort: "Kühlschrank"),
+        ]
+
+        var created = 0
+        var lossIndex = 0
+        for index in 0..<total {
+            // Jeder zwölfte Satz ab dem sechsten: sechs Verluste von siebzig.
+            let discarded = index % 12 == 5
+            // Gleichmäßig über 89 Tage, nie heute (sonst läge ein Satz in der Zukunft).
+            let daysAgo = 1 + (index * 88) / (total - 1)
+            let hour = Int.random(in: 8...20, using: &random)
+            guard let day = calendar.date(byAdding: .day, value: -daysAgo, to: today),
+                  let recordedAt = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: day)
+            else { continue }
+
+            let pick = products[Int.random(in: 0..<products.count, using: &random)]
+            let loss = losses[lossIndex % losses.count]
+            let lossProduct = products.first { $0.name == loss.name }
+            if discarded { lossIndex += 1 }
+
+            // Verbraucht: ein paar Tage vor dem Datum. Weggeworfen: danach.
+            let offset = discarded
+                ? -Int.random(in: 0...4, using: &random)
+                : Int.random(in: 1...8, using: &random)
+            let expiry = calendar.date(byAdding: .day, value: offset, to: day) ?? day
+
+            let record = ConsumptionRecord(
+                productName: discarded ? loss.name : pick.name,
+                brand: discarded ? (lossProduct?.marke ?? "") : pick.marke,
+                barcode: discarded ? (lossProduct?.barcode ?? "") : pick.barcode,
+                storageLocationName: discarded ? loss.ort : pick.ort,
+                // Verluste bleiben Einzelstücke, sonst drückt die Menge die Quote.
+                quantity: discarded ? 1 : (Int.random(in: 1...10, using: &random) > 8 ? 2 : 1),
+                outcome: discarded ? .discarded : .consumed,
+                recordedAt: recordedAt,
+                expiryDate: expiry
+            )
+            context.insert(record)
+            created += 1
+        }
+        try? context.save()
+        return created
+    }
+
     /// Linearer Kongruenzgenerator, reicht für Testdaten und bleibt reproduzierbar.
     private struct SeededGenerator: RandomNumberGenerator {
         private var state: UInt64
@@ -230,6 +362,14 @@ enum TestDataSeeder {
     /// Setzt die App auf den Zustand nach der Erstinstallation zurück:
     /// Produkte, Lagerorte, Mitteilungen, Widget-Daten und Onboarding-Flag.
     static func resetApp(in context: ModelContext, viewModel: AppViewModel) {
+        clearDatabase(in: context, viewModel: viewModel)
+        UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
+        viewModel.showToast("App zurückgesetzt. Beim nächsten Start kommt das Onboarding.")
+    }
+
+    /// Produkte, Lagerorte, Verbrauchssätze, Mitteilungen und Widget-Daten weg.
+    /// Das Onboarding-Flag bleibt, darum kümmert sich der Aufrufer.
+    private static func clearDatabase(in context: ModelContext, viewModel: AppViewModel) {
         let items = (try? context.fetch(FetchDescriptor<FoodItem>())) ?? []
         for item in items {
             item.imageData = nil
@@ -252,11 +392,9 @@ enum TestDataSeeder {
         WidgetDataStore.clearPendingDecrements()
         WidgetCenter.shared.reloadAllTimelines()
 
-        let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: "hasCompletedOnboarding")
-        defaults.removeObject(forKey: "lastStorageLocationID")
+        // Zeigt sonst auf einen gelöschten Lagerort.
+        UserDefaults.standard.removeObject(forKey: "lastStorageLocationID")
 
         viewModel.pendingSyncCount = 0
-        viewModel.showToast("App zurückgesetzt. Beim nächsten Start kommt das Onboarding.")
     }
 }
