@@ -6,7 +6,9 @@ struct FoodItemCardView: View {
     let item: FoodItem
     @State private var showDetail = false
     @State private var showLocationPicker = false
-    @State private var deleteAfterDismiss = false
+    @State private var showEdit = false
+    /// Aktion aus dem Detail-Sheet, die erst nach dessen Schließen läuft.
+    @State private var pendingAction: FoodItemDetailAction?
 
     private static let shortDate: DateFormatter = {
         let f = DateFormatter()
@@ -104,12 +106,15 @@ struct FoodItemCardView: View {
             )
         }
         .buttonStyle(.plain)
-        .sheet(isPresented: $showDetail, onDismiss: handleDismiss) {
-            FoodItemDetailView(item: item) {
-                // Erst das Sheet schließen, dann löschen: sonst rendert das
+        .sheet(isPresented: $showDetail, onDismiss: handleDetailDismiss) {
+            FoodItemDetailView(item: item) { action in
+                // Erst das Sheet schließen, dann handeln: sonst rendert das
                 // Sheet ein gelöschtes @Model und die App stürzt ab.
-                deleteAfterDismiss = true
+                pendingAction = action
             }
+        }
+        .sheet(isPresented: $showEdit) {
+            AddFoodItemView(mode: .edit(item))
         }
         .sheet(isPresented: $showLocationPicker) {
             LocationQuickPickSheet(item: item)
@@ -118,12 +123,26 @@ struct FoodItemCardView: View {
         }
     }
 
-    private func handleDismiss() {
-        guard deleteAfterDismiss else { return }
-        deleteAfterDismiss = false
+    private func handleDetailDismiss() {
+        guard let action = pendingAction else { return }
+        pendingAction = nil
         let item = self.item
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            viewModel.deleteFoodItem(item)
+        switch action {
+        case .delete:
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                viewModel.deleteFoodItem(item)
+            }
+        case .consume:
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                viewModel.decrementQuantity(item)
+                Feedback.itemUsed()
+            }
+        case .edit:
+            // Kurz warten, bis die Schließanimation durch ist, sonst
+            // verschluckt SwiftUI das zweite Sheet.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                showEdit = true
+            }
         }
     }
 
@@ -231,217 +250,309 @@ struct LocationQuickPickSheet: View {
 }
 
 // MARK: - Detail Sheet
+
+/// Was nach dem Schließen des Detail-Sheets im Parent passieren soll.
+/// Entfernen und Bearbeiten laufen erst nach dem Dismiss, sonst rendert das
+/// Sheet ein gelöschtes @Model oder zwei Sheets kollidieren.
+enum FoodItemDetailAction {
+    case delete
+    case consume
+    case edit
+}
+
 struct FoodItemDetailView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var viewModel: AppViewModel
     let item: FoodItem
-    /// Wird aufgerufen, nachdem Löschen bestätigt wurde. Das eigentliche
-    /// Löschen übernimmt der Parent nach dem Schließen des Sheets.
-    let onDelete: () -> Void
+    /// Wird vor dem Schließen aufgerufen. Der Parent führt die Aktion nach dem
+    /// Dismiss aus (Löschen, Verbrauchen bei Menge 1, Formular öffnen).
+    let onAction: (FoodItemDetailAction) -> Void
 
-    @State private var editMode = false
     @State private var showDeleteConfirmation = false
-    @State private var editedName: String = ""
-    @State private var editedExpiryDate: Date = Date()
-    @State private var editedQuantity: Int = 1
-    @State private var editedReminderDays: Int? = nil
-    @State private var editedLocation: StorageLocation? = nil
-    @State private var locations: [StorageLocation] = []
+    @State private var showDetails = false
+
+    private static let shortDate: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "dd.MM."
+        return f
+    }()
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Image
-                    productImageHeader
-
-                    // Info cards
-                    infoSection
-
-                    // Danger zone
-                    dangerSection
+                    header
+                    actionRow
+                    detailsGroup
+                    deleteButton
                 }
                 .padding()
             }
-            .navigationTitle(editMode ? "Bearbeiten" : item.name)
+            .navigationTitle("Produkt")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Schließen") { dismiss() }
                 }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(editMode ? "Speichern" : "Bearbeiten") {
-                        if editMode { saveEdits() }
-                        else { startEditing() }
-                        editMode.toggle()
-                    }
-                    .fontWeight(.semibold)
-                }
-            }
-            .task {
-                await loadLocations()
             }
         }
         .presentationDetents([.medium, .large])
-    }
-    
-    private func loadLocations() async {
-        let descriptor = FetchDescriptor<StorageLocation>(sortBy: [SortDescriptor(\.sortOrder)])
-        locations = (try? modelContext.fetch(descriptor)) ?? []
+        .presentationDragIndicator(.visible)
     }
 
-    private var productImageHeader: some View {
-        Group {
-            if let data = item.imageData, let img = UIImage(data: data) {
-                Image(uiImage: img)
-                    .resizable().scaledToFit()
-                    .frame(height: 160)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-            } else if !item.imageURL.isEmpty, let url = URL(string: item.imageURL) {
-                AsyncImage(url: url) { phase in
-                    if case .success(let img) = phase {
-                        img.resizable().scaledToFit()
-                            .frame(height: 160)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                    }
-                }
-            }
-        }
-    }
+    // MARK: Kopf
 
-    private var infoSection: some View {
-        VStack(spacing: 12) {
-            if editMode {
-                // Editable fields
-                LabeledContent("Name") {
-                    TextField("Produktname", text: $editedName)
-                        .multilineTextAlignment(.trailing)
-                }
-                .padding()
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+    private var header: some View {
+        HStack(alignment: .top, spacing: 14) {
+            productImage
 
-                DatePicker("Haltbar bis", selection: $editedExpiryDate, displayedComponents: .date)
-                    .padding()
-                    .background(Color(.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.name)
+                    .font(.title3.weight(.semibold))
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                Stepper("Menge: \(editedQuantity)", value: $editedQuantity, in: 1...99)
-                    .padding()
-                    .background(Color(.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                Picker("Lagerort", selection: $editedLocation) {
-                    Text("Kein Ort").tag(StorageLocation?.none)
-                    ForEach(locations) { loc in
-                        Text(loc.name).tag(StorageLocation?.some(loc))
-                    }
-                }
-                .padding()
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Toggle("Individuelle Erinnerung", isOn: Binding(
-                        get: { editedReminderDays != nil },
-                        set: { if $0 { editedReminderDays = 7 } else { editedReminderDays = nil } }
-                    ))
-                    if let days = editedReminderDays {
-                        Stepper("\(days) \(days == 1 ? "Tag" : "Tage") vorher",
-                                value: Binding(get: { days }, set: { editedReminderDays = $0 }),
-                                in: 1...30)
-                    }
-                }
-                .padding()
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-
-            } else {
-                // Read-only
-                DetailRow(label: "Haltbar bis", value: item.expiryDate.formatted(date: .long, time: .omitted))
-                DetailRow(label: "Status", value: item.expiryLabel, color: item.expiryStatus.color)
-                DetailRow(label: "Menge", value: "\(item.quantity)×")
                 if !item.brand.isEmpty {
-                    DetailRow(label: "Marke", value: item.brand)
+                    Text(item.brand)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
-                if let loc = item.storageLocation {
-                    DetailRow(label: "Lagerort", value: loc.name)
-                }
-                if let reminder = item.customReminderDays {
-                    DetailRow(label: "Erinnerung", value: "\(reminderText(reminder)) (eigene)")
-                } else {
-                    DetailRow(label: "Erinnerung", value: "\(reminderText(viewModel.globalReminderDays)) (Standard)")
-                }
-                DetailRow(label: "Hinzugefügt", value: item.addedAt.formatted(date: .abbreviated, time: .omitted))
-                if item.isOfflineEntry {
-                    DetailRow(label: "Status", value: "Offline, wartet auf Sync", color: .orange)
-                }
+
+                locationChip
+
+                statusPill
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
-    private var dangerSection: some View {
-        Button(role: .destructive) {
-            showDeleteConfirmation = true
-        } label: {
-            Label("Produkt löschen", systemImage: "trash")
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.red.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-        .confirmationDialog(
-            "\(item.name) löschen?",
-            isPresented: $showDeleteConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Produkt löschen", role: .destructive) {
-                onDelete()
-                dismiss()
+    @ViewBuilder
+    private var productImage: some View {
+        if let data = item.imageData, let img = UIImage(data: data) {
+            Image(uiImage: img)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 110, height: 110)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+        } else if !item.imageURL.isEmpty, let url = URL(string: item.imageURL) {
+            AsyncImage(url: url) { phase in
+                if case .success(let img) = phase {
+                    img.resizable().scaledToFill()
+                        .frame(width: 110, height: 110)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                } else {
+                    imagePlaceholder
+                }
             }
-            Button("Abbrechen", role: .cancel) {}
+        } else {
+            imagePlaceholder
         }
+    }
+
+    private var imagePlaceholder: some View {
+        RoundedRectangle(cornerRadius: 16)
+            .fill(Color(.systemGray5))
+            .frame(width: 110, height: 110)
+            .overlay(
+                Image(systemName: "camera")
+                    .font(.title)
+                    .foregroundStyle(.secondary)
+            )
+    }
+
+    @ViewBuilder
+    private var locationChip: some View {
+        if let loc = item.storageLocation {
+            HStack(spacing: 5) {
+                Image(systemName: loc.iconName)
+                    .font(.caption.weight(.semibold))
+                Text(loc.name)
+                    .font(.caption.weight(.medium))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(loc.color)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(loc.color.opacity(0.15))
+            .clipShape(Capsule())
+        } else {
+            HStack(spacing: 5) {
+                Image(systemName: "questionmark.circle")
+                    .font(.caption)
+                Text("Kein Lagerort")
+                    .font(.caption.weight(.medium))
+            }
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(Capsule())
+        }
+    }
+
+    private var statusPill: some View {
+        HStack(spacing: 6) {
+            Image(systemName: item.expiryStatus.iconName)
+                .font(.caption)
+            Text("\(item.expiryLabel), \(Self.shortDate.string(from: item.expiryDate))")
+                .font(.caption.weight(.semibold))
+                .lineLimit(1)
+        }
+        .foregroundStyle(item.expiryStatus.color)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(item.expiryStatus.backgroundColor)
+        .clipShape(Capsule())
+    }
+
+    // MARK: Aktionen
+
+    private var actionRow: some View {
+        HStack(spacing: 10) {
+            Button {
+                consume()
+            } label: {
+                Label(item.quantity > 1 ? "1 verbraucht" : "Verbraucht",
+                      systemImage: "checkmark.circle.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Color.freshGreen)
+
+            quantityControl
+
+            Button {
+                onAction(.edit)
+                dismiss()
+            } label: {
+                Text("Bearbeiten")
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                    .frame(minHeight: 44)
+            }
+            .buttonStyle(.bordered)
+        }
+    }
+
+    private var quantityControl: some View {
+        HStack(spacing: 0) {
+            Button {
+                viewModel.decrementQuantity(item)
+                Feedback.itemUsed()
+            } label: {
+                Image(systemName: "minus")
+                    .font(.subheadline.weight(.bold))
+                    .frame(width: 36, height: 44)
+            }
+            .disabled(item.quantity <= 1)
+            .accessibilityLabel("Menge verringern")
+
+            Text("\(item.quantity)×")
+                .font(.subheadline.weight(.semibold))
+                .monospacedDigit()
+                .frame(minWidth: 30)
+
+            Button {
+                viewModel.incrementQuantity(item)
+            } label: {
+                Image(systemName: "plus")
+                    .font(.subheadline.weight(.bold))
+                    .frame(width: 36, height: 44)
+            }
+            .accessibilityLabel("Menge erhöhen")
+        }
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    /// Bei Menge > 1 nur eins abziehen, das Sheet bleibt offen. Bei Menge 1
+    /// verschwindet das Produkt: erst schließen, der Parent entfernt es danach.
+    private func consume() {
+        if item.quantity > 1 {
+            viewModel.decrementQuantity(item)
+            Feedback.itemUsed()
+        } else {
+            onAction(.consume)
+            dismiss()
+        }
+    }
+
+    // MARK: Details
+
+    private var detailsGroup: some View {
+        DisclosureGroup("Details", isExpanded: $showDetails) {
+            VStack(spacing: 0) {
+                detailRow("Erinnerung", value: reminderValue)
+                Divider().padding(.leading, 16)
+                detailRow("Hinzugefügt", value: item.addedAt.formatted(date: .abbreviated, time: .omitted))
+                if !item.barcode.isEmpty {
+                    Divider().padding(.leading, 16)
+                    detailRow("Barcode", value: item.barcode, monospaced: true)
+                }
+                if item.isOfflineEntry {
+                    Divider().padding(.leading, 16)
+                    detailRow("Sync", value: "Offline, wartet auf Sync", color: .orange)
+                }
+            }
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.top, 8)
+        }
+        .font(.subheadline.weight(.medium))
+        .tint(.primary)
+    }
+
+    private func detailRow(_ label: String, value: String,
+                           color: Color = .primary, monospaced: Bool = false) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(label)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(value)
+                .font(monospaced ? .subheadline.monospaced() : .subheadline)
+                .fontWeight(.medium)
+                .foregroundStyle(color)
+                .multilineTextAlignment(.trailing)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 11)
+    }
+
+    private var reminderValue: String {
+        if let days = item.customReminderDays {
+            return "\(reminderText(days)) (eigene)"
+        }
+        return "\(reminderText(viewModel.globalReminderDays)) (Standard)"
     }
 
     private func reminderText(_ days: Int) -> String {
         "\(days) \(days == 1 ? "Tag" : "Tage") vorher"
     }
 
-    private func startEditing() {
-        editedName = item.name
-        editedExpiryDate = item.expiryDate
-        editedQuantity = item.quantity
-        editedReminderDays = item.customReminderDays
-        editedLocation = item.storageLocation
-    }
+    // MARK: Löschen
 
-    private func saveEdits() {
-        item.name = editedName
-        item.expiryDate = editedExpiryDate
-        item.quantity = editedQuantity
-        item.customReminderDays = editedReminderDays
-        item.storageLocation = editedLocation
-        Task { await viewModel.updateFoodItem(item) }
-    }
-}
-
-struct DetailRow: View {
-    let label: String
-    let value: String
-    var color: Color = .primary
-
-    var body: some View {
-        HStack {
-            Text(label)
-                .foregroundStyle(.secondary)
-            Spacer()
-            Text(value)
-                .fontWeight(.medium)
-                .foregroundStyle(color)
+    private var deleteButton: some View {
+        Button("Produkt löschen") {
+            showDeleteConfirmation = true
         }
-        .padding()
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+        .padding(.top, 8)
+        .confirmationDialog(
+            "\(item.name) löschen?",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Produkt löschen", role: .destructive) {
+                onAction(.delete)
+                dismiss()
+            }
+            Button("Abbrechen", role: .cancel) {}
+        }
     }
 }
