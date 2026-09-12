@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.6.0] – 2026-09-12
+
+Vorbereitung auf TestFlight, nach Code-Review.
+
+- **Behoben:** `PaywallView` kompilierte nicht (ASCII-Anführungszeichen in einem String).
+- **Behoben:** Speichern eines Produkts wartete bis zu 60 s auf den Bilddownload, ein zweiter Tipp erzeugte ein Duplikat. Speichern schließt jetzt sofort, Erinnerungen und Bild folgen im Hintergrund.
+- **Behoben:** Die Kamera lief nach Tab-Wechsel oder bei offenem Sheet weiter und scannte im Hintergrund. Die Session pausiert jetzt, QR-Codes werden nicht mehr als Produktnummer gewertet, die Taschenlampe wird nur bei Änderung angefasst.
+- **Neu:** `PrivacyInfo.xcprivacy` für App und Widget (Pflicht seit iOS 17, UserDefaults-Gründe CA92.1 und 1C8F.1, kein Tracking).
+- **Neu:** Abschnitt „FreshAlert Pro“ in den Einstellungen: Status, Pro freischalten, Kauf wiederherstellen, Abo verwalten. Links zu Datenschutz, Nutzungsbedingungen und Support.
+- **Geändert:** Paywall bewirbt nur noch, was Pro wirklich bringt (unbegrenzte Produkte); Datenschutz-Link führt nicht mehr auf apple.com. Alle Rechtslinks in `Legal.swift`.
+- **Geändert:** `Info.plist`: `arm64` statt `armv7`, `LSRequiresIPhoneOS`, `CFBundleDevelopmentRegion = de`.
+- **Projekt:** Test-Target hängt jetzt vom App-Target ab (`xcodebuild test` lief vorher nicht), `VERSIONING_SYSTEM = apple-generic` für Fastlane.
+- **Pipeline:** `main` heißt TestFlight, App-Store-Einreichung nur per Tag `v*`, CI ohne Secrets, Auto-Merge bei grünem CI. Build-Nummer = Commits + 100.
+
 ## [1.5.2] – 2026-05-22
 
 ### Projekt / Dokumentation

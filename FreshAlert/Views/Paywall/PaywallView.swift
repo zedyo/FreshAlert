@@ -50,10 +50,9 @@ struct PaywallView: View {
 
     private var featuresSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            FeatureRow(icon: "infinity",              text: "Unbegrenzte Einträge")
-            FeatureRow(icon: "bell.badge",            text: "Ablauf-Erinnerungen")
-            FeatureRow(icon: "barcode.viewfinder",    text: "Barcode-Scanner")
-            FeatureRow(icon: "rectangle.stack",       text: "Alle zukünftigen Features")
+            FeatureRow(icon: "infinity",              text: "Unbegrenzt viele Produkte statt \(StoreManager.freeLimit)")
+            FeatureRow(icon: "lock.open",             text: "Einmal kaufen oder jährlich, kein Monatsabo")
+            FeatureRow(icon: "heart",                 text: "Unterstützt die Weiterentwicklung")
         }
         .padding(.horizontal, 36)
     }
@@ -91,16 +90,13 @@ struct PaywallView: View {
             .disabled(store.isPurchasing)
 
             HStack(spacing: 20) {
-                Link("Nutzungsbedingungen",
-                     destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
-                // TODO: Replace with your published privacy policy URL before App Store submission.
-                Link("Datenschutz",
-                     destination: URL(string: "https://www.apple.com/privacy/")!)
+                Link("Nutzungsbedingungen", destination: Legal.termsOfUseURL)
+                Link("Datenschutz", destination: Legal.privacyPolicyURL)
             }
             .font(.caption)
             .foregroundStyle(.tertiary)
 
-            Text("Das Jahresabo verlängert sich automatisch um 1 Jahr, sofern es nicht mindestens 24 Stunden vor Ablauf in den iPhone-Einstellungen unter „Abonnements" gekündigt wird.")
+            Text("Das Jahresabo verlängert sich automatisch um 1 Jahr, sofern es nicht mindestens 24 Stunden vor Ablauf in den iPhone-Einstellungen unter „Abonnements“ gekündigt wird.")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)

@@ -1,8 +1,13 @@
 import SwiftUI
+import StoreKit
 import UserNotifications
 
 struct SettingsView: View {
     @EnvironmentObject var viewModel: AppViewModel
+    @EnvironmentObject private var store: StoreManager
+    @State private var showManageSubscriptions = false
+    @State private var showPaywall = false
+    @State private var restoreMessage: String?
     @AppStorage("globalReminderDays") private var globalReminderDays: Int = 7
     @State private var notifStatus: UNAuthorizationStatus = .notDetermined
     @State private var showRescheduleConfirm = false
@@ -103,18 +108,73 @@ struct SettingsView: View {
                     Text("Benachrichtigungen")
                 }
 
+                // FreshAlert Pro
+                Section {
+                    HStack {
+                        Label("Status", systemImage: store.isPro ? "checkmark.seal.fill" : "seal")
+                        Spacer()
+                        Text(store.isPro ? "Pro aktiv" : "Kostenlos, bis \(StoreManager.freeLimit) Produkte")
+                            .foregroundStyle(store.isPro ? .green : .secondary)
+                            .font(.subheadline)
+                    }
+                    if !store.isPro {
+                        Button {
+                            showPaywall = true
+                        } label: {
+                            Label("Pro freischalten", systemImage: "sparkles")
+                        }
+                    }
+                    Button {
+                        Task {
+                            await store.restorePurchases()
+                            restoreMessage = store.isPro
+                                ? "Dein Kauf wurde wiederhergestellt."
+                                : "Kein Kauf für diese Apple-ID gefunden."
+                        }
+                    } label: {
+                        Label("Kauf wiederherstellen", systemImage: "arrow.clockwise.circle")
+                    }
+                    .disabled(store.isPurchasing)
+                    Button {
+                        showManageSubscriptions = true
+                    } label: {
+                        Label("Abo verwalten", systemImage: "creditcard")
+                    }
+                } header: {
+                    Text("FreshAlert Pro")
+                }
+
                 // About
                 Section {
                     LabeledContent("Version", value: appVersion)
                     LabeledContent("Build", value: buildNumber)
                     LabeledContent("Produktdaten", value: "Open Food Facts")
                     LabeledContent("Minimales iOS", value: "iOS 17.0")
+                    Link(destination: Legal.privacyPolicyURL) {
+                        Label("Datenschutzerklärung", systemImage: "hand.raised")
+                    }
+                    Link(destination: Legal.termsOfUseURL) {
+                        Label("Nutzungsbedingungen", systemImage: "doc.text")
+                    }
+                    Link(destination: Legal.supportURL) {
+                        Label("Support", systemImage: "questionmark.circle")
+                    }
                 } header: {
                     Text("Über FreshAlert")
                 }
             }
             .navigationTitle("Einstellungen")
             .task { await loadNotifStatus() }
+            .sheet(isPresented: $showPaywall) { PaywallView() }
+            .manageSubscriptionsSheet(isPresented: $showManageSubscriptions)
+            .alert("Kauf wiederherstellen", isPresented: Binding(
+                get: { restoreMessage != nil },
+                set: { if !$0 { restoreMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(restoreMessage ?? "")
+            }
         }
     }
 
