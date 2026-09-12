@@ -1,0 +1,27 @@
+name: Store-Material
+
+# Lädt die Screenshots aus fastlane/screenshots nach App Store Connect.
+# Nur von Hand auslösbar. Ändert keine Texte und reicht nichts ein.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  screenshots:
+    name: Screenshots hochladen
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ruby und Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Hochladen
+        run: bundle exec fastlane screenshots
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
