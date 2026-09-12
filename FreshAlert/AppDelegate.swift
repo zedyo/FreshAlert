@@ -1,10 +1,23 @@
 import UIKit
+import UserNotifications
 
-final class AppDelegate: NSObject, UIApplicationDelegate {
+final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     // Only ever touched on the main thread (scene delegate callbacks and
     // .main-queue notification observers), so opting out of actor isolation
     // is safe and avoids Sendable-closure warnings.
     nonisolated(unsafe) static var pendingShortcutType: String?
+
+    /// Wird von `FreshAlertApp` beim Start gesetzt. Über diese Referenz leitet
+    /// ein Tipp auf eine Mitteilung in die Übersicht weiter.
+    nonisolated(unsafe) static weak var viewModel: AppViewModel?
+
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        UNUserNotificationCenter.current().delegate = self
+        return true
+    }
 
     func application(
         _ application: UIApplication,
@@ -17,6 +30,30 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         )
         config.delegateClass = SceneDelegate.self
         return config
+    }
+
+    // MARK: - UNUserNotificationCenterDelegate
+
+    /// Im Vordergrund trotzdem Banner und Ton zeigen.
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .list, .sound]
+    }
+
+    /// Tipp auf eine Mitteilung: Übersicht öffnen und "läuft bald ab" vormerken.
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse
+    ) async {
+        guard response.notification.request.identifier.hasPrefix(ReminderDigestPlanner.identifierPrefix)
+        else { return }
+        await MainActor.run {
+            guard let viewModel = AppDelegate.viewModel else { return }
+            viewModel.selectedTab = 0
+            viewModel.pendingDashboardFilter = .expiringSoon
+        }
     }
 }
 

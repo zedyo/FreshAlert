@@ -89,13 +89,8 @@ enum TestDataSeeder {
             return 0
         }
 
-        // Erinnerungen wie in AppViewModel.addFoodItem, nur gebündelt.
-        for item in newItems {
-            let days = item.customReminderDays ?? viewModel.globalReminderDays
-            item.notificationIdentifiers = await NotificationService.shared
-                .scheduleNotifications(for: item, reminderDays: days)
-        }
-        try? context.save()
+        // Sofort statt mit Verzögerung, damit das Entwicklermenü den Zähler gleich richtig zeigt.
+        await viewModel.rescheduleAllNotifications()
         viewModel.showToast("\(newItems.count) Testprodukte geladen")
 
         await downloadImages(for: newItems, viewModel: viewModel)
@@ -146,16 +141,16 @@ enum TestDataSeeder {
     // MARK: - Löschen
 
     /// Löscht alle Produkte samt Erinnerungen. Lagerorte bleiben.
-    static func deleteAllItems(in context: ModelContext, viewModel: AppViewModel) {
+    static func deleteAllItems(in context: ModelContext, viewModel: AppViewModel) async {
         let items = (try? context.fetch(FetchDescriptor<FoodItem>())) ?? []
         for item in items {
-            NotificationService.shared.cancelNotifications(for: item)
             item.imageData = nil
             context.delete(item)
         }
         try? context.save()
         viewModel.pendingSyncCount = 0
         viewModel.updateWidgetSnapshot()
+        await viewModel.rescheduleAllNotifications()
         viewModel.showToast("\(items.count) Produkte gelöscht")
     }
 

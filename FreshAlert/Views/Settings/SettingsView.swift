@@ -12,9 +12,9 @@ struct SettingsView: View {
     @State private var showPaywall = false
     @State private var restoreMessage: String?
     @AppStorage("globalReminderDays") private var globalReminderDays: Int = 7
+    @AppStorage("reminderHour") private var reminderHour: Int = 9
+    @AppStorage("reminderMinute") private var reminderMinute: Int = 0
     @State private var notifStatus: UNAuthorizationStatus = .notDetermined
-    @State private var showRescheduleConfirm = false
-    @State private var showRescheduleDone = false
     @ObservedObject private var environment = AppEnvironmentObserver.shared
 
     var body: some View {
@@ -39,6 +39,10 @@ struct SettingsView: View {
                     }
                 } header: {
                     Text("Status")
+                } footer: {
+                    if viewModel.pendingSyncCount > 0 {
+                        Text("Produkte, die ohne Netz angelegt wurden und ihre Daten von Open Food Facts noch nachladen.")
+                    }
                 }
 
                 // Verwaltung
@@ -66,9 +70,14 @@ struct SettingsView: View {
                             Label("In Einstellungen aktivieren", systemImage: "arrow.up.right")
                         }
                     }
+                    NavigationLink {
+                        RemindersOverviewView()
+                    } label: {
+                        Label("Erinnerungen", systemImage: "calendar.badge.clock")
+                    }
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
-                            Label("Erinnerung", systemImage: "clock")
+                            Label("Vorlauf", systemImage: "clock")
                             Spacer()
                             Text("\(globalReminderDays) \(globalReminderDays == 1 ? "Tag" : "Tage") vorher")
                                 .foregroundStyle(.secondary).font(.subheadline)
@@ -79,34 +88,22 @@ struct SettingsView: View {
                                 set: { globalReminderDays = Int($0) }
                             ),
                             in: 1...30, step: 1
-                        )
+                        ) { editing in
+                            // Beim Loslassen neu planen, nicht bei jedem Schritt.
+                            if !editing { viewModel.scheduleReminderReplan() }
+                        }
                         .tint(Color.freshGreen)
-                        HStack {
-                            Text("1 Tag"); Spacer(); Text("30 Tage")
-                        }
-                        .font(.caption2).foregroundStyle(.secondary)
+                        .accessibilityLabel("Vorlauf in Tagen")
+                        .accessibilityValue("\(globalReminderDays) \(globalReminderDays == 1 ? "Tag" : "Tage")")
+                        Text("FreshAlert meldet sich \(globalReminderDays) \(globalReminderDays == 1 ? "Tag" : "Tage") vor dem Haltbarkeitsdatum, um \(reminderTimeText). Gilt für alle Produkte ohne eigene Einstellung.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
-                    Button {
-                        showRescheduleConfirm = true
-                    } label: {
-                        Label("Alle Erinnerungen neu planen", systemImage: "arrow.clockwise")
-                    }
-                    .confirmationDialog(
-                        "Alle Erinnerungen werden neu geplant mit dem globalen Wert (\(globalReminderDays) Tage).",
-                        isPresented: $showRescheduleConfirm
+                    DatePicker(
+                        selection: reminderTimeBinding,
+                        displayedComponents: .hourAndMinute
                     ) {
-                        Button("Neu planen") {
-                            Task {
-                                await viewModel.rescheduleAllNotifications()
-                                showRescheduleDone = true
-                            }
-                        }
-                        Button("Abbrechen", role: .cancel) {}
-                    }
-                    .alert("Erledigt", isPresented: $showRescheduleDone) {
-                        Button("OK", role: .cancel) {}
-                    } message: {
-                        Text("Alle Erinnerungen wurden neu eingeplant.")
+                        Label("Uhrzeit", systemImage: "alarm")
                     }
                 } header: {
                     Text("Benachrichtigungen")
@@ -155,7 +152,6 @@ struct SettingsView: View {
                     LabeledContent("Version", value: appVersion)
                     LabeledContent("Build", value: buildNumber)
                     LabeledContent("Produktdaten", value: "Open Food Facts")
-                    LabeledContent("Minimales iOS", value: "iOS 17.0")
                     Link(destination: Legal.privacyPolicyURL) {
                         Label("Datenschutzerklärung", systemImage: "hand.raised")
                     }
@@ -215,6 +211,30 @@ struct SettingsView: View {
         default:
             Text("Nicht erteilt").foregroundStyle(.secondary).font(.subheadline)
         }
+    }
+
+    private var reminderTimeText: String {
+        ReminderTimeFormatting.string(hour: reminderHour, minute: reminderMinute)
+    }
+
+    /// Uhrzeit als Date für den DatePicker, gespeichert werden nur Stunde und Minute.
+    private var reminderTimeBinding: Binding<Date> {
+        Binding(
+            get: {
+                Calendar.current.date(
+                    bySettingHour: reminderHour, minute: reminderMinute, second: 0, of: Date()
+                ) ?? Date()
+            },
+            set: { date in
+                let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+                let hour = components.hour ?? 9
+                let minute = components.minute ?? 0
+                guard hour != reminderHour || minute != reminderMinute else { return }
+                reminderHour = hour
+                reminderMinute = minute
+                viewModel.scheduleReminderReplan()
+            }
+        )
     }
 
     private func refreshItemCount() {

@@ -18,9 +18,10 @@ struct FreshAlertApp: App {
             let config = ModelConfiguration("FreshAlert", schema: schema)
             let container = try ModelContainer(for: schema, configurations: config)
             modelContainer = container
-            _appViewModel = StateObject(
-                wrappedValue: AppViewModel(modelContext: container.mainContext)
-            )
+            let viewModel = AppViewModel(modelContext: container.mainContext)
+            _appViewModel = StateObject(wrappedValue: viewModel)
+            // Für den Tipp auf eine Mitteilung (AppDelegate leitet in die Übersicht).
+            AppDelegate.viewModel = viewModel
             let seedRequested = AppEnvironment.hasLaunchArgument(AppEnvironment.seedTestDataArgument)
                 && TestDataSeeder.isDatabaseEmpty(container.mainContext)
             shouldSeedTestData = seedRequested
@@ -40,6 +41,7 @@ struct FreshAlertApp: App {
                 .environmentObject(appViewModel)
                 .environmentObject(storeManager)
                 .task {
+                    AppDelegate.viewModel = appViewModel
                     // Testdaten zuerst, damit die Übersicht sofort voll ist. Die
                     // Erinnerungen werden nach der Berechtigungsfrage neu geplant.
                     if shouldSeedTestData {
@@ -52,9 +54,9 @@ struct FreshAlertApp: App {
                     if hasCompletedOnboarding {
                         await NotificationService.shared.requestPermission()
                     }
-                    if shouldSeedTestData {
-                        await appViewModel.rescheduleAllNotifications()
-                    }
+                    // Ein frischer Plan bei jedem Start: Uhrzeit oder Bestand können sich
+                    // geändert haben, alte Einzelmitteilungen verschwinden dabei.
+                    await appViewModel.rescheduleAllNotifications()
                     appViewModel.updateWidgetSnapshot()
                     await appViewModel.cacheImagesForExistingItems()
                 }
@@ -62,6 +64,7 @@ struct FreshAlertApp: App {
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 appViewModel.processPendingWidgetDecrements()
+                appViewModel.scheduleReminderReplan()
             }
         }
     }

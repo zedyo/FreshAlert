@@ -43,8 +43,10 @@ struct DeveloperMenuView: View {
                     titleVisibility: .visible
                 ) {
                     Button("Produkte löschen", role: .destructive) {
-                        TestDataSeeder.deleteAllItems(in: modelContext, viewModel: viewModel)
-                        Task { await loadPendingRequests() }
+                        Task {
+                            await TestDataSeeder.deleteAllItems(in: modelContext, viewModel: viewModel)
+                            await loadPendingRequests()
+                        }
                     }
                     Button("Abbrechen", role: .cancel) {}
                 }
@@ -79,9 +81,9 @@ struct DeveloperMenuView: View {
                 } else {
                     ForEach(pendingRequests) { reminder in
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(reminder.productName)
-                                .font(.subheadline.weight(.medium))
                             Text(reminder.title)
+                                .font(.subheadline.weight(.medium))
+                            Text(reminder.body)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Text(reminder.dateText)
@@ -93,7 +95,7 @@ struct DeveloperMenuView: View {
             } header: {
                 Text("Geplante Erinnerungen (\(pendingRequests.count) von \(Self.maxPendingNotifications))")
             } footer: {
-                Text("iOS hält höchstens \(Self.maxPendingNotifications) geplante Mitteilungen pro App, die frühesten zuerst.")
+                Text("Eine Tagesmitteilung je Kalendertag, höchstens \(ReminderDigestPlanner.maxRequests). iOS hält höchstens \(Self.maxPendingNotifications) geplante Mitteilungen pro App.")
             }
         }
         .navigationTitle("Entwicklermenü")
@@ -133,19 +135,14 @@ struct DeveloperMenuView: View {
 private struct PendingReminder: Identifiable {
     let id: String
     let title: String
-    let productName: String
+    let body: String
     let date: Date?
 
     init(_ request: UNNotificationRequest) {
         id = request.identifier
         title = request.content.title
+        body = request.content.body
         date = (request.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate()
-        let body = request.content.body
-        if let range = body.range(of: " läuft ") {
-            productName = String(body[..<range.lowerBound])
-        } else {
-            productName = body
-        }
     }
 
     var dateText: String {
