@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.9.1] – 2026-09-12
+
+- **Intern:** Zweiter Beispieldatensatz für die App-Store-Bilder: 14 deutsche Alltagsprodukte, nichts abgelaufen, vier Lagerorte und eine Verbrauchshistorie mit rund 92 Prozent geretteten Produkten. Startargument `-seedScreenshotData` und ein Knopf im Entwicklermenü.
+
 ## [1.9.0] – 2026-09-12
 
 Welle 3: weniger tippen beim Einräumen, und die App misst endlich, was sie verspricht.

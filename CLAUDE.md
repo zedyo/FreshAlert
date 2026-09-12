@@ -68,11 +68,12 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   `PBXBuildFile`, `PBXFileReference`, `PBXGroup`, `PBXSourcesBuildPhase`
   (resources such as `PrivacyInfo.xcprivacy` go into `PBXResourcesBuildPhase`).
   Hex ID prefixes: `D…` file refs, `E…` app build files, `T…` test, `A…` groups,
-  widget reuse. Highest IDs in use: `D…63`, `E…62`, `T…30`, `A…60`.
+  widget reuse. Highest IDs in use: `D…70`, `E…70`, `T…30`, `A…60`.
   Reserved for parallel work so two agents do not collide: the date-scanner /
   shelf-life feature took `D…50`–`D…54`, `E…50`–`E…52`, `T…20`–`T…21`; the
   statistics feature took `D…60`–`D…63`, `E…60`–`E…62`, `T…30` and the group
-  `A…60`. Pick a block that is clearly free (`D…70`+ and so on) and note it here.
+  `A…60`; the screenshot data set took `D…70` and `E…70`. Pick a block that is
+  clearly free (`D…80`+ and so on) and note it here.
 - `FreshAlertTests` depends on the app target (`T…0A`); keep that dependency,
   otherwise `xcodebuild test` fails with "Unable to find module dependency".
 - Both targets ship a `PrivacyInfo.xcprivacy` (UserDefaults, reasons CA92.1 and
@@ -106,6 +107,17 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   `xcrun simctl launch "iPhone 17 Pro" com.freshalert.app -seedTestData`.
   Seeding only runs when there are no items and no locations; uninstall first
   (`xcrun simctl uninstall "iPhone 17 Pro" com.freshalert.app`) to start over.
+- **Screenshot data for the App Store:** the launch argument `-seedScreenshotData`
+  **wipes** the database (items, locations, consumption records, reminders, widget
+  data) and loads the 14 curated German everyday products from
+  `FreshAlert/TestData/screenshotprodukte.json`: nothing expired, all images
+  downloaded before the app draws, the four locations Kühlschrank, Tiefkühler,
+  Vorratsschrank and Obstkorb, plus 70 consumption records over the last 90 days
+  with a rescue rate around 92 % (fixed random seed, so two runs look the same).
+  Onboarding stays skipped and the notification prompt is suppressed, so no system
+  dialog covers the screenshot. It wins over `-seedTestData` when both are passed.
+  `xcrun simctl launch "iPhone 17 Pro Max" com.freshalert.app -seedScreenshotData`.
+  Same data set via the developer menu: "Screenshot-Daten laden".
 - **Developer menu** (Einstellungen → Entwickler → Entwicklermenü): only in Debug
   builds, TestFlight (sandbox receipt / `AppTransaction.environment == .sandbox`)
   or with launch argument `-developerMenu`. Never in App Store builds. Offers seed,
