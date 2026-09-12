@@ -22,6 +22,11 @@ struct BarcodeScannerView: View {
     /// Bereits vorhandenes Produkt mit demselben Barcode (Dubletten-Dialog).
     @State private var duplicateItem: FoodItem?
     @State private var showDuplicateDialog = false
+    /// Was die Kamera gerade tut. Eine Unterbrechung wird gemeldet, statt ein
+    /// eingefrorenes Bild stehen zu lassen.
+    @State private var cameraStatus: CameraStatus = .idle
+    /// Wird hochgezählt, um die Session hart neu aufzubauen.
+    @State private var cameraRebuild = 0
 
     /// Solange ein Sheet offen ist oder der Tab nicht sichtbar, ruht die Kamera.
     private var isScannerPaused: Bool {
@@ -133,8 +138,21 @@ struct BarcodeScannerView: View {
     // MARK: - Camera View
     private var cameraView: some View {
         ZStack {
-            CameraPreview(scannedBarcode: $scannedBarcode, torchOn: $torchOn, isPaused: isScannerPaused)
+            // Die Vorschau steht nur in der Hierarchie, solange sie laufen soll.
+            // Damit greift `dismantleUIView`, die Session wird abgebaut und das
+            // Gerät ist für den Datum-Scanner frei. Nur `stopRunning()` reicht
+            // nicht: der Input hält die Kamera weiter.
+            if isScannerPaused {
+                Color.black.ignoresSafeArea()
+            } else {
+                CameraPreview(
+                    scannedBarcode: $scannedBarcode,
+                    torchOn: $torchOn,
+                    status: $cameraStatus,
+                    rebuildToken: cameraRebuild
+                )
                 .ignoresSafeArea()
+            }
 
             ScannerOverlay(scanStatus: scanStatus)
                 .ignoresSafeArea()
@@ -161,6 +179,18 @@ struct BarcodeScannerView: View {
     @ViewBuilder
     private var statusHint: some View {
         VStack(spacing: 10) {
+            if let stoerung = cameraStatus.kurzmeldung {
+                HStack(spacing: 10) {
+                    scanHintPill(stoerung, color: .orange, icon: "exclamationmark.triangle.fill")
+                    Button("Erneut versuchen") { cameraRebuild += 1 }
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(.ultraThinMaterial, in: Capsule())
+                }
+            }
+
             switch scanStatus {
             case .waiting:
                 scanHintPill("Barcode in den Rahmen halten", color: .white)
@@ -422,16 +452,37 @@ struct ScannerOverlay: View {
 
 // MARK: - AVFoundation Camera Preview
 
+/// Hält die Barcode-Session. Baut sie **vollständig** ab, sobald sie nicht mehr
+/// laufen soll: Session stoppen, Inputs und Outputs entfernen, Preview-Layer
+/// lösen. `stopRunning()` allein reicht nicht, der `AVCaptureDeviceInput` hält
+/// die Kamera weiter und der Datum-Scanner bekommt sie nicht.
 final class ScannerUIView: UIView {
-    var session: AVCaptureSession?
-    var previewLayer: AVCaptureVideoPreviewLayer?
-    var metadataOutput: AVCaptureMetadataOutput?
-    var isPaused = false
-    var torchOn = false
+    /// Meldet Zustandswechsel nach oben.
+    var onStatus: ((CameraStatus) -> Void)?
+    /// Empfänger der erkannten Codes.
+    weak var metadataDelegate: AVCaptureMetadataOutputObjectsDelegate?
+
+    private let sessionQueue = DispatchQueue(label: "com.freshalert.camera", qos: .userInitiated)
+    private var session: AVCaptureSession?
+    private var previewLayer: AVCaptureVideoPreviewLayer?
+    private var metadataOutput: AVCaptureMetadataOutput?
+    private var device: AVCaptureDevice?
+    private var observers: [NSObjectProtocol] = []
+    private var wantsCamera = false
+    private var torchOn = false
+    private var status: CameraStatus = .idle
 
     // Scan frame dimensions (must match ScannerOverlay)
     private let frameW: CGFloat = 270
     private let frameH: CGFloat = 140
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .black
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
 
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -453,21 +504,67 @@ final class ScannerUIView: UIView {
         )
         output.rectOfInterest = preview.metadataOutputRectConverted(fromLayerRect: scanRect)
     }
-}
 
-struct CameraPreview: UIViewRepresentable {
-    @Binding var scannedBarcode: String?
-    @Binding var torchOn: Bool
-    var isPaused: Bool = false
+    // MARK: Lebenszyklus
 
-    private let sessionQueue = DispatchQueue(label: "com.freshalert.camera", qos: .userInitiated)
+    /// Fordert die Kamera an oder gibt sie zurück. Beides läuft über den
+    /// `CameraArbiter`, damit nie zwei Sessions dasselbe Gerät wollen.
+    func setWantsCamera(_ wants: Bool) {
+        guard wants != wantsCamera else { return }
+        wantsCamera = wants
+        guard wants else {
+            CameraArbiter.shared.release(self)
+            report(.idle)
+            return
+        }
+        report(.starting)
+        CameraArbiter.shared.acquire(
+            .barcode,
+            claimant: self,
+            teardown: { [weak self] fertig in
+                guard let self else { fertig(); return }
+                self.teardown(fertig: fertig)
+            },
+            granted: { [weak self] in self?.buildAndStart() }
+        )
+    }
 
-    func makeCoordinator() -> Coordinator { Coordinator(self) }
+    /// Harter Neuaufbau: abgeben und neu anfordern. Ein bloßes `startRunning()`
+    /// hilft nach einer Unterbrechung nicht zuverlässig.
+    func rebuild() {
+        guard wantsCamera else { return }
+        cameraLog.info("Barcode-Scanner: Neuaufbau der Session")
+        setWantsCamera(false)
+        setWantsCamera(true)
+    }
 
-    func makeUIView(context: Context) -> ScannerUIView {
-        let view = ScannerUIView()
+    func setTorch(_ an: Bool) {
+        guard torchOn != an else { return }
+        torchOn = an
+        applyTorch(an)
+    }
+
+    func shutdown() {
+        wantsCamera = false
+        CameraArbiter.shared.release(self)
+    }
+
+    // MARK: Aufbau
+
+    private func buildAndStart() {
+        guard wantsCamera else {
+            // In der Zwischenzeit doch pausiert: sofort wieder abgeben.
+            CameraArbiter.shared.release(self)
+            return
+        }
+        guard session == nil else { return }
+
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
-              let input = try? AVCaptureDeviceInput(device: device) else { return view }
+              let input = try? AVCaptureDeviceInput(device: device) else {
+            cameraLog.error("Barcode-Scanner: keine Rückkamera verfügbar")
+            report(.failed("Es wurde keine Kamera gefunden."))
+            return
+        }
 
         // Optimise focus and exposure for close-up barcode scanning
         try? device.lockForConfiguration()
@@ -489,7 +586,7 @@ struct CameraPreview: UIViewRepresentable {
         if session.canAddOutput(output) {
             session.addOutput(output)
             // Process on dedicated queue, not main — prevents dropped frames
-            output.setMetadataObjectsDelegate(context.coordinator, queue: sessionQueue)
+            output.setMetadataObjectsDelegate(metadataDelegate, queue: sessionQueue)
             // Nur Handelsbarcodes. QR-Codes sind keine Produktnummern und landeten
             // vorher als Anfrage bei Open Food Facts.
             output.metadataObjectTypes = [.ean8, .ean13, .upce, .code128, .code39]
@@ -498,53 +595,168 @@ struct CameraPreview: UIViewRepresentable {
 
         let preview = AVCaptureVideoPreviewLayer(session: session)
         preview.videoGravity = .resizeAspectFill
-        view.layer.addSublayer(preview)
-        view.session = session
-        view.previewLayer = preview
-        view.metadataOutput = output
+        preview.frame = bounds
+        layer.addSublayer(preview)
+        self.session = session
+        self.previewLayer = preview
+        self.metadataOutput = output
+        self.device = device
+        updateRectOfInterest()
+        observe(session)
 
-        sessionQueue.async { session.startRunning() }
+        sessionQueue.async { [weak self] in
+            session.startRunning()
+            aufMainActor {
+                guard let self, self.session === session else { return }
+                self.report(session.isRunning ? .running : .interrupted(.unknown))
+                self.applyTorch(self.torchOn)
+            }
+        }
+    }
+
+    /// Session anhalten und auseinandernehmen. `fertig` läuft auf der
+    /// Session-Queue, sobald das Gerät wirklich frei ist.
+    private func teardown(fertig: @escaping @Sendable () -> Void) {
+        applyTorch(false)
+        removeObservers()
+        let alte = session
+        session = nil
+        metadataOutput = nil
+        device = nil
+        previewLayer?.removeFromSuperlayer()
+        previewLayer = nil
+        report(.idle)
+        guard let alte else { fertig(); return }
+        sessionQueue.async {
+            if alte.isRunning { alte.stopRunning() }
+            alte.beginConfiguration()
+            alte.inputs.forEach { alte.removeInput($0) }
+            alte.outputs.forEach { alte.removeOutput($0) }
+            alte.commitConfiguration()
+            cameraLog.info("Barcode-Scanner: Session abgebaut, Kamera frei")
+            fertig()
+        }
+    }
+
+    private func applyTorch(_ an: Bool) {
+        guard let device, device.hasTorch, device.isTorchAvailable else { return }
+        try? device.lockForConfiguration()
+        device.torchMode = an ? .on : .off
+        device.unlockForConfiguration()
+    }
+
+    private func report(_ neu: CameraStatus) {
+        guard status != neu else { return }
+        status = neu
+        onStatus?(neu)
+    }
+
+    // MARK: Unterbrechungen
+
+    private func observe(_ session: AVCaptureSession) {
+        let center = NotificationCenter.default
+        observers.append(center.addObserver(
+            forName: AVCaptureSession.wasInterruptedNotification, object: session, queue: .main
+        ) { [weak self] note in
+            let roh = note.userInfo?[AVCaptureSessionInterruptionReasonKey] as? Int
+            aufMainActor { self?.interrupted(roh) }
+        })
+        observers.append(center.addObserver(
+            forName: AVCaptureSession.interruptionEndedNotification, object: session, queue: .main
+        ) { [weak self] _ in
+            aufMainActor { self?.interruptionEnded() }
+        })
+        observers.append(center.addObserver(
+            forName: AVCaptureSession.runtimeErrorNotification, object: session, queue: .main
+        ) { [weak self] note in
+            let fehler = note.userInfo?[AVCaptureSessionErrorKey] as? NSError
+            aufMainActor { self?.runtimeError(fehler) }
+        })
+    }
+
+    private func removeObservers() {
+        observers.forEach { NotificationCenter.default.removeObserver($0) }
+        observers.removeAll()
+    }
+
+    private func interrupted(_ roh: Int?) {
+        let grund = CameraInterruption(rawReason: roh)
+        cameraLog.error("Barcode-Scanner unterbrochen: \(grund.protokollname, privacy: .public)")
+        report(.interrupted(grund))
+    }
+
+    /// Ohne das hier bleibt nach einer Unterbrechung das letzte Bild stehen,
+    /// auch wenn die Kamera längst wieder frei ist.
+    private func interruptionEnded() {
+        cameraLog.info("Barcode-Scanner: Unterbrechung beendet")
+        guard wantsCamera, let session else { return }
+        report(.starting)
+        sessionQueue.async { [weak self] in
+            if !session.isRunning { session.startRunning() }
+            aufMainActor {
+                guard let self, self.session === session else { return }
+                self.report(session.isRunning ? .running : .interrupted(.unknown))
+                self.applyTorch(self.torchOn)
+            }
+        }
+    }
+
+    private func runtimeError(_ fehler: NSError?) {
+        cameraLog.error("Barcode-Scanner: Laufzeitfehler \(fehler?.code ?? -1)")
+        if fehler?.code == AVError.Code.mediaServicesWereReset.rawValue {
+            rebuild()
+        } else {
+            report(.failed("Die Kamera hat einen Fehler gemeldet."))
+        }
+    }
+}
+
+struct CameraPreview: UIViewRepresentable {
+    @Binding var scannedBarcode: String?
+    @Binding var torchOn: Bool
+    @Binding var status: CameraStatus
+    /// Jede Änderung erzwingt einen harten Neuaufbau der Session.
+    var rebuildToken: Int = 0
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeUIView(context: Context) -> ScannerUIView {
+        let view = ScannerUIView()
+        view.metadataDelegate = context.coordinator
+        let coordinator = context.coordinator
+        coordinator.rebuildToken = rebuildToken
+        view.onStatus = { [weak coordinator] neu in
+            // Nicht mitten im SwiftUI-Update schreiben.
+            DispatchQueue.main.async { coordinator?.parent.status = neu }
+        }
+        view.setWantsCamera(true)
         return view
     }
 
     func updateUIView(_ uiView: ScannerUIView, context: Context) {
         context.coordinator.parent = self
-        uiView.previewLayer?.frame = uiView.bounds
+        uiView.setNeedsLayout()
         uiView.updateRectOfInterest()
+        uiView.setTorch(torchOn)
 
-        // Kamera nur laufen lassen, wenn der Scanner wirklich sichtbar ist.
-        if let session = uiView.session, uiView.isPaused != isPaused {
-            uiView.isPaused = isPaused
-            let shouldRun = !isPaused
-            sessionQueue.async {
-                if shouldRun, !session.isRunning { session.startRunning() }
-                if !shouldRun, session.isRunning { session.stopRunning() }
-            }
-        }
-
-        // Torch nur anfassen, wenn sich der Wunsch geändert hat. Vorher wurde das
-        // Gerät bei jedem SwiftUI-Update auf dem Main-Thread gesperrt.
-        if uiView.torchOn != torchOn {
-            uiView.torchOn = torchOn
-            if let device = AVCaptureDevice.default(for: .video), device.hasTorch {
-                try? device.lockForConfiguration()
-                device.torchMode = torchOn ? .on : .off
-                device.unlockForConfiguration()
-            }
+        if context.coordinator.rebuildToken != rebuildToken {
+            context.coordinator.rebuildToken = rebuildToken
+            uiView.rebuild()
         }
     }
 
     static func dismantleUIView(_ uiView: ScannerUIView, coordinator: Coordinator) {
-        guard let session = uiView.session else { return }
-        DispatchQueue.global(qos: .userInitiated).async {
-            if session.isRunning { session.stopRunning() }
-        }
+        uiView.onStatus = nil
+        uiView.shutdown()
+        let parent = coordinator.parent
+        DispatchQueue.main.async { parent.status = .idle }
     }
 
     // MARK: - Coordinator
 
     final class Coordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate {
         var parent: CameraPreview
+        var rebuildToken = 0
         private var lastScan: Date = .distantPast
         private let debounce: TimeInterval = 0.8   // was 2.0 — still prevents double-fire
 
@@ -555,7 +767,6 @@ struct CameraPreview: UIViewRepresentable {
             didOutput metadataObjects: [AVMetadataObject],
             from connection: AVCaptureConnection
         ) {
-            guard !parent.isPaused else { return }
             guard Date().timeIntervalSince(lastScan) > debounce else { return }
             guard let obj = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
                   let value = obj.stringValue, !value.isEmpty else { return }
