@@ -13,7 +13,9 @@ struct AddFoodItemView: View {
     @State private var name: String = ""
     @State private var brand: String = ""
     @State private var imageURL: String = ""
-    @State private var expiryDate: Date = Calendar.current.date(byAdding: .month, value: 1, to: Date()) ?? Date()
+    /// Bewusst ohne Vorbelegung: Nik soll das Datum aktiv wählen, sonst landet
+    /// jedes Produkt mit "1 Monat" im Bestand.
+    @State private var expiryDate: Date? = nil
     @State private var quantity: Int = 1
     @State private var selectedLocation: StorageLocation? = nil
     @State private var useCustomReminder = false
@@ -24,7 +26,11 @@ struct AddFoodItemView: View {
     @State private var photoSource: PhotoSource?
     @State private var showImageSourceDialog = false
     @State private var showPaywall = false
+    @State private var isSaving = false
     @FocusState private var focusedField: Field?
+
+    /// Zuletzt gewählter Lagerort, als UUID-String. Leer heißt "Ohne Ort".
+    @AppStorage("lastStorageLocationID") private var lastStorageLocationID: String = ""
 
     enum Field { case name, brand }
 
@@ -33,8 +39,6 @@ struct AddFoodItemView: View {
         _isLoadingProduct = State(initialValue: !barcode.isEmpty)
         _isEditingProduct = State(initialValue: barcode.isEmpty)
     }
-    @State private var showLocationPicker = false
-    @State private var isSaving = false
 
     @Query(sort: \StorageLocation.sortOrder) private var locations: [StorageLocation]
 
@@ -42,6 +46,9 @@ struct AddFoodItemView: View {
         ("3 Tage", 3), ("1 Woche", 7), ("2 Wochen", 14),
         ("1 Monat", 30), ("3 Monate", 90), ("6 Monate", 180), ("1 Jahr", 365)
     ]
+
+    private var trimmedName: String { name.trimmingCharacters(in: .whitespaces) }
+    private var canSave: Bool { !trimmedName.isEmpty && expiryDate != nil && !isSaving }
 
     var body: some View {
         NavigationStack {
@@ -52,7 +59,14 @@ struct AddFoodItemView: View {
                     Text("Produkt")
                 }
 
-                // Menge ABOVE Ablaufdatum
+                if !locations.isEmpty {
+                    Section {
+                        locationChipRow
+                    } header: {
+                        Text("Lagerort")
+                    }
+                }
+
                 Section {
                     Stepper("Menge: \(quantity)", value: $quantity, in: 1...99)
                 } header: {
@@ -61,30 +75,17 @@ struct AddFoodItemView: View {
 
                 Section {
                     quickExpiryRow
+                    expiryResultRow
                     DatePicker(
-                        "Mindesthaltbarkeitsdatum",
-                        selection: $expiryDate,
+                        "Anderes Datum",
+                        selection: datePickerBinding,
+                        in: Calendar.current.startOfDay(for: Date())...,
                         displayedComponents: .date
                     )
-                    .datePickerStyle(.graphical)
+                    .datePickerStyle(.compact)
                     .tint(Color.freshGreen)
                 } header: {
-                    Text("Ablaufdatum")
-                }
-
-                if !locations.isEmpty {
-                    Section {
-                        Picker("Lagerort", selection: $selectedLocation) {
-                            Label("Kein Ort", systemImage: "questionmark").tag(StorageLocation?.none)
-                            ForEach(locations) { loc in
-                                Label(loc.name, systemImage: loc.iconName)
-                                    .tag(StorageLocation?.some(loc))
-                            }
-                        }
-                        .pickerStyle(.navigationLink)
-                    } header: {
-                        Text("Lagerort")
-                    }
+                    Text("Haltbar bis")
                 }
 
                 Section {
@@ -107,14 +108,14 @@ struct AddFoodItemView: View {
                     Section {
                         HStack(spacing: 8) {
                             Image(systemName: "wifi.slash").foregroundStyle(.orange)
-                            Text("Offline gespeichert – Produktinfos werden beim nächsten Online-Gang ergänzt.")
+                            Text("Offline gespeichert, Produktinfos werden beim nächsten Online-Gang ergänzt.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
                     }
                 }
             }
-            .navigationTitle("Produkt hinzufügen")
+            .navigationTitle("Neues Produkt")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -122,18 +123,13 @@ struct AddFoodItemView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Speichern") { saveItem() }
-                        .disabled(isSaving)
                         .fontWeight(.semibold)
-                        .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                        .disabled(!canSave)
                 }
             }
             .task { await loadProduct() }
+            .onAppear { preselectLastLocation() }
             .sheet(isPresented: $showPaywall) { PaywallView() }
-            .sheet(isPresented: $showLocationPicker) {
-                LocationPickerSheet(locations: locations) { chosen in
-                    performSave(location: chosen)
-                }
-            }
         }
     }
 
@@ -152,12 +148,16 @@ struct AddFoodItemView: View {
                 } else if isEditingProduct {
                     TextField("Produktname *", text: $name)
                         .font(.subheadline.weight(.semibold))
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.words)
                         .focused($focusedField, equals: .name)
                         .submitLabel(.next)
                         .onSubmit { focusedField = .brand }
                     TextField("Marke (optional)", text: $brand)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.words)
                         .focused($focusedField, equals: .brand)
                         .submitLabel(.done)
                         .onSubmit { focusedField = nil }
@@ -259,24 +259,66 @@ struct AddFoodItemView: View {
             )
     }
 
-    // MARK: - Quick Expiry
+    // MARK: - Lagerort
+    private var locationChipRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                locationChip(title: "Ohne Ort", icon: "questionmark", tint: .secondary,
+                             isSelected: selectedLocation == nil) {
+                    selectedLocation = nil
+                }
+                ForEach(locations) { loc in
+                    locationChip(title: loc.name, icon: loc.iconName, tint: loc.color,
+                                 isSelected: selectedLocation?.id == loc.id) {
+                        selectedLocation = loc
+                    }
+                }
+            }
+            .padding(.vertical, 4)
+        }
+    }
+
+    private func locationChip(title: String, icon: String, tint: Color,
+                              isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button {
+            withAnimation(.spring(response: 0.25)) { action() }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.caption.weight(.semibold))
+                Text(title)
+                    .font(.caption.weight(isSelected ? .bold : .regular))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(isSelected ? .white : .primary)
+            .padding(.horizontal, 12)
+            .frame(minHeight: 40)
+            .background(isSelected ? tint : Color(.secondarySystemBackground))
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Haltbar bis
     private var quickExpiryRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(quickExpiry, id: \.days) { option in
-                    let targetDate = Calendar.current.date(byAdding: .day, value: option.days, to: Date()) ?? Date()
-                    let isSelected = Calendar.current.isDate(expiryDate, inSameDayAs: targetDate)
+                    let targetDate = Self.dateFromToday(days: option.days)
+                    let isSelected = expiryDate.map { Calendar.current.isDate($0, inSameDayAs: targetDate) } ?? false
                     Button {
                         withAnimation(.spring(response: 0.25)) { expiryDate = targetDate }
                     } label: {
                         Text(option.label)
-                            .font(.caption.weight(isSelected ? .bold : .regular))
+                            .font(.subheadline.weight(isSelected ? .bold : .regular))
                             .foregroundStyle(isSelected ? .white : .primary)
-                            .padding(.horizontal, 12).padding(.vertical, 6)
-                            .background(isSelected
-                                ? Color.freshGreen
-                                : Color(.secondarySystemBackground))
+                            .padding(.horizontal, 14)
+                            .frame(minHeight: 40)
+                            .background(isSelected ? Color.freshGreen : Color(.secondarySystemBackground))
                             .clipShape(Capsule())
+                            .overlay(
+                                Capsule().strokeBorder(isSelected ? Color.freshGreen : Color.clear, lineWidth: 2)
+                            )
                     }
                     .buttonStyle(.plain)
                 }
@@ -285,17 +327,76 @@ struct AddFoodItemView: View {
         }
     }
 
+    @ViewBuilder
+    private var expiryResultRow: some View {
+        if let date = expiryDate {
+            HStack(spacing: 6) {
+                Image(systemName: "calendar")
+                    .foregroundStyle(Color.freshGreen)
+                Text("Haltbar bis \(Self.longDateString(date))")
+                    .font(.subheadline.weight(.medium))
+            }
+        } else {
+            HStack(spacing: 6) {
+                Image(systemName: "exclamationmark.circle")
+                Text("Bitte Datum wählen")
+                    .font(.subheadline.weight(.medium))
+            }
+            .foregroundStyle(.orange)
+        }
+    }
+
+    /// Der DatePicker braucht ein nicht optionales Datum. Solange nichts
+    /// gewählt ist, zeigt er heute, schreibt aber erst beim Ändern zurück.
+    private var datePickerBinding: Binding<Date> {
+        Binding(
+            get: { expiryDate ?? Calendar.current.startOfDay(for: Date()) },
+            set: { expiryDate = $0 }
+        )
+    }
+
+    private static func dateFromToday(days: Int) -> Date {
+        let today = Calendar.current.startOfDay(for: Date())
+        return Calendar.current.date(byAdding: .day, value: days, to: today) ?? today
+    }
+
+    /// "Fr, 15.09.2026"
+    private static func longDateString(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "de_DE")
+        f.dateFormat = "EE, dd.MM.yyyy"
+        return f.string(from: date).replacingOccurrences(of: ".,", with: ",")
+    }
+
+    /// "15.09."
+    private static func shortDateString(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "de_DE")
+        f.dateFormat = "dd.MM."
+        return f.string(from: date)
+    }
+
     // MARK: - Actions
     private func beginEditing() {
         withAnimation(.spring(response: 0.25)) { isEditingProduct = true }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { focusedField = .name }
     }
 
+    private func preselectLastLocation() {
+        guard selectedLocation == nil, !lastStorageLocationID.isEmpty,
+              let id = UUID(uuidString: lastStorageLocationID) else { return }
+        selectedLocation = locations.first { $0.id == id }
+    }
+
     private func loadProduct() async {
-        guard !barcode.isEmpty else { return }
+        // Manuelles Anlegen: Name ist leer, also direkt ins Namensfeld springen.
+        guard !barcode.isEmpty else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { focusedField = .name }
+            return
+        }
         isLoadingProduct = true
         defer { isLoadingProduct = false }
-        // Offline or product not found → let the user fill in details manually.
+        // Offline oder Produkt unbekannt: Nik füllt die Felder selbst aus.
         guard viewModel.isOnline else { beginEditing(); return }
         if let info = await viewModel.fetchProductInfo(barcode: barcode) {
             name     = info.name
@@ -307,20 +408,7 @@ struct AddFoodItemView: View {
     }
 
     private func saveItem() {
-        let trimmedName = name.trimmingCharacters(in: .whitespaces)
-        guard !trimmedName.isEmpty else { return }
-
-        // If no location chosen and locations exist → show picker
-        if selectedLocation == nil && !locations.isEmpty {
-            showLocationPicker = true
-            return
-        }
-        performSave(location: selectedLocation)
-    }
-
-    private func performSave(location: StorageLocation?) {
-        let trimmedName = name.trimmingCharacters(in: .whitespaces)
-        guard !trimmedName.isEmpty else { return }
+        guard !trimmedName.isEmpty, let expiryDate else { return }
         if !store.isPro {
             let count = (try? modelContext.fetchCount(FetchDescriptor<FoodItem>())) ?? 0
             if count >= StoreManager.freeLimit {
@@ -336,7 +424,7 @@ struct AddFoodItemView: View {
             imageData: capturedImageData,
             expiryDate: expiryDate,
             quantity: quantity,
-            storageLocation: location,
+            storageLocation: selectedLocation,
             customReminderDays: useCustomReminder ? customReminderDays : nil,
             isOfflineEntry: !viewModel.isOnline
         )
@@ -345,69 +433,11 @@ struct AddFoodItemView: View {
         // das Bild, und ein zweiter Tipp erzeugte ein Duplikat.
         guard !isSaving else { return }
         isSaving = true
+        lastStorageLocationID = selectedLocation?.id.uuidString ?? ""
         viewModel.addFoodItem(item)
+        viewModel.showToast("\(trimmedName) gespeichert, haltbar bis \(Self.shortDateString(expiryDate))")
         Feedback.itemSaved()
         dismiss()
-    }
-}
-
-// MARK: - Location Picker Sheet
-struct LocationPickerSheet: View {
-    let locations: [StorageLocation]
-    let onSelect: (StorageLocation?) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-
-    private let columns = [GridItem(.adaptive(minimum: 88), spacing: 16)]
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: 24) {
-                    ForEach(locations) { loc in
-                        Button {
-                            onSelect(loc)
-                            dismiss()
-                        } label: {
-                            VStack(spacing: 10) {
-                                ZStack {
-                                    Circle()
-                                        .fill(loc.color.opacity(0.15))
-                                        .frame(width: 64, height: 64)
-                                    Image(systemName: loc.iconName)
-                                        .font(.title2)
-                                        .foregroundStyle(loc.color)
-                                }
-                                Text(loc.name)
-                                    .font(.caption.weight(.medium))
-                                    .foregroundStyle(.primary)
-                                    .multilineTextAlignment(.center)
-                                    .lineLimit(2)
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(24)
-            }
-            .navigationTitle("Wo lagerst du das?")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Abbrechen") { dismiss() }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Ohne Ort") {
-                        onSelect(nil)
-                        dismiss()
-                    }
-                    .foregroundStyle(.secondary)
-                }
-            }
-        }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
     }
 }
 

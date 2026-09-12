@@ -1,10 +1,13 @@
 import SwiftUI
+import SwiftData
 import StoreKit
 import UserNotifications
 
 struct SettingsView: View {
+    @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var viewModel: AppViewModel
     @EnvironmentObject private var store: StoreManager
+    @State private var itemCount: Int = 0
     @State private var showManageSubscriptions = false
     @State private var showPaywall = false
     @State private var restoreMessage: String?
@@ -113,7 +116,7 @@ struct SettingsView: View {
                     HStack {
                         Label("Status", systemImage: store.isPro ? "checkmark.seal.fill" : "seal")
                         Spacer()
-                        Text(store.isPro ? "Pro aktiv" : "Kostenlos, bis \(StoreManager.freeLimit) Produkte")
+                        Text(store.isPro ? "Pro aktiv" : "\(itemCount) von \(StoreManager.freeLimit) kostenlosen Produkten")
                             .foregroundStyle(store.isPro ? .green : .secondary)
                             .font(.subheadline)
                     }
@@ -135,10 +138,12 @@ struct SettingsView: View {
                         Label("Kauf wiederherstellen", systemImage: "arrow.clockwise.circle")
                     }
                     .disabled(store.isPurchasing)
-                    Button {
-                        showManageSubscriptions = true
-                    } label: {
-                        Label("Abo verwalten", systemImage: "creditcard")
+                    if store.hasActiveSubscription {
+                        Button {
+                            showManageSubscriptions = true
+                        } label: {
+                            Label("Abo verwalten", systemImage: "creditcard")
+                        }
                     }
                 } header: {
                     Text("FreshAlert Pro")
@@ -165,7 +170,10 @@ struct SettingsView: View {
             }
             .navigationTitle("Einstellungen")
             .task { await loadNotifStatus() }
-            .sheet(isPresented: $showPaywall) { PaywallView() }
+            .onAppear { refreshItemCount() }
+            .sheet(isPresented: $showPaywall, onDismiss: { refreshItemCount() }) {
+                PaywallView(reason: .fromSettings)
+            }
             .manageSubscriptionsSheet(isPresented: $showManageSubscriptions)
             .alert("Kauf wiederherstellen", isPresented: Binding(
                 get: { restoreMessage != nil },
@@ -188,6 +196,10 @@ struct SettingsView: View {
         default:
             Text("Nicht erteilt").foregroundStyle(.secondary).font(.subheadline)
         }
+    }
+
+    private func refreshItemCount() {
+        itemCount = (try? modelContext.fetchCount(FetchDescriptor<FoodItem>())) ?? 0
     }
 
     private func loadNotifStatus() async {
