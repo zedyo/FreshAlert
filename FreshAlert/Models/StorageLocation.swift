@@ -32,15 +32,57 @@ final class StorageLocation {
         Color(hex: colorHex) ?? .green
     }
 
-    /// Single source of truth for the suggested storage locations,
-    /// used by the onboarding wizard and the `defaultLocations` factory.
-    static let defaultTemplates: [StorageLocationTemplate] = [
+    /// Alle Vorlagen mit fertigem Icon und Farbe, in der Reihenfolge der
+    /// Vorlagenliste beim Anlegen eines Lagerorts. Die ersten fünf sind die
+    /// Standardorte aus dem Onboarding (`defaultTemplates`).
+    static let allTemplates: [StorageLocationTemplate] = [
         .init(name: "Kühlschrank",    iconName: "thermometer.snowflake", colorHex: "#5AC8FA"),
         .init(name: "Tiefkühler",     iconName: "snowflake",             colorHex: "#007AFF"),
         .init(name: "Vorratsschrank", iconName: "cabinet",               colorHex: "#FF9500"),
         .init(name: "Keller",         iconName: "building.columns",      colorHex: "#8E8E93"),
         .init(name: "Obstkorb",       iconName: "basket",                colorHex: "#FF3B30"),
+        .init(name: "Gewürzregal",    iconName: "flame",                 colorHex: "#FF9500"),
+        .init(name: "Getränke",       iconName: "waterbottle",           colorHex: "#5AC8FA"),
+        .init(name: "Brotkasten",     iconName: "basket.fill",           colorHex: "#FFCC00"),
+        .init(name: "Büro",           iconName: "briefcase",             colorHex: "#8E8E93"),
+        .init(name: "Auto",           iconName: "car",                   colorHex: "#007AFF"),
+        .init(name: "Camping",        iconName: "tent",                  colorHex: "#34C759"),
+        .init(name: "Medikamente",    iconName: "pills",                 colorHex: "#FF3B30"),
+        .init(name: "Tierfutter",     iconName: "pawprint",              colorHex: "#AF52DE"),
+        .init(name: "Baby",           iconName: "teddybear",             colorHex: "#FF2D55"),
     ]
+
+    /// Single source of truth for the suggested storage locations,
+    /// used by the onboarding wizard and the `defaultLocations` factory.
+    static let defaultTemplates: [StorageLocationTemplate] = Array(allTemplates.prefix(5))
+
+    /// Icon und Farbe aus dem Namen eines eigenen Orts: "Kühlbox" bekommt das
+    /// Thermometer in Blau, "Bierkeller" die Säulen, alles Unbekannte die Box.
+    /// Umlaute und ae/oe/ue-Schreibweisen zählen gleich.
+    static func suggestion(forName name: String) -> (iconName: String, colorHex: String) {
+        let n = name.lowercased()
+            .folding(options: .diacriticInsensitive, locale: Locale(identifier: "de_DE"))
+        let words = n.split(whereSeparator: { !$0.isLetter }).map(String.init)
+        // Reihenfolge zählt: "Tiefkühler" enthält auch "kühl". "eis" nur am
+        // Wortanfang, sonst wird die Speisekammer zum Gefrierfach.
+        let rules: [(keys: [String], wordStart: Bool, iconName: String, colorHex: String)] = [
+            (["gefrier", "tief"],                false, "snowflake",             "#007AFF"),
+            (["eis"],                            true,  "snowflake",             "#007AFF"),
+            (["kuhl", "kuehl"],                  false, "thermometer.snowflake", "#5AC8FA"),
+            (["keller"],                         false, "building.columns",      "#8E8E93"),
+            (["obst"],                           false, "basket",                "#FF3B30"),
+            (["getrank", "getraenk", "flasche"], false, "waterbottle",           "#5AC8FA"),
+            (["gewurz", "gewuerz"],              false, "flame",                 "#FF9500"),
+            (["brot"],                           false, "basket.fill",           "#FFCC00"),
+        ]
+        for rule in rules {
+            let hit = rule.keys.contains { key in
+                rule.wordStart ? words.contains { $0.hasPrefix(key) } : n.contains(key)
+            }
+            if hit { return (rule.iconName, rule.colorHex) }
+        }
+        return ("archivebox", "#34C759")
+    }
 
     static var defaultLocations: [StorageLocation] {
         defaultTemplates.enumerated().map { index, t in

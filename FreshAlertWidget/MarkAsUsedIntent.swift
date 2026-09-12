@@ -2,8 +2,8 @@ import AppIntents
 import WidgetKit
 
 struct MarkAsUsedIntent: AppIntent {
-    static var title: LocalizedStringResource = "Als verwendet markieren"
-    static var description = IntentDescription("Markiert ein Produkt als verwendet und vermindert die Menge um 1.")
+    static var title: LocalizedStringResource = "Als verbraucht markieren"
+    static var description = IntentDescription("Markiert ein Produkt als verbraucht und verringert die Menge um 1.")
 
     @Parameter(title: "Produkt-ID")
     var itemID: String

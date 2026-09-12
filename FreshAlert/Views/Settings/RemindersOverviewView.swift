@@ -2,11 +2,17 @@ import SwiftUI
 import SwiftData
 
 /// Zeigt, wann FreshAlert sich meldet: eine Tagesmitteilung je Kalendertag,
-/// gruppiert wie der Planer sie tatsächlich bei iOS anmeldet. Nur Anzeige,
-/// die Zeilen sind kein Tipp-Ziel.
+/// gruppiert wie der Planer sie tatsächlich bei iOS anmeldet. Ein Tipp auf
+/// eine Zeile öffnet das Produkt-Detail mit Verbrauchen, Bearbeiten, Löschen.
 struct RemindersOverviewView: View {
     @EnvironmentObject private var viewModel: AppViewModel
     @Query(sort: \FoodItem.expiryDate) private var items: [FoodItem]
+
+    @State private var selectedItem: FoodItem?
+    @State private var itemToEdit: FoodItem?
+    /// Aktion aus dem Detail-Sheet, läuft erst nach dessen Schließen, sonst
+    /// rendert das Sheet ein gelöschtes @Model oder zwei Sheets kollidieren.
+    @State private var pendingAction: (action: FoodItemDetailAction, item: FoodItem)?
     @AppStorage("globalReminderDays") private var globalReminderDays: Int = 7
     @AppStorage("reminderHour") private var reminderHour: Int = 9
     @AppStorage("reminderMinute") private var reminderMinute: Int = 0
@@ -54,6 +60,35 @@ struct RemindersOverviewView: View {
         }
         .navigationTitle("Erinnerungen")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(item: $selectedItem, onDismiss: handleDetailDismiss) { item in
+            FoodItemDetailView(item: item) { action in
+                pendingAction = (action, item)
+            }
+        }
+        .sheet(item: $itemToEdit) { item in
+            AddFoodItemView(mode: .edit(item))
+        }
+    }
+
+    private func handleDetailDismiss() {
+        guard let pending = pendingAction else { return }
+        pendingAction = nil
+        let item = pending.item
+        switch pending.action {
+        case .delete:
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                viewModel.deleteFoodItem(item)
+            }
+        case .consume:
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                viewModel.decrementQuantity(item)
+                Feedback.itemUsed()
+            }
+        case .edit:
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                itemToEdit = item
+            }
+        }
     }
 
     private var list: some View {
@@ -101,20 +136,31 @@ struct RemindersOverviewView: View {
     }
 
     private func row(for item: FoodItem) -> some View {
-        HStack(spacing: 12) {
-            thumbnail(for: item)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(item.name)
-                    .font(.subheadline.weight(.medium))
-                    .lineLimit(1)
-                Text(item.expiryLabel)
+        Button {
+            selectedItem = item
+        } label: {
+            HStack(spacing: 12) {
+                thumbnail(for: item)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.name)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                    Text(item.expiryLabel)
+                        .font(.caption)
+                        .foregroundStyle(item.expiryStatus.color)
+                }
+                Spacer()
+                leadBadge(for: item)
+                Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundStyle(item.expiryStatus.color)
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
             }
-            Spacer()
-            leadBadge(for: item)
         }
+        .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
+        .accessibilityHint("Öffnet das Produkt")
     }
 
     @ViewBuilder

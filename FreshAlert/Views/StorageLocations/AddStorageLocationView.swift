@@ -8,10 +8,17 @@ struct AddStorageLocationView: View {
     var editingLocation: StorageLocation? = nil
     let existingCount: Int
 
+    /// Für die Vorlagenliste: was es schon gibt, wird ausgegraut.
+    @Query(sort: \StorageLocation.sortOrder) private var locations: [StorageLocation]
+
     @State private var name: String = ""
     @State private var selectedIcon: String = "archivebox"
     @State private var selectedColor: Color = Color.freshGreen
     @State private var iconSearchText: String = ""
+    @State private var showCustomize = false
+    /// Sobald Nik selbst Icon oder Farbe gewählt hat, schlägt der Name nichts mehr vor.
+    @State private var userChoseIcon = false
+    @State private var userChoseColor = false
 
     // SF Symbols for storage locations
     private let iconGroups: [(category: String, icons: [String])] = [
@@ -154,107 +161,16 @@ struct AddStorageLocationView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // Preview
-                Section {
-                    HStack {
-                        Spacer()
-                        VStack(spacing: 8) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 18)
-                                    .fill(selectedColor.opacity(0.18))
-                                    .frame(width: 72, height: 72)
-                                Image(systemName: selectedIcon)
-                                    .font(.system(size: 32))
-                                    .foregroundStyle(selectedColor)
-                            }
-                            Text(name.isEmpty ? "Name" : name)
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(name.isEmpty ? .secondary : .primary)
-                        }
-                        Spacer()
+                if isEditing {
+                    previewSection
+                    Section("Name") {
+                        TextField("z.B. Kühlschrank", text: $name)
                     }
-                    .padding(.vertical, 8)
-                }
-
-                // Name
-                Section("Name") {
-                    TextField("z.B. Kühlschrank", text: $name)
-                }
-
-                // Color
-                Section("Farbe") {
-                    LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 6), spacing: 12) {
-                        ForEach(colors.indices, id: \.self) { i in
-                            let entry = colors[i]
-                            let isSelected = selectedColor == entry.color
-                            Button {
-                                selectedColor = entry.color
-                            } label: {
-                                Circle()
-                                    .fill(entry.color)
-                                    .frame(width: 36, height: 36)
-                                    .overlay(
-                                        Circle()
-                                            .strokeBorder(.white, lineWidth: 3)
-                                            .opacity(isSelected ? 1 : 0)
-                                    )
-                                    .shadow(color: entry.color.opacity(0.5), radius: 4)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(entry.name)
-                            .accessibilityAddTraits(isSelected ? .isSelected : [])
-                        }
-                    }
-                    .padding(.vertical, 4)
-                }
-
-                // Icon
-                Section {
-                    TextField("Icon suchen, z.B. Kühl, Korb, Keller …", text: $iconSearchText)
-                        .autocorrectionDisabled()
-
-                    if filteredGroups.isEmpty {
-                        Text("Kein Icon zu „\(iconSearchText)“ gefunden.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    ForEach(filteredGroups, id: \.category) { group in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(group.category)
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                                .textCase(nil)
-                            LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 6), spacing: 10) {
-                                ForEach(group.icons, id: \.self) { icon in
-                                    Button {
-                                        selectedIcon = icon
-                                    } label: {
-                                        ZStack {
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(selectedIcon == icon
-                                                      ? selectedColor.opacity(0.2)
-                                                      : Color(.systemGray6))
-                                                .frame(width: 44, height: 44)
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 10)
-                                                        .strokeBorder(selectedIcon == icon ? selectedColor : .clear, lineWidth: 2)
-                                                )
-                                            Image(systemName: icon)
-                                                .font(.title3)
-                                                .foregroundStyle(selectedIcon == icon ? selectedColor : .primary)
-                                        }
-                                    }
-                                    .buttonStyle(.plain)
-                                    .accessibilityLabel(icon)
-                                    .accessibilityAddTraits(selectedIcon == icon ? .isSelected : [])
-                                }
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
-                } header: {
-                    Text("Icon")
+                    Section("Farbe") { colorGrid }
+                    Section("Icon") { iconPicker }
+                } else {
+                    templatesSection
+                    customSection
                 }
             }
             .navigationTitle(isEditing ? "Ort bearbeiten" : "Neuer Lagerort")
@@ -272,7 +188,211 @@ struct AddStorageLocationView: View {
                 }
             }
             .onAppear { prefillIfEditing() }
+            .onChange(of: name) { _, newName in
+                guard !isEditing else { return }
+                applySuggestion(for: newName)
+            }
         }
+    }
+
+    // MARK: - Abschnitte
+
+    private var previewSection: some View {
+        Section {
+            HStack {
+                Spacer()
+                VStack(spacing: 8) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(selectedColor.opacity(0.18))
+                            .frame(width: 72, height: 72)
+                        Image(systemName: selectedIcon)
+                            .font(.system(size: 32))
+                            .foregroundStyle(selectedColor)
+                    }
+                    Text(name.isEmpty ? "Name" : name)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(name.isEmpty ? .secondary : .primary)
+                }
+                Spacer()
+            }
+            .padding(.vertical, 8)
+        }
+    }
+
+    /// Fertige Orte mit Icon und Farbe. Ein Tipp legt sofort an und schließt.
+    private var templatesSection: some View {
+        Section {
+            ForEach(StorageLocation.allTemplates, id: \.name) { template in
+                let exists = locationExists(named: template.name)
+                let color = Color(hex: template.colorHex) ?? .green
+                Button {
+                    create(name: template.name, iconName: template.iconName, colorHex: template.colorHex)
+                } label: {
+                    HStack(spacing: 14) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(color.opacity(0.18))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: template.iconName)
+                                .font(.body)
+                                .foregroundStyle(color)
+                        }
+                        Text(template.name)
+                            .foregroundStyle(exists ? .secondary : .primary)
+                        Spacer()
+                        if exists {
+                            Text("vorhanden")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .opacity(exists ? 0.6 : 1)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(exists)
+                .accessibilityLabel(exists ? "\(template.name), vorhanden" : template.name)
+            }
+        } header: {
+            Text("Vorlagen")
+        }
+    }
+
+    /// Eigener Name, Icon und Farbe kommen aus dem Namen, "Anpassen" klappt die Auswahl auf.
+    private var customSection: some View {
+        Section {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(selectedColor.opacity(0.18))
+                        .frame(width: 40, height: 40)
+                    Image(systemName: selectedIcon)
+                        .font(.body)
+                        .foregroundStyle(selectedColor)
+                }
+                .accessibilityHidden(true)
+                TextField("Name, z.B. Garage", text: $name)
+                    .submitLabel(.done)
+                    .onSubmit { save() }
+            }
+            DisclosureGroup("Anpassen", isExpanded: $showCustomize) {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Farbe")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    colorGrid
+                    Text("Icon")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    iconPicker
+                }
+                .padding(.top, 4)
+            }
+        } header: {
+            Text("Eigener Ort")
+        } footer: {
+            Text("Icon und Farbe wählt FreshAlert passend zum Namen, du kannst sie unter „Anpassen“ ändern.")
+        }
+    }
+
+    private var colorGrid: some View {
+        LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 6), spacing: 12) {
+            ForEach(colors.indices, id: \.self) { i in
+                let entry = colors[i]
+                let isSelected = selectedColor == entry.color
+                Button {
+                    selectedColor = entry.color
+                    userChoseColor = true
+                } label: {
+                    Circle()
+                        .fill(entry.color)
+                        .frame(width: 36, height: 36)
+                        .overlay(
+                            Circle()
+                                .strokeBorder(.white, lineWidth: 3)
+                                .opacity(isSelected ? 1 : 0)
+                        )
+                        .shadow(color: entry.color.opacity(0.5), radius: 4)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(entry.name)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    @ViewBuilder
+    private var iconPicker: some View {
+        TextField("Icon suchen, z.B. Kühl, Korb, Keller …", text: $iconSearchText)
+            .autocorrectionDisabled()
+
+        if filteredGroups.isEmpty {
+            Text("Kein Icon zu „\(iconSearchText)“ gefunden.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+
+        ForEach(filteredGroups, id: \.category) { group in
+            VStack(alignment: .leading, spacing: 8) {
+                Text(group.category)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .textCase(nil)
+                LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 6), spacing: 10) {
+                    ForEach(group.icons, id: \.self) { icon in
+                        Button {
+                            selectedIcon = icon
+                            userChoseIcon = true
+                        } label: {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(selectedIcon == icon
+                                          ? selectedColor.opacity(0.2)
+                                          : Color(.systemGray6))
+                                    .frame(width: 44, height: 44)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .strokeBorder(selectedIcon == icon ? selectedColor : .clear, lineWidth: 2)
+                                    )
+                                Image(systemName: icon)
+                                    .font(.title3)
+                                    .foregroundStyle(selectedIcon == icon ? selectedColor : .primary)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(icon)
+                        .accessibilityAddTraits(selectedIcon == icon ? .isSelected : [])
+                    }
+                }
+            }
+            .padding(.vertical, 4)
+        }
+    }
+
+    // MARK: - Logik
+
+    private func locationExists(named candidate: String) -> Bool {
+        locations.contains { $0.name.caseInsensitiveCompare(candidate) == .orderedSame }
+    }
+
+    private func applySuggestion(for newName: String) {
+        let suggestion = StorageLocation.suggestion(forName: newName)
+        if !userChoseIcon { selectedIcon = suggestion.iconName }
+        if !userChoseColor, let color = Color(hex: suggestion.colorHex) { selectedColor = color }
+    }
+
+    private func create(name: String, iconName: String, colorHex: String) {
+        let loc = StorageLocation(
+            name: name,
+            iconName: iconName,
+            colorHex: colorHex,
+            sortOrder: existingCount
+        )
+        modelContext.insert(loc)
+        try? modelContext.save()
+        dismiss()
     }
 
     private func prefillIfEditing() {
@@ -291,16 +411,10 @@ struct AddStorageLocationView: View {
             loc.name = trimmed
             loc.iconName = selectedIcon
             loc.colorHex = hexColor
+            try? modelContext.save()
+            dismiss()
         } else {
-            let loc = StorageLocation(
-                name: trimmed,
-                iconName: selectedIcon,
-                colorHex: hexColor,
-                sortOrder: existingCount
-            )
-            modelContext.insert(loc)
+            create(name: trimmed, iconName: selectedIcon, colorHex: hexColor)
         }
-        try? modelContext.save()
-        dismiss()
     }
 }

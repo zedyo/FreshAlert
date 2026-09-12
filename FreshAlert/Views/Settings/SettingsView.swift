@@ -151,7 +151,9 @@ struct SettingsView: View {
                 Section {
                     LabeledContent("Version", value: appVersion)
                     LabeledContent("Build", value: buildNumber)
-                    LabeledContent("Produktdaten", value: "Open Food Facts")
+                    Link(destination: Legal.openFoodFactsURL) {
+                        LabeledContent("Produktdaten: Open Food Facts", value: "ODbL")
+                    }
                     Link(destination: Legal.privacyPolicyURL) {
                         Label("Datenschutzerklärung", systemImage: "hand.raised")
                     }
