@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.7.0] – 2026-09-12
+
+Welle 1 aus dem UX-Audit: die Dinge, die jeder Nutzer in der ersten Woche merkt.
+
+- **Neu:** „Rückgängig“ nach Verbrauchen und Löschen (Toast, sechs Sekunden). Löschen im Detail fragt nach, der Wisch in der Übersicht nicht mehr.
+- **Neu:** Bestätigung nach dem Speichern („Milch gespeichert, haltbar bis 15.10.“), sichtbar auf jedem Tab.
+- **Neu:** Dubletten beim Scannen: ist der Barcode schon da, fragt die App „Menge um 1 erhöhen“ oder „Als neues Produkt anlegen“.
+- **Neu:** Leere Übersicht mit Knopf „Ersten Barcode scannen“; Suche und Ortschips erst ab dem ersten Produkt.
+- **Geändert:** Haltbarkeitsdatum ohne Vorbelegung. Große Schnell-Chips sind der Hauptweg, dazu ein kompakter Datumswähler; Speichern erst mit Datum.
+- **Geändert:** Lagerort als Chip-Zeile im Formular, zuletzt gewählter Ort ist vorbelegt. Das zweite Sheet nach dem Speichern entfällt.
+- **Geändert:** Autokorrektur im Namens- und Markenfeld aus, Namensfeld beim manuellen Anlegen sofort fokussiert.
+- **Geändert:** Paywall behält den gescannten Barcode und öffnet nach dem Kauf direkt das Formular; aus den Einstellungen heraus spricht sie nicht mehr vom erreichten Limit. „Abo verwalten“ nur bei laufendem Abo, Statuszeile „n von 20 kostenlosen Produkten“.
+- **Geändert:** Einheitliche Begriffe: „Haltbar bis“, „Verbraucht“, „Produkt“, Mengen als „3×“. Karte zeigt zusätzlich das Kurzdatum.
+- **Geändert:** Onboarding erklärt die Wischgeste richtig (nach links), Mitteilungen werden per Knopf auf der Erinnerungsseite aktiviert statt ungefragt, „Keller“ ist nicht mehr vorausgewählt.
+
 ## [1.6.0] – 2026-09-12
 
 Vorbereitung auf TestFlight, nach Code-Review.
