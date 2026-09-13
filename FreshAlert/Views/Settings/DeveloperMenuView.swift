@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import StoreKit
 import UserNotifications
 
 /// Entwicklermenü, nur in Debug- und TestFlight-Builds erreichbar
@@ -7,8 +8,13 @@ import UserNotifications
 struct DeveloperMenuView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var viewModel: AppViewModel
+    @EnvironmentObject private var store: StoreManager
     @ObservedObject private var environment = AppEnvironmentObserver.shared
 
+    @State private var entitlements: [EntitlementRow] = []
+    @State private var isSyncingPurchases = false
+    @State private var purchaseMessage: String?
+    @State private var showManageSubscriptions = false
     @State private var pendingRequests: [PendingReminder] = []
     @State private var isWorking = false
     @State private var showDeleteItemsConfirm = false
@@ -27,6 +33,8 @@ struct DeveloperMenuView: View {
                     value: "\(environment.environmentName), Version \(AppEnvironment.versionDescription)"
                 )
             }
+
+            purchaseSections
 
             Section {
                 Button {
@@ -126,9 +134,132 @@ struct DeveloperMenuView: View {
         }
         .task {
             await environment.refresh()
+            store.applyEntitlements()
+            await loadEntitlements()
             await loadPendingRequests()
         }
-        .refreshable { await loadPendingRequests() }
+        .refreshable {
+            await loadEntitlements()
+            await loadPendingRequests()
+        }
+        .manageSubscriptionsSheet(isPresented: $showManageSubscriptions)
+        .onChange(of: showManageSubscriptions) { _, isShown in
+            guard !isShown else { return }
+            Task {
+                await store.refreshPurchaseStatus()
+                await loadEntitlements()
+            }
+        }
+    }
+
+    // MARK: - Käufe testen
+
+    @ViewBuilder
+    private var purchaseSections: some View {
+        Section {
+            if entitlements.isEmpty {
+                Text("Keine aktiven Käufe")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(entitlements) { row in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(row.name)
+                            .font(.subheadline.weight(.medium))
+                        Text("\(row.productID) · \(row.typeText)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        ForEach(row.details, id: \.self) { line in
+                            Text(line)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            Button {
+                Task { await reloadPurchases() }
+            } label: {
+                Label("Käufe neu laden", systemImage: "arrow.clockwise")
+            }
+            .disabled(isSyncingPurchases)
+            if let purchaseMessage {
+                Text(purchaseMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Käufe testen")
+        } footer: {
+            Text("Aktive Käufe laut StoreKit. „Käufe neu laden“ gleicht mit dem App Store ab und fragt dabei eventuell nach der Apple-ID.")
+        }
+
+        Section {
+            Toggle("Als Gratis-Nutzer anzeigen", isOn: $store.simulatesFreeUser)
+            LabeledContent("Pro in der App", value: proStatusText)
+        } footer: {
+            Text("Nur in diesem Build und nur auf diesem Gerät: Die App behandelt dich wie einen Gratis-Nutzer, mit Limit von \(StoreManager.freeLimit) Produkten und Paywall. Der echte Kauf bleibt bestehen. Apples Kaufdialog kann deshalb melden, dass du das Produkt schon gekauft hast oder das Abo bereits aktiv ist.")
+        }
+
+        Section {
+            Button {
+                showManageSubscriptions = true
+            } label: {
+                Label("Abo bei Apple verwalten", systemImage: "creditcard")
+            }
+        } footer: {
+            Text("Hier lässt sich das TestFlight-Abo kündigen und nach dem Ablauf neu abschließen. In TestFlight verlängern sich Abos deutlich schneller als im App Store, ein Jahresabo läuft dort nach kurzer Zeit ab. Der Einmalkauf lässt sich nicht zurücknehmen.")
+        }
+    }
+
+    private var proStatusText: String {
+        if store.isPro { return "Pro" }
+        return store.hasProEntitlement ? "Gratis (simuliert)" : "Gratis"
+    }
+
+    private func reloadPurchases() async {
+        guard !isSyncingPurchases else { return }
+        isSyncingPurchases = true
+        purchaseMessage = nil
+        do {
+            try await store.syncPurchases()
+            purchaseMessage = "Käufe neu geladen."
+        } catch StoreKitError.userCancelled {
+            purchaseMessage = "Abgebrochen."
+        } catch {
+            purchaseMessage = "Neu laden fehlgeschlagen: \(error.localizedDescription)"
+        }
+        await loadEntitlements()
+        isSyncingPurchases = false
+    }
+
+    private func loadEntitlements() async {
+        var rows: [EntitlementRow] = []
+        for await result in StoreKit.Transaction.currentEntitlements {
+            let transaction: StoreKit.Transaction
+            let isVerified: Bool
+            switch result {
+            case .verified(let tx):
+                transaction = tx
+                isVerified = true
+            case .unverified(let tx, _):
+                transaction = tx
+                isVerified = false
+            }
+            var willAutoRenew: Bool?
+            if transaction.productType == .autoRenewable,
+               let status = await transaction.subscriptionStatus,
+               case .verified(let renewalInfo) = status.renewalInfo {
+                willAutoRenew = renewalInfo.willAutoRenew
+            }
+            let name = store.products.first { $0.id == transaction.productID }?.displayName
+            rows.append(EntitlementRow(
+                transaction: transaction,
+                name: name,
+                isVerified: isVerified,
+                willAutoRenew: willAutoRenew
+            ))
+        }
+        entitlements = rows.sorted { $0.purchaseDate > $1.purchaseDate }
     }
 
     private func runSeed(fileName: String = TestDataSeeder.defaultFileName) {
@@ -150,6 +281,56 @@ struct DeveloperMenuView: View {
         pendingRequests = requests
             .map(PendingReminder.init)
             .sorted { ($0.date ?? .distantFuture) < ($1.date ?? .distantFuture) }
+    }
+}
+
+private struct EntitlementRow: Identifiable {
+    let id: UInt64
+    let productID: String
+    let name: String
+    let typeText: String
+    let purchaseDate: Date
+    let details: [String]
+
+    init(transaction: StoreKit.Transaction, name: String?, isVerified: Bool, willAutoRenew: Bool?) {
+        id = transaction.id
+        productID = transaction.productID
+        self.name = name ?? transaction.productID
+        purchaseDate = transaction.purchaseDate
+
+        switch transaction.productType {
+        case .autoRenewable: typeText = "Abo"
+        case .nonConsumable: typeText = "Einmalkauf"
+        case .nonRenewable: typeText = "Abo ohne Verlängerung"
+        case .consumable: typeText = "Verbrauchsartikel"
+        default: typeText = "Unbekannter Typ"
+        }
+
+        let environmentText: String
+        switch transaction.environment {
+        case .sandbox: environmentText = "Sandbox"
+        case .xcode: environmentText = "Xcode"
+        case .production: environmentText = "Production"
+        default: environmentText = transaction.environment.rawValue
+        }
+
+        var lines = [
+            "Gekauft: \(transaction.purchaseDate.formatted(date: .abbreviated, time: .shortened))"
+        ]
+        if let expiration = transaction.expirationDate {
+            lines.append("Läuft ab: \(expiration.formatted(date: .abbreviated, time: .shortened))")
+        }
+        if let willAutoRenew {
+            lines.append(willAutoRenew ? "Verlängert sich automatisch" : "Gekündigt, verlängert sich nicht")
+        }
+        lines.append("Umgebung: \(environmentText)")
+        if let revocation = transaction.revocationDate {
+            lines.append("Widerrufen: \(revocation.formatted(date: .abbreviated, time: .shortened))")
+        }
+        if !isVerified {
+            lines.append("Nicht verifiziert")
+        }
+        details = lines
     }
 }
 
