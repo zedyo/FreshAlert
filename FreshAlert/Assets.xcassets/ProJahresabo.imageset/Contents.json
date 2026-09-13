@@ -1,0 +1,8 @@
+{
+  "images" : [
+    { "filename" : "pro-jahresabo.png", "idiom" : "universal", "scale" : "1x" },
+    { "filename" : "pro-jahresabo@2x.png", "idiom" : "universal", "scale" : "2x" },
+    { "filename" : "pro-jahresabo@3x.png", "idiom" : "universal", "scale" : "3x" }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}

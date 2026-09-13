@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.11.1] – 2026-09-13
+
+- **Verbessert:** Die Kacheln zum Kaufen zeigen jetzt die eigenen Bilder von Jahresabo und Lifetime, dieselben wie im App Store.
+
 ## [1.11.0] – 2026-09-13
 
 - **Neu:** Viele Produkte schnell hintereinander einräumen. Hat der Datum-Scanner das Haltbarkeitsdatum erkannt, kannst du es mit „übernehmen und speichern“ direkt eintragen und das Produkt sofort speichern. Danach bist du gleich wieder beim Barcode-Scanner fürs nächste Produkt. „übernehmen“ trägt das Datum wie bisher nur ins Formular ein. Beim Bearbeiten eines Produkts bleibt es beim bisherigen Knopf.
