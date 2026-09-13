@@ -180,8 +180,9 @@ private struct ProductTile: View {
 
     private var isYearly: Bool { product.id == "com.freshalert.pro.yearly" }
 
-    /// Unendlich für den Einmalkauf, Kalender für das Jahresabo.
-    private var iconName: String { isYearly ? "calendar" : "infinity" }
+    /// Die gestalteten Kauf-Bilder aus App Store Connect (Nik, 13.09.2026):
+    /// Erneuerung für das Jahresabo, Unendlich für Lifetime.
+    private var imageName: String { isYearly ? "ProJahresabo" : "ProLifetime" }
 
     private var periodText: String {
         guard let subscription = product.subscription else { return "einmalig" }
@@ -208,10 +209,14 @@ private struct ProductTile: View {
                     .opacity(isYearly ? 1 : 0)
                     .accessibilityHidden(!isYearly)
 
-                Image(systemName: iconName)
-                    .font(.system(size: 30, weight: .semibold))
-                    .foregroundStyle(isYearly ? Color.white : Color.freshGreen)
-                    .frame(height: 36)
+                Image(imageName)
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFit()
+                    .frame(width: 60, height: 60)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+                    .accessibilityHidden(true)
 
                 Text(product.displayName)
                     .font(.subheadline.weight(.semibold))
