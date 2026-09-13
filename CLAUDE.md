@@ -69,6 +69,47 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   `"/Applications/Xcode.app/Contents/Applications/Icon Composer.app/Contents/Executables/ictool" FreshAlert/AppIcon.icon --export-image --output-file icon.png --platform iOS --rendition Default --width 1024 --height 1024 --scale 1`
   (renditions `Default`, `Dark`, `TintedLight`, `TintedDark`, `ClearLight`, `ClearDark`).
 
+## Product upkeep: a change is never just code
+
+The owner wants the app, its store presence, its website and its legal texts to stay consistent
+(owner's rule, 13.09.2026). For **every** pull request, check whether the change affects any of the
+following. Update them in the same PR where they live in a repo, otherwise right after the merge, and
+list what you checked in the PR body.
+
+- **Privacy policy** on https://freshalert.nseel.me/datenschutz. Source: local repo `~/Developer/nseel-web`,
+  file `freshalert.nseel.me/datenschutz.html`, deployed to Cloudflare Pages (project `freshalert-nseel-me`).
+  Triggers: new network targets or third parties, cloud sync, accounts, analytics, crash reporting,
+  new permissions, new data types, retention. `docs/PRIVACY_POLICY.md` only points to the website.
+- **App Store Connect questionnaires:** App Privacy (currently "Data Not Collected", web UI only),
+  age rating (currently 4+: no ads, chat, user-generated content or unrestricted web access),
+  content rights (uses Open Food Facts content), export compliance (`ITSAppUsesNonExemptEncryption`).
+- **`PrivacyInfo.xcprivacy`** in app and widget, Info.plist usage descriptions.
+- **Store listing:** description, subtitle, keywords, promotional text, screenshots
+  (`fastlane/screenshots/de-DE`, uploaded via the App Store Connect API), IAP descriptions and review screenshots.
+- **Website:** feature list on `freshalert.nseel.me/index.html`, FAQ on `support.html`.
+- **Legal:** Impressum on nseel.me, paywall legal text, `Legal.swift`, country availability
+  (currently DEU, AUT, CHE, LUX, German UI only).
+
+Example: cloud sync or an account means the app no longer runs purely on device. Then the privacy
+policy, the App Privacy answers, the website claim "Deine Daten bleiben auf deinem iPhone", the support FAQ
+"Wo werden meine Daten gespeichert?", `PrivacyInfo.xcprivacy` and possibly the age rating all change.
+
+## App Store release notes
+
+Every App Store **update** needs release notes ("Neuerungen in dieser Version", field `whatsNew` of the
+`de-DE` app store version localization). The first release has no such field.
+
+- German, friendly and close to the customer: "du", short sentences, no technical jargon, nothing internal.
+- Grouped as new features, improvements and bug fixes. Derive them from the `CHANGELOG.md` entries since the
+  last App Store release and leave out every "Intern" item.
+- The `release` lane runs `deliver` with `skip_metadata`, so set `whatsNew` via the App Store Connect API
+  **before** the store tag is pushed.
+
+Tone example:
+> Neu: Du kannst das Haltbarkeitsdatum jetzt direkt vom Etikett scannen.
+> Verbessert: Erinnerungen kommen gebündelt einmal am Tag, zu einer Uhrzeit deiner Wahl.
+> Behoben: Die Kamera bleibt beim Datum-Scannen nicht mehr hängen.
+
 ## Project file gotchas
 
 - `project.pbxproj` is hand-maintained. New files must be added in **all** of:
@@ -95,6 +136,7 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
 
 - `MARKETING_VERSION` (6× in `project.pbxproj`) is bumped **per pull request**, not per
   commit: x.0.0 major · x.y.0 feature · x.y.z bugfix. Add a `CHANGELOG.md` entry.
+  Documentation-only PRs that do not change the app are exempt.
 - `CURRENT_PROJECT_VERSION` is **not** edited by hand. Fastlane sets it to
   commit count + 100 on every upload (`VERSIONING_SYSTEM = apple-generic`).
 - A store tag `vX.Y.Z` must match `MARKETING_VERSION`; the `release` lane sets
