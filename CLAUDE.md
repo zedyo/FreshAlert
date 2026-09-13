@@ -116,14 +116,15 @@ Tone example:
   `PBXBuildFile`, `PBXFileReference`, `PBXGroup`, `PBXSourcesBuildPhase`
   (resources such as `PrivacyInfo.xcprivacy` go into `PBXResourcesBuildPhase`).
   Hex ID prefixes: `D…` file refs, `E…` app build files, `T…` test, `A…` groups,
-  widget reuse. Highest IDs in use: `D…A0`, `E…90`, `T…50`, `A…60`.
+  widget reuse. Highest IDs in use: `D…B1`, `E…B0`, `T…60`, `A…60`.
   Reserved for parallel work so two agents do not collide: the date-scanner /
   shelf-life feature took `D…50`–`D…54`, `E…50`–`E…52`, `T…20`–`T…21`; the
   statistics feature took `D…60`–`D…63`, `E…60`–`E…62`, `T…30` and the group
   `A…60`; the screenshot data set took `D…70` and `E…70`; the camera-arbiter fix
   took `D…80`–`D…81`, `E…80` and `T…40`; the Icon Composer app icon took `D…90`
   and `E…90`; the purchase-testing section of the developer menu took `D…A0` and
-  `T…50`. Pick a block that is clearly free (`D…B0`+ and so on) and note it here.
+  `T…50`; the save-after-date-scan rules took `D…B0`–`D…B1`, `E…B0` and `T…60`.
+  Pick a block that is clearly free (`D…C0`+ and so on) and note it here.
 - `FreshAlertTests` depends on the app target (`T…0A`); keep that dependency,
   otherwise `xcodebuild test` fails with "Unable to find module dependency".
 - Both targets ship a `PrivacyInfo.xcprivacy` (UserDefaults, reasons CA92.1 and
