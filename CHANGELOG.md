@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.10.1] – 2026-09-13
+
+- **Geändert:** Datenschutzerklärung und Support liegen jetzt auf der eigenen Seite freshalert.nseel.me statt auf GitHub.
+- **Geändert:** Anfragen an Open Food Facts nennen als Kontakt freshalert@nseel.me statt einer privaten Adresse.
+
 ## [1.10.0] – 2026-09-13
 
 - **Neu:** Neues App-Icon. Ein Haltbarkeitsring von Grün nach Orange um einen Apfel ersetzt den Kühlschrank auf Blau und passt zum Grün der App. Gebaut mit Icon Composer, dadurch mit eigener dunkler und getönter Darstellung und dem Glas-Effekt ab iOS 26.
