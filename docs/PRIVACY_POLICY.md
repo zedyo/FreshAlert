@@ -1,4 +1,4 @@
-# Datenschutzerklärung – FreshAlert
+# Datenschutzerklärung – Fresh Alert
 
 Die gültige Fassung steht öffentlich unter <https://freshalert.nseel.me/datenschutz>.
 

@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// Zeigt, wann FreshAlert sich meldet: eine Tagesmitteilung je Kalendertag,
+/// Zeigt, wann Fresh Alert sich meldet: eine Tagesmitteilung je Kalendertag,
 /// gruppiert wie der Planer sie tatsächlich bei iOS anmeldet. Ein Tipp auf
 /// eine Zeile öffnet das Produkt-Detail mit Verbrauchen, Bearbeiten, Löschen.
 struct RemindersOverviewView: View {
@@ -52,7 +52,7 @@ struct RemindersOverviewView: View {
                 ContentUnavailableView {
                     Label("Noch keine Erinnerungen", systemImage: "bell.slash")
                 } description: {
-                    Text("Sobald du Produkte anlegst, siehst du hier, wann FreshAlert sich meldet.")
+                    Text("Sobald du Produkte anlegst, siehst du hier, wann Fresh Alert sich meldet.")
                 }
             } else {
                 list

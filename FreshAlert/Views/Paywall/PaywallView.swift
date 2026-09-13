@@ -30,7 +30,7 @@ struct PaywallView: View {
                 }
                 .padding(.bottom, 40)
             }
-            .navigationTitle("FreshAlert Pro")
+            .navigationTitle("Fresh Alert Pro")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -63,7 +63,7 @@ struct PaywallView: View {
     private var headerTitle: String {
         switch reason {
         case .limitReached: return "Unbegrenzte Produkte"
-        case .fromSettings: return "FreshAlert Pro"
+        case .fromSettings: return "Fresh Alert Pro"
         }
     }
 

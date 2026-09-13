@@ -1,4 +1,4 @@
-# FreshAlert – Automatisches Deployment & Qualitätssicherung
+# Fresh Alert – Automatisches Deployment & Qualitätssicherung
 
 > Ziel: Du beschreibst nur noch Änderungen, der Rest läuft automatisch –
 > mit Tests als Qualitäts-Gate, automatischem Upload zu TestFlight und

@@ -99,7 +99,7 @@ struct StorageLocationTemplate {
 
 // MARK: - Brand Color
 extension Color {
-    /// FreshAlert brand green — the single source of truth for the app's accent.
+    /// Fresh Alert brand green — the single source of truth for the app's accent.
     static let freshGreen = Color(red: 0.2, green: 0.78, blue: 0.2)
 }
 

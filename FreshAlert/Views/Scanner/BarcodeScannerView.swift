@@ -283,7 +283,7 @@ struct BarcodeScannerView: View {
                 .foregroundStyle(.secondary)
             Text("Kamerazugriff benötigt")
                 .font(.title2.bold())
-            Text("FreshAlert benötigt Zugriff auf die Kamera, um Barcodes zu scannen.")
+            Text("Fresh Alert benötigt Zugriff auf die Kamera, um Barcodes zu scannen.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

@@ -219,7 +219,7 @@ struct ExpiryDateScannerView: View {
                 .foregroundStyle(.secondary)
             Text("Kamerazugriff benötigt")
                 .font(.title2.bold())
-            Text("FreshAlert benötigt Zugriff auf die Kamera, um das Haltbarkeitsdatum zu lesen.")
+            Text("Fresh Alert benötigt Zugriff auf die Kamera, um das Haltbarkeitsdatum zu lesen.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
