@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.10.4] – 2026-09-13
+
+- **Geändert:** Die Netzwerkanzeige in den Einstellungen ist weg, sie hat eher verwirrt. Ohne Netz sagt dir die App das weiterhin direkt beim Scannen. Produkte, die noch auf ihre Daten warten, erscheinen in den Einstellungen nur, wenn es welche gibt.
+
 ## [1.10.3] – 2026-09-13
 
 - **Intern:** Neuer Abschnitt „Käufe testen“ im Entwicklermenü (nur Debug und TestFlight, nie App Store). Zeigt die aktiven Käufe laut StoreKit mit Kaufdatum, Ablauf, Umgebung und automatischer Verlängerung, lädt Käufe neu und öffnet die Abo-Verwaltung von Apple. Der Schalter „Als Gratis-Nutzer anzeigen“ blendet einen bestehenden Pro-Kauf lokal aus, damit sich Limit und Paywall wie für Gratis-Nutzer testen lassen. Der echte Kauf bleibt dabei bestehen.

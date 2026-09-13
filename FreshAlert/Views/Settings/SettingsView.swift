@@ -20,27 +20,20 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // Status
-                Section {
-                    HStack {
-                        Label("Netzwerk", systemImage: viewModel.isOnline ? "wifi" : "wifi.slash")
-                        Spacer()
-                        Text(viewModel.isOnline ? "Online" : "Offline")
-                            .foregroundStyle(viewModel.isOnline ? .green : .orange)
-                            .font(.subheadline)
-                    }
-                    if viewModel.pendingSyncCount > 0 {
+                // Nur sichtbar, wenn ohne Netz angelegte Produkte noch Daten nachladen.
+                // Eine dauerhafte Netzwerkanzeige gibt es bewusst nicht mehr (Nik, 13.09.2026):
+                // sie verwirrte neben dem Offline-Versprechen und brachte keinen Mehrwert.
+                if viewModel.pendingSyncCount > 0 {
+                    Section {
                         HStack {
-                            Label("Ausstehende Syncs", systemImage: "arrow.triangle.2.circlepath")
+                            Label("Warten auf Produktdaten", systemImage: "arrow.triangle.2.circlepath")
                             Spacer()
                             Text("\(viewModel.pendingSyncCount)")
                                 .foregroundStyle(.orange).font(.subheadline.bold())
                         }
-                    }
-                } header: {
-                    Text("Status")
-                } footer: {
-                    if viewModel.pendingSyncCount > 0 {
+                    } header: {
+                        Text("Status")
+                    } footer: {
                         Text("Produkte, die ohne Netz angelegt wurden und ihre Daten von Open Food Facts noch nachladen.")
                     }
                 }
