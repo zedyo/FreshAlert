@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.10.5] – 2026-09-13
+
+- **Neu:** Die Kaufoptionen stehen jetzt als zwei große Kacheln nebeneinander, mit Symbol, Preis und Laufzeit auf einen Blick. Links das Jahresabo, rechts der Einmalkauf.
+
 ## [1.10.4] – 2026-09-13
 
 - **Geändert:** Die Netzwerkanzeige in den Einstellungen ist weg, sie hat eher verwirrt. Ohne Netz sagt dir die App das weiterhin direkt beim Scannen. Produkte, die noch auf ihre Daten warten, erscheinen in den Einstellungen nur, wenn es welche gibt.

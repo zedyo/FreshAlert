@@ -89,13 +89,17 @@ struct PaywallView: View {
         VStack(spacing: 12) {
             if store.products.isEmpty {
                 ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: 80)
+                    .frame(maxWidth: .infinity, minHeight: 150)
             } else {
-                ForEach(store.products) { product in
-                    ProductButton(product: product, isPurchasing: store.isPurchasing) {
-                        Task { await buy(product) }
+                // Zwei große Kacheln nebeneinander, gleich hoch (Nik, 13.09.2026).
+                HStack(alignment: .top, spacing: 12) {
+                    ForEach(store.products) { product in
+                        ProductTile(product: product, isPurchasing: store.isPurchasing) {
+                            Task { await buy(product) }
+                        }
                     }
                 }
+                .fixedSize(horizontal: false, vertical: true)
             }
 
             if let error = errorMessage {
@@ -169,61 +173,84 @@ private struct FeatureRow: View {
     }
 }
 
-private struct ProductButton: View {
+private struct ProductTile: View {
     let product: Product
     let isPurchasing: Bool
     let action: () -> Void
 
     private var isYearly: Bool { product.id == "com.freshalert.pro.yearly" }
 
-    private var periodSuffix: String {
-        guard let sub = product.subscription else { return "" }
-        switch sub.subscriptionPeriod.unit {
-        case .year:  return " / Jahr"
-        case .month: return " / Monat"
-        default:     return ""
+    /// Unendlich für den Einmalkauf, Kalender für das Jahresabo.
+    private var iconName: String { isYearly ? "calendar" : "infinity" }
+
+    private var periodText: String {
+        guard let subscription = product.subscription else { return "einmalig" }
+        switch subscription.subscriptionPeriod.unit {
+        case .year:  return "pro Jahr"
+        case .month: return "pro Monat"
+        case .week:  return "pro Woche"
+        case .day:   return "pro Tag"
+        @unknown default: return ""
         }
     }
 
+    private var noteText: String { isYearly ? "Jederzeit kündbar" : "Kein Abo" }
+
     var body: some View {
         Button(action: action) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Text(product.displayName)
-                            .font(.subheadline.weight(.semibold))
-                        if isYearly {
-                            Text("EMPFOHLEN")
-                                .font(.system(size: 9, weight: .bold))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color.white.opacity(0.25), in: Capsule())
-                        }
-                    }
-                    if !isYearly {
-                        Text("Einmalig · kein Abo")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                Spacer()
+            VStack(spacing: 8) {
+                // Beim Einmalkauf unsichtbar, damit beide Kacheln gleich aufgebaut sind.
+                Text("EMPFOHLEN")
+                    .font(.system(size: 10, weight: .bold))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color.white.opacity(0.25), in: Capsule())
+                    .opacity(isYearly ? 1 : 0)
+                    .accessibilityHidden(!isYearly)
+
+                Image(systemName: iconName)
+                    .font(.system(size: 30, weight: .semibold))
+                    .foregroundStyle(isYearly ? Color.white : Color.freshGreen)
+                    .frame(height: 36)
+
+                Text(product.displayName)
+                    .font(.subheadline.weight(.semibold))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+
                 if isPurchasing {
                     ProgressView()
                         .tint(isYearly ? .white : Color.freshGreen)
+                        .frame(height: 30)
                 } else {
-                    Text(product.displayPrice + periodSuffix)
-                        .font(.headline)
+                    Text(product.displayPrice)
+                        .font(.title2.bold())
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                 }
+
+                Text(periodText)
+                    .font(.caption.weight(.medium))
+
+                Text(noteText)
+                    .font(.caption2)
+                    .opacity(0.8)
             }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 14)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 16)
+            .padding(.horizontal, 10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(isYearly ? Color.freshGreen : Color(.secondarySystemBackground))
-            .foregroundStyle(isYearly ? .white : .primary)
-            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .foregroundStyle(isYearly ? Color.white : Color.primary)
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(isYearly ? Color.clear : Color.freshGreen.opacity(0.35), lineWidth: 1)
+            )
         }
         .disabled(isPurchasing)
         .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(product.displayName), \(product.displayPrice) \(periodText)")
     }
 }
