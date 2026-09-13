@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.10.0] – 2026-09-13
+
+- **Neu:** Neues App-Icon. Ein Haltbarkeitsring von Grün nach Orange um einen Apfel ersetzt den Kühlschrank auf Blau und passt zum Grün der App. Gebaut mit Icon Composer, dadurch mit eigener dunkler und getönter Darstellung und dem Glas-Effekt ab iOS 26.
+
 ## [1.9.2] – 2026-09-13
 
 - **Behoben:** Das Scannen des Haltbarkeitsdatums zeigte ein eingefrorenes Bild und erkannte nichts. Ursache waren zwei Kamerasitzungen gleichzeitig: der Barcode-Scanner hielt die Kamera weiter, obwohl er pausiert war, und die Sitzung des Datum-Scanners wurde von iOS sofort unterbrochen. Die Kamera wird jetzt sauber übergeben, und eine Unterbrechung wird angezeigt statt verschwiegen, mit einem Knopf zum erneuten Versuchen.

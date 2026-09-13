@@ -61,6 +61,13 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   `Color(red: 0.2, green: 0.78, blue: 0.2)`.
 - `expiryLabel` / `expiryStatus` logic lives on `FoodItem`; the widget has its own
   abbreviated `WidgetFoodItem.expiryLabel`.
+- **App icon:** `FreshAlert/AppIcon.icon` is an Icon Composer document (layers as PNGs in
+  `Assets/`, light, dark and tinted fills in `icon.json`). It replaced the old `AppIcon.appiconset`.
+  Xcode 26 builds both the iOS 26 glass icon and the flat fallback icons for iOS 17 and 18 from it,
+  so do not add an asset-catalog app icon again. Edit it in Icon Composer (ships inside Xcode 26).
+  Preview renders from the command line:
+  `"/Applications/Xcode.app/Contents/Applications/Icon Composer.app/Contents/Executables/ictool" FreshAlert/AppIcon.icon --export-image --output-file icon.png --platform iOS --rendition Default --width 1024 --height 1024 --scale 1`
+  (renditions `Default`, `Dark`, `TintedLight`, `TintedDark`, `ClearLight`, `ClearDark`).
 
 ## Project file gotchas
 
@@ -68,13 +75,13 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   `PBXBuildFile`, `PBXFileReference`, `PBXGroup`, `PBXSourcesBuildPhase`
   (resources such as `PrivacyInfo.xcprivacy` go into `PBXResourcesBuildPhase`).
   Hex ID prefixes: `D…` file refs, `E…` app build files, `T…` test, `A…` groups,
-  widget reuse. Highest IDs in use: `D…81`, `E…80`, `T…40`, `A…60`.
+  widget reuse. Highest IDs in use: `D…90`, `E…90`, `T…40`, `A…60`.
   Reserved for parallel work so two agents do not collide: the date-scanner /
   shelf-life feature took `D…50`–`D…54`, `E…50`–`E…52`, `T…20`–`T…21`; the
   statistics feature took `D…60`–`D…63`, `E…60`–`E…62`, `T…30` and the group
   `A…60`; the screenshot data set took `D…70` and `E…70`; the camera-arbiter fix
-  took `D…80`–`D…81`, `E…80` and `T…40`. Pick a block that is
-  clearly free (`D…90`+ and so on) and note it here.
+  took `D…80`–`D…81`, `E…80` and `T…40`; the Icon Composer app icon took `D…90`
+  and `E…90`. Pick a block that is clearly free (`D…A0`+ and so on) and note it here.
 - `FreshAlertTests` depends on the app target (`T…0A`); keep that dependency,
   otherwise `xcodebuild test` fails with "Unable to find module dependency".
 - Both targets ship a `PrivacyInfo.xcprivacy` (UserDefaults, reasons CA92.1 and
