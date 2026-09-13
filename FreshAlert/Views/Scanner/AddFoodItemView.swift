@@ -53,6 +53,9 @@ struct AddFoodItemView: View {
     @State private var showContributeSheet = false
     /// Kamera-Ansicht, die das Haltbarkeitsdatum vom Etikett liest.
     @State private var showDateScanner = false
+    /// "übernehmen und speichern" wurde getippt. Gespeichert wird erst, wenn der
+    /// Datum-Scanner ganz geschlossen ist, damit nie zwei Sheets gleichzeitig gehen.
+    @State private var saveAfterDateScan = false
     /// Kurze Meldung im Formular. Der Toast der App liegt hinter dem Sheet,
     /// deshalb hier eine eigene, gleich aussehende Einblendung.
     @State private var scanToast: String?
@@ -103,7 +106,21 @@ struct AddFoodItemView: View {
     ]
 
     private var trimmedName: String { name.trimmingCharacters(in: .whitespaces) }
-    private var canSave: Bool { !trimmedName.isEmpty && expiryDate != nil && !isSaving }
+    private var canSave: Bool {
+        AddItemSaveRules.canSave(name: name, hasExpiryDate: expiryDate != nil, isSaving: isSaving)
+    }
+
+    /// Nur beim Anlegen und nur, wenn das Formular mit dem gescannten Datum
+    /// speicherbar wäre. Sonst bietet der Scanner allein "übernehmen" an.
+    private var saveAfterDateScanAction: ((Date) -> Void)? {
+        guard AddItemSaveRules.offersSaveAfterDateScan(isEditMode: isEditMode, name: name, isSaving: isSaving) else {
+            return nil
+        }
+        return { date in
+            expiryDate = date
+            saveAfterDateScan = true
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -197,11 +214,21 @@ struct AddFoodItemView: View {
             .onAppear { preselectLastLocation() }
             .interactiveDismissDisabled(isEditMode)
             .sheet(isPresented: $showPaywall) { PaywallView() }
-            .sheet(isPresented: $showDateScanner) {
-                ExpiryDateScannerView { date in
-                    withAnimation(.spring(response: 0.25)) { expiryDate = date }
-                    showScanToast("Datum erkannt: \(ExpiryDateScannerView.dateString(date))")
-                }
+            // Erst wenn der Datum-Scanner ganz weg ist, läuft das normale Speichern.
+            // Dasselbe `saveItem()` wie der Knopf: Limit und Paywall greifen gleich,
+            // bei der Paywall bleibt das Formular offen.
+            .sheet(isPresented: $showDateScanner, onDismiss: {
+                guard saveAfterDateScan else { return }
+                saveAfterDateScan = false
+                saveItem()
+            }) {
+                ExpiryDateScannerView(
+                    onPick: { date in
+                        withAnimation(.spring(response: 0.25)) { expiryDate = date }
+                        showScanToast("Datum erkannt: \(ExpiryDateScannerView.dateString(date))")
+                    },
+                    onPickAndSave: saveAfterDateScanAction
+                )
             }
             .overlay(alignment: .bottom) {
                 if let scanToast {

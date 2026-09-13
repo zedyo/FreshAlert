@@ -7,6 +7,10 @@ import ImageIO
 struct ExpiryDateScannerView: View {
     /// Wird mit dem übernommenen Datum aufgerufen, danach schließt die Ansicht.
     let onPick: (Date) -> Void
+    /// Optional: Datum übernehmen und das Produkt gleich speichern. Ist es gesetzt,
+    /// bietet der Scanner zwei Knöpfe an, sonst nur "übernehmen". Wird vor dem
+    /// Schließen gerufen, gespeichert wird erst, wenn die Ansicht ganz weg ist.
+    var onPickAndSave: ((Date) -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -82,7 +86,7 @@ struct ExpiryDateScannerView: View {
                 } else {
                     hintPill
                     if let candidate = bestCandidate {
-                        acceptPill(for: candidate)
+                        resultActions(for: candidate)
                             .padding(.top, 4)
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
@@ -133,6 +137,58 @@ struct ExpiryDateScannerView: View {
         )
         .padding(.horizontal, 24)
         .transition(.opacity)
+    }
+
+    /// Mit `onPickAndSave` zwei breite Knöpfe, sonst die bisherige Pille.
+    @ViewBuilder
+    private func resultActions(for candidate: ExpiryDateCandidate) -> some View {
+        if let onPickAndSave {
+            let datum = Self.dateString(candidate.date)
+            VStack(spacing: 10) {
+                Button {
+                    onPickAndSave(candidate.date)
+                    dismiss()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                        Text("\(datum) übernehmen und speichern")
+                            .font(.headline)
+                            .multilineTextAlignment(.center)
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .background(Color.freshGreen, in: Capsule())
+                    .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Datum \(datum) übernehmen und Produkt speichern")
+                .accessibilityHint("Speichert das Produkt sofort und schließt das Formular.")
+
+                Button {
+                    onPick(candidate.date)
+                    dismiss()
+                } label: {
+                    Text("\(datum) übernehmen")
+                        .font(.headline)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .overlay(Capsule().strokeBorder(Color.freshGreen, lineWidth: 1.5))
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Datum \(datum) übernehmen")
+                .accessibilityHint("Trägt das Datum ins Formular ein, ohne zu speichern.")
+            }
+            .padding(.horizontal, 24)
+        } else {
+            acceptPill(for: candidate)
+        }
     }
 
     private func acceptPill(for candidate: ExpiryDateCandidate) -> some View {
