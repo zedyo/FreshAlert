@@ -143,6 +143,12 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   Without the secrets the TestFlight job skips itself.
 - Local upload from the iMac: `xcodebuild archive … -allowProvisioningUpdates`, then
   `-exportArchive … -authenticationKeyPath ~/.private_keys/AuthKey_<ID>.p8 -authenticationKeyID <ID> -authenticationKeyIssuerID <Issuer>`.
+- **Build number for a local fallback upload:** pass `CURRENT_PROJECT_VERSION` explicitly and never reuse the
+  number the cloud will compute. `next_build_number` counts the commits of all remote refs (`fetch-depth: 0`)
+  plus 100, and merged branches are deleted (`delete_branch_on_merge`). After a squash merge the cloud therefore
+  gets (remote commits without the feature branch) + 1 + 100. Upload locally as `<that number - 1>.1`
+  (1.10.0 went up as `196.1`, the cloud computes `197` after the merge), otherwise the TestFlight run after the
+  merge fails on a duplicate build number.
 - Build machine fallback: the owner's iMac (Xcode 26.3, Intel). Same lanes locally.
 - Docs: `docs/RELEASE_AUTOMATION.md` (pipeline + setup), `docs/APP_STORE.md`
   (manual store steps), `docs/MARKETING.md`, `docs/MONETIZATION.md`,
