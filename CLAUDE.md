@@ -139,7 +139,10 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   tag `v*` → App Store review (`store.yml`, lane `release`, no automatic release).
 - Secrets needed for the cloud lanes: `ASC_KEY_ID`, `ASC_ISSUER_ID`,
   `ASC_KEY_CONTENT` (base64 of the .p8, key role Admin for cloud signing).
-  No match, no certificate repo: signing uses Apple's cloud-managed certificates.
+  No match, no certificate repo. The `beta` lane archives **unsigned**, ad-hoc signs frameworks, widget and
+  app with their `.entitlements` files, then exports with Apple's cloud-managed distribution certificate
+  and checks that the App Group survived. **Do not switch back to `build_app`:** on fresh CI machines it
+  creates a new Apple Development certificate per run until the account hits its limit (13.09.2026).
   Without the secrets the TestFlight job skips itself.
 - Local upload from the iMac: `xcodebuild archive … -allowProvisioningUpdates`, then
   `-exportArchive … -authenticationKeyPath ~/.private_keys/AuthKey_<ID>.p8 -authenticationKeyID <ID> -authenticationKeyIssuerID <Issuer>`.
