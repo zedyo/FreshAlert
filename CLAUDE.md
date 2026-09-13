@@ -61,6 +61,13 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   `Color(red: 0.2, green: 0.78, blue: 0.2)`.
 - `expiryLabel` / `expiryStatus` logic lives on `FoodItem`; the widget has its own
   abbreviated `WidgetFoodItem.expiryLabel`.
+- **App icon:** `FreshAlert/AppIcon.icon` is an Icon Composer document (layers as PNGs in
+  `Assets/`, light, dark and tinted fills in `icon.json`). It replaced the old `AppIcon.appiconset`.
+  Xcode 26 builds both the iOS 26 glass icon and the flat fallback icons for iOS 17 and 18 from it,
+  so do not add an asset-catalog app icon again. Edit it in Icon Composer (ships inside Xcode 26).
+  Preview renders from the command line:
+  `"/Applications/Xcode.app/Contents/Applications/Icon Composer.app/Contents/Executables/ictool" FreshAlert/AppIcon.icon --export-image --output-file icon.png --platform iOS --rendition Default --width 1024 --height 1024 --scale 1`
+  (renditions `Default`, `Dark`, `TintedLight`, `TintedDark`, `ClearLight`, `ClearDark`).
 
 ## Project file gotchas
 
@@ -68,13 +75,13 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   `PBXBuildFile`, `PBXFileReference`, `PBXGroup`, `PBXSourcesBuildPhase`
   (resources such as `PrivacyInfo.xcprivacy` go into `PBXResourcesBuildPhase`).
   Hex ID prefixes: `D…` file refs, `E…` app build files, `T…` test, `A…` groups,
-  widget reuse. Highest IDs in use: `D…81`, `E…80`, `T…40`, `A…60`.
+  widget reuse. Highest IDs in use: `D…90`, `E…90`, `T…40`, `A…60`.
   Reserved for parallel work so two agents do not collide: the date-scanner /
   shelf-life feature took `D…50`–`D…54`, `E…50`–`E…52`, `T…20`–`T…21`; the
   statistics feature took `D…60`–`D…63`, `E…60`–`E…62`, `T…30` and the group
   `A…60`; the screenshot data set took `D…70` and `E…70`; the camera-arbiter fix
-  took `D…80`–`D…81`, `E…80` and `T…40`. Pick a block that is
-  clearly free (`D…90`+ and so on) and note it here.
+  took `D…80`–`D…81`, `E…80` and `T…40`; the Icon Composer app icon took `D…90`
+  and `E…90`. Pick a block that is clearly free (`D…A0`+ and so on) and note it here.
 - `FreshAlertTests` depends on the app target (`T…0A`); keep that dependency,
   otherwise `xcodebuild test` fails with "Unable to find module dependency".
 - Both targets ship a `PrivacyInfo.xcprivacy` (UserDefaults, reasons CA92.1 and
@@ -136,6 +143,12 @@ Open Food Facts lookup, local notifications, home-screen widget. German UI.
   Without the secrets the TestFlight job skips itself.
 - Local upload from the iMac: `xcodebuild archive … -allowProvisioningUpdates`, then
   `-exportArchive … -authenticationKeyPath ~/.private_keys/AuthKey_<ID>.p8 -authenticationKeyID <ID> -authenticationKeyIssuerID <Issuer>`.
+- **Build number for a local fallback upload:** pass `CURRENT_PROJECT_VERSION` explicitly and never reuse the
+  number the cloud will compute. `next_build_number` counts the commits of all remote refs (`fetch-depth: 0`)
+  plus 100, and merged branches are deleted (`delete_branch_on_merge`). After a squash merge the cloud therefore
+  gets (remote commits without the feature branch) + 1 + 100. Upload locally as `<that number - 1>.1`
+  (1.10.0 went up as `196.1`, the cloud computes `197` after the merge), otherwise the TestFlight run after the
+  merge fails on a duplicate build number.
 - Build machine fallback: the owner's iMac (Xcode 26.3, Intel). Same lanes locally.
 - Docs: `docs/RELEASE_AUTOMATION.md` (pipeline + setup), `docs/APP_STORE.md`
   (manual store steps), `docs/MARKETING.md`, `docs/MONETIZATION.md`,
