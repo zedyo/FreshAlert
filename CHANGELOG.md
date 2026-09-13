@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.10.3] – 2026-09-13
+
+- **Intern:** Neuer Abschnitt „Käufe testen“ im Entwicklermenü (nur Debug und TestFlight, nie App Store). Zeigt die aktiven Käufe laut StoreKit mit Kaufdatum, Ablauf, Umgebung und automatischer Verlängerung, lädt Käufe neu und öffnet die Abo-Verwaltung von Apple. Der Schalter „Als Gratis-Nutzer anzeigen“ blendet einen bestehenden Pro-Kauf lokal aus, damit sich Limit und Paywall wie für Gratis-Nutzer testen lassen. Der echte Kauf bleibt dabei bestehen.
+
 ## [1.10.2] – 2026-09-13
 
 - **Intern:** Die TestFlight-Pipeline signiert ohne neue Entwicklerzertifikate. Vorher legte jede Cloud-Maschine ein neues Zertifikat an, bis das Konto voll war und der Cloud-Upload von 1.10.1 scheiterte.

@@ -116,13 +116,14 @@ Tone example:
   `PBXBuildFile`, `PBXFileReference`, `PBXGroup`, `PBXSourcesBuildPhase`
   (resources such as `PrivacyInfo.xcprivacy` go into `PBXResourcesBuildPhase`).
   Hex ID prefixes: `D…` file refs, `E…` app build files, `T…` test, `A…` groups,
-  widget reuse. Highest IDs in use: `D…90`, `E…90`, `T…40`, `A…60`.
+  widget reuse. Highest IDs in use: `D…A0`, `E…90`, `T…50`, `A…60`.
   Reserved for parallel work so two agents do not collide: the date-scanner /
   shelf-life feature took `D…50`–`D…54`, `E…50`–`E…52`, `T…20`–`T…21`; the
   statistics feature took `D…60`–`D…63`, `E…60`–`E…62`, `T…30` and the group
   `A…60`; the screenshot data set took `D…70` and `E…70`; the camera-arbiter fix
   took `D…80`–`D…81`, `E…80` and `T…40`; the Icon Composer app icon took `D…90`
-  and `E…90`. Pick a block that is clearly free (`D…A0`+ and so on) and note it here.
+  and `E…90`; the purchase-testing section of the developer menu took `D…A0` and
+  `T…50`. Pick a block that is clearly free (`D…B0`+ and so on) and note it here.
 - `FreshAlertTests` depends on the app target (`T…0A`); keep that dependency,
   otherwise `xcodebuild test` fails with "Unable to find module dependency".
 - Both targets ship a `PrivacyInfo.xcprivacy` (UserDefaults, reasons CA92.1 and
@@ -171,8 +172,12 @@ Tone example:
 - **Developer menu** (Einstellungen → Entwickler → Entwicklermenü): only in Debug
   builds, TestFlight (sandbox receipt / `AppTransaction.environment == .sandbox`)
   or with launch argument `-developerMenu`. Never in App Store builds. Offers seed,
-  delete all items, full reset (back to onboarding) and the list of pending
-  notifications (`AppEnvironment.swift`, `TestDataSeeder.swift`, `DeveloperMenuView.swift`).
+  delete all items, full reset (back to onboarding), the list of pending
+  notifications (`AppEnvironment.swift`, `TestDataSeeder.swift`, `DeveloperMenuView.swift`)
+  and "Käufe testen": current StoreKit entitlements, `AppStore.sync()`, Apple's
+  manage-subscriptions sheet and the toggle "Als Gratis-Nutzer anzeigen"
+  (`FreeUserOverride` in `StoreManager.swift`). The toggle only hides Pro locally,
+  the real purchase stays, and it is ignored unless `isDeveloperMenuAvailable`.
 
 ## Release & deployment
 
