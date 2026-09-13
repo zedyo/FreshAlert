@@ -145,6 +145,8 @@ placed widgets), the Open Food Facts User-Agent token (no spaces allowed), domai
 
 ## Versioning
 
+- **Public numbering restarted at 1.0** for the first App Store release (owner, 13.09.2026). 1.1.0 to 1.12.0 were
+  TestFlight-only builds. Continue from 1.0 (1.0.1 for fixes, 1.1 for features); never reuse a number the store has seen.
 - `MARKETING_VERSION` (6× in `project.pbxproj`) is bumped **per pull request**, not per
   commit: x.0.0 major · x.y.0 feature · x.y.z bugfix. Add a `CHANGELOG.md` entry.
   Documentation-only PRs that do not change the app are exempt.

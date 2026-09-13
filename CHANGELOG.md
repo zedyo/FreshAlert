@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0] – 2026-09-13
+
+- **Neu:** Erste Version im App Store. Barcode scannen, Haltbarkeitsdatum eintragen oder vom Etikett scannen, Lagerorte, eine gebündelte Erinnerung am Tag, Statistik und Widget. 20 Produkte kostenlos, unbegrenzt mit Fresh Alert Pro.
+
+> Die Einträge darunter (1.1.0 bis 1.12.0) sind Testversionen, die nur über TestFlight verteilt wurden. Die öffentliche Zählung beginnt mit 1.0.
+
 ## [1.12.0] – 2026-09-13
 
 - **Neu:** Die App heißt jetzt „Fresh Alert“, mit Leerzeichen. So steht es auf dem Home-Bildschirm, in der App, bei den Widgets und im App Store. Deine Produkte und Einstellungen bleiben unverändert.
