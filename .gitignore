@@ -26,3 +26,4 @@ fastlane/README.md
 vendor/bundle/
 .bundle/
 .asc_key.p8
+build/

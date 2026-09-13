@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.10.2] – 2026-09-13
+
+- **Intern:** Die TestFlight-Pipeline signiert ohne neue Entwicklerzertifikate. Vorher legte jede Cloud-Maschine ein neues Zertifikat an, bis das Konto voll war und der Cloud-Upload von 1.10.1 scheiterte.
+
 ## [1.10.1] – 2026-09-13
 
 - **Geändert:** Datenschutzerklärung und Support liegen jetzt auf der eigenen Seite freshalert.nseel.me statt auf GitHub.

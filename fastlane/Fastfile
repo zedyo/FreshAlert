@@ -1,10 +1,14 @@
 default_platform(:ios)
 require "base64"
+require "fileutils"
+require "shellwords"
 
 PROJECT     = "FreshAlert.xcodeproj"
 SCHEME      = "FreshAlert"
 APP_ID      = "com.freshalert.app"
 WIDGET_ID   = "com.freshalert.app.widget"
+APP_GROUP   = "group.com.freshalert.app"
+TEAM_ID     = "92P4377WNF"
 
 # Die ersten TestFlight-Builds (Mai 2026) trugen die Nummern 21 und 22.
 # Build-Nummer = Commit-Anzahl + Versatz, damit sie streng steigt und
@@ -53,22 +57,68 @@ platform :ios do
     api_key = asc_api_key
     increment_build_number(xcodeproj: PROJECT, build_number: next_build_number)
 
-    # Signierung über Apples Cloud-Zertifikate mit dem API-Schlüssel (Rolle Admin),
-    # kein match, kein Zertifikate-Repo. Der Schlüssel liegt als Datei vor,
-    # damit xcodebuild ihn direkt lesen kann.
-    key_path = File.expand_path("../.asc_key.p8", __dir__)
+    # Signierung ohne Entwicklerzertifikat. Mit build_app legte jede frische
+    # Cloud-Maschine ein neues "Apple Development"-Zertifikat an, bis das Konto
+    # am 13.09.2026 voll war und der Upload scheiterte. Deshalb drei Schritte:
+    #   1. unsigniert archivieren,
+    #   2. Frameworks, Widget und App ad hoc signieren, Targets mit ihrer
+    #      .entitlements-Datei (sonst fehlt die App Group nach dem Export),
+    #   3. beim Export über Apples Cloud-Zertifikat (Apple Distribution) signieren.
+    # Nicht zu build_app zurückwechseln.
+    root     = File.expand_path("..", __dir__)
+    build    = File.join(root, "build")
+    archive  = File.join(build, "#{SCHEME}.xcarchive")
+    export   = File.join(build, "export")
+    key_path = File.join(root, ".asc_key.p8")
     File.write(key_path, Base64.decode64(ENV.fetch("ASC_KEY_CONTENT")))
-    auth = "-allowProvisioningUpdates -authenticationKeyPath #{key_path} " \
-           "-authenticationKeyID #{ENV.fetch('ASC_KEY_ID')} " \
-           "-authenticationKeyIssuerID #{ENV.fetch('ASC_ISSUER_ID')}"
-    build_app(
-      project:       PROJECT,
-      scheme:        SCHEME,
-      export_method: "app-store",
-      xcargs:        auth,
-      export_options: { signingStyle: "automatic", uploadSymbols: true, teamID: "92P4377WNF" }
-    )
-    upload_to_testflight(api_key: api_key, skip_waiting_for_build_processing: false)
+    auth = "-allowProvisioningUpdates -authenticationKeyPath #{key_path.shellescape} " \
+           "-authenticationKeyID #{ENV.fetch('ASC_KEY_ID').shellescape} " \
+           "-authenticationKeyIssuerID #{ENV.fetch('ASC_ISSUER_ID').shellescape}"
+
+    FileUtils.rm_rf(build)
+    FileUtils.mkdir_p(build)
+    sh("xcodebuild archive -quiet -project #{File.join(root, PROJECT).shellescape} -scheme #{SCHEME} " \
+       "-configuration Release -destination 'generic/platform=iOS' -archivePath #{archive.shellescape} " \
+       "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=''")
+
+    app = File.join(archive, "Products", "Applications", "#{SCHEME}.app")
+    adhoc_sign = lambda do |bundle|
+      name  = File.basename(bundle, ".*")
+      ents  = File.join(root, name, "#{name}.entitlements")
+      flags = File.exist?(ents) ? "--entitlements #{ents.shellescape} " : ""
+      sh("codesign --force --sign - #{flags}#{bundle.shellescape}")
+    end
+    Dir[File.join(app, "Frameworks", "*")].each { |f| adhoc_sign.call(f) }
+    Dir[File.join(app, "PlugIns", "*.appex")].each { |x| adhoc_sign.call(x) }
+    adhoc_sign.call(app)
+
+    export_plist = File.join(build, "ExportOptions.plist")
+    File.write(export_plist, <<~PLIST)
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0"><dict>
+        <key>method</key><string>app-store-connect</string>
+        <key>destination</key><string>export</string>
+        <key>signingStyle</key><string>automatic</string>
+        <key>teamID</key><string>#{TEAM_ID}</string>
+        <key>uploadSymbols</key><true/>
+      </dict></plist>
+    PLIST
+    sh("xcodebuild -exportArchive -archivePath #{archive.shellescape} " \
+       "-exportOptionsPlist #{export_plist.shellescape} -exportPath #{export.shellescape} #{auth}")
+    ipa = Dir[File.join(export, "*.ipa")].first
+    UI.user_error!("Export hat kein IPA erzeugt") unless ipa
+
+    # Wächter: ohne App Group teilen App und Widget keine Daten mehr.
+    check = File.join(build, "ipa-check")
+    sh("unzip -q -o #{ipa.shellescape} -d #{check.shellescape}")
+    signed_app = File.join(check, "Payload", "#{SCHEME}.app")
+    [signed_app, *Dir[File.join(signed_app, "PlugIns", "*.appex")]].each do |bundle|
+      ents = sh("codesign -d --entitlements - --xml #{bundle.shellescape} 2>/dev/null", log: false)
+      UI.user_error!("App Group fehlt in #{File.basename(bundle)}") unless ents.include?(APP_GROUP)
+    end
+
+    upload_to_testflight(api_key: api_key, ipa: ipa, skip_waiting_for_build_processing: false)
   ensure
     File.delete(key_path) if key_path && File.exist?(key_path)
   end
