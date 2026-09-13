@@ -37,7 +37,7 @@ actor OpenFoodFactsService {
     /// Pflicht laut Open-Food-Facts-Nutzungsbedingungen: App, Version, Kontakt.
     static var userAgent: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
-        return "FreshAlert/\(version) (ios; ze.d@me.com)"
+        return "FreshAlert/\(version) (ios; \(Legal.supportEmail))"
     }
 
     private let session: URLSession

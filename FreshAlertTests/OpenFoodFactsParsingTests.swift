@@ -21,7 +21,7 @@ final class OpenFoodFactsParsingTests: XCTestCase {
 
     func testUserAgentNamesAppAndContact() {
         XCTAssertTrue(OpenFoodFactsService.userAgent.hasPrefix("FreshAlert/"))
-        XCTAssertTrue(OpenFoodFactsService.userAgent.hasSuffix("(ios; ze.d@me.com)"))
+        XCTAssertTrue(OpenFoodFactsService.userAgent.hasSuffix("(ios; freshalert@nseel.me)"))
     }
 
     func testGermanNameWins() throws {
