@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleDisplayName</key>
+	<string>Fresh Alert</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>de</string>
 	<key>CFBundleExecutable</key>
@@ -19,7 +21,7 @@
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSCameraUsageDescription</key>
-	<string>FreshAlert benötigt Zugriff auf die Kamera, um Barcodes und Haltbarkeitsdaten zu scannen und Produktfotos aufzunehmen.</string>
+	<string>Fresh Alert benötigt Zugriff auf die Kamera, um Barcodes und Haltbarkeitsdaten zu scannen und Produktfotos aufzunehmen.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIRequiredDeviceCapabilities</key>

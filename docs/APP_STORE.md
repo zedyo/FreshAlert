@@ -1,4 +1,4 @@
-# FreshAlert – App Store Deployment (manuell)
+# Fresh Alert – App Store Deployment (manuell)
 
 > Schritt-für-Schritt-Anleitung für die erste Veröffentlichung im App Store.
 > Stand 2025, Xcode 26. Apple benennt Menüpunkte gelegentlich um – die
@@ -45,7 +45,7 @@ an. Falls du es manuell machen willst:
 2. Blaues **„+" → Neue App**.
 3. Felder:
    - **Plattformen:** iOS
-   - **Name:** `FreshAlert: Haltbarkeit` (Store-Name, max. 30 Zeichen)
+   - **Name:** `Fresh Alert` (Store-Name, max. 30 Zeichen; Untertitel „Lebensmittel & MHD im Blick“)
    - **Primärsprache:** Deutsch
    - **Bundle-ID:** `com.freshalert.app` auswählen
    - **SKU:** frei wählbar, z. B. `freshalert-ios-001`
@@ -57,7 +57,7 @@ In App Store Connect → deine App:
 
 - **Allgemein → App-Informationen:** Kategorie *Essen & Trinken*,
   **Datenschutzrichtlinie-URL** eintragen (Pflicht).
-- **App-Datenschutz** (Fragebogen „App Privacy"): FreshAlert hat keinen Account,
+- **App-Datenschutz** (Fragebogen „App Privacy"): Fresh Alert hat keinen Account,
   kein Analyse-SDK, kein Tracking; Fotos bleiben lokal. Der Barcode-Abruf bei
   Open Food Facts überträgt keine personenbezogenen Daten. Daher i. d. R.
   **„Es werden keine Daten erfasst"** – beantworte den Fragebogen aber
@@ -72,7 +72,7 @@ App Store Connect verlangt aktuell mindestens Screenshots für die
 **iPhone-Displayklasse 6,9″** (1320 × 2868 px hochkant, z. B. iPhone 16 Pro Max).
 Diese werden automatisch für kleinere iPhones skaliert; 6,5″/6,7″ werden auch
 akzeptiert. 3–10 Screenshots empfohlen. iPad-Screenshots sind **nicht** nötig
-(FreshAlert ist eine reine iPhone-App).
+(Fresh Alert ist eine reine iPhone-App).
 
 Erzeugen: im Xcode-Simulator (iPhone 16 Pro Max) mit `Cmd + S` bzw. über
 `Datei → ...`, oder per Fastlane `snapshot` (optional).
@@ -116,7 +116,7 @@ empfohlen, bevor du in den Store gehst.
 ## 10. Häufige Ablehnungsgründe (vorab vermeiden)
 
 - Fehlende/nicht erreichbare Datenschutz-URL.
-- Kamera-Nutzungstext unklar – FreshAlert erklärt ihn in der `Info.plist`
+- Kamera-Nutzungstext unklar – Fresh Alert erklärt ihn in der `Info.plist`
   (`NSCameraUsageDescription`) bereits.
 - Abstürze beim Review – vorher per TestFlight testen.
 - Platzhalter-Inhalte oder Demo-Daten.

@@ -1,10 +1,10 @@
-# FreshAlert – Marketing-Konzept
+# Fresh Alert – Marketing-Konzept
 
-> Aktiver Vermarktungsplan für die iOS-App FreshAlert.
+> Aktiver Vermarktungsplan für die iOS-App Fresh Alert.
 
 ## 1. Positionierung
 
-**Ein-Satz-Pitch:** „FreshAlert ist die App gegen Lebensmittelverschwendung –
+**Ein-Satz-Pitch:** „Fresh Alert ist die App gegen Lebensmittelverschwendung –
 scanne deinen Einkauf, behalte jedes Mindesthaltbarkeitsdatum im Blick und
 werde rechtzeitig erinnert, bevor etwas schlecht wird."
 
@@ -41,7 +41,7 @@ für internationale Skalierung.
 
 | Feld | Limit | Vorschlag |
 |---|---|---|
-| App-Name | 30 Zeichen | `FreshAlert: Haltbarkeit` |
+| App-Name | 30 Zeichen | `Fresh Alert` (Untertitel „Lebensmittel & MHD im Blick“) |
 | Untertitel | 30 Zeichen | `Lebensmittel & MHD im Blick` |
 | Keywords | 100 Zeichen | `mhd,haltbarkeit,lebensmittel,vorrat,kühlschrank,ablaufdatum,einkauf,resteverwertung,scanner,erinnerung,foodwaste` |
 

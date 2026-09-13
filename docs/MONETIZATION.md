@@ -1,4 +1,4 @@
-# FreshAlert – Monetarisierung & Umsatzeinschätzung
+# Fresh Alert – Monetarisierung & Umsatzeinschätzung
 
 > Ehrliche Einordnung, wie viel sich verdienen lässt, und ein konkreter
 > Umsetzungsplan für ein Freemium-Modell mit Eintrags-Limit.
@@ -51,7 +51,7 @@ ist für eine Tracker-App sinnvoll und gut verständlich.
 - **Gratis:** bis zu **20 gleichzeitig gespeicherte Produkte** (nicht „jemals
   angelegt" – sonst wird die App irgendwann unbenutzbar). Reicht für Singles und
   kleine Haushalte und macht die App vollwertig erlebbar.
-- **FreshAlert Pro:** unbegrenzte Produkte.
+- **Fresh Alert Pro:** unbegrenzte Produkte.
 - Limit-Wahl ist ein Kompromiss: zu niedrig → schlechte Bewertungen & Abwanderung;
   zu hoch → kaum Conversions. Start bei 20, später anhand der Daten justieren
   (ein Limit **senken** verärgert Bestandsnutzer – lieber etwas höher starten).
@@ -126,12 +126,12 @@ Liste** – die Paywall bleibt dann ohne Produkte.
 
 ### 6.2 In-App-Käufe in App Store Connect anlegen
 
-App Store Connect → **Apps** → *FreshAlert* auswählen.
+App Store Connect → **Apps** → *Fresh Alert* auswählen.
 
 **A) Jahresabo** (linke Seitenleiste → Abschnitt *Monetarisierung* →
 **Abonnements / Subscriptions**):
 
-1. Zuerst eine **Abonnementgruppe** anlegen, Referenzname z. B. `FreshAlert Pro`.
+1. Zuerst eine **Abonnementgruppe** anlegen, Referenzname z. B. `Fresh Alert Pro`.
 2. In der Gruppe **+** → neues Abonnement:
    - **Referenzname:** `Pro Jährlich`
    - **Produkt-ID:** `com.freshalert.pro.yearly` (muss exakt so lauten)

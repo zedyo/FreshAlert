@@ -93,7 +93,7 @@ struct SettingsView: View {
                         .tint(Color.freshGreen)
                         .accessibilityLabel("Vorlauf in Tagen")
                         .accessibilityValue("\(globalReminderDays) \(globalReminderDays == 1 ? "Tag" : "Tage")")
-                        Text("FreshAlert meldet sich \(globalReminderDays) \(globalReminderDays == 1 ? "Tag" : "Tage") vor dem Haltbarkeitsdatum, um \(reminderTimeText). Gilt für alle Produkte ohne eigene Einstellung.")
+                        Text("Fresh Alert meldet sich \(globalReminderDays) \(globalReminderDays == 1 ? "Tag" : "Tage") vor dem Haltbarkeitsdatum, um \(reminderTimeText). Gilt für alle Produkte ohne eigene Einstellung.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -107,7 +107,7 @@ struct SettingsView: View {
                     Text("Benachrichtigungen")
                 }
 
-                // FreshAlert Pro
+                // Fresh Alert Pro
                 Section {
                     HStack {
                         Label("Status", systemImage: store.isPro ? "checkmark.seal.fill" : "seal")
@@ -142,7 +142,7 @@ struct SettingsView: View {
                         }
                     }
                 } header: {
-                    Text("FreshAlert Pro")
+                    Text("Fresh Alert Pro")
                 }
 
                 // About
@@ -162,7 +162,7 @@ struct SettingsView: View {
                         Label("Support", systemImage: "questionmark.circle")
                     }
                 } header: {
-                    Text("Über FreshAlert")
+                    Text("Über Fresh Alert")
                 }
 
                 // Entwickler (nur Debug und TestFlight, nie App Store)

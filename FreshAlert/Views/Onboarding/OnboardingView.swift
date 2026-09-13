@@ -27,7 +27,7 @@ struct OnboardingView: View {
             TabView(selection: $page) {
                 infoPage(
                     icon: "leaf.circle.fill",
-                    title: "Willkommen bei FreshAlert",
+                    title: "Willkommen bei Fresh Alert",
                     text: "Behalte den Überblick über deine Lebensmittel – und wirf nie wieder etwas weg, weil du es vergessen hast."
                 ).tag(0)
 
@@ -125,7 +125,7 @@ struct OnboardingView: View {
             Text("Rechtzeitig erinnert")
                 .font(.title.bold())
                 .multilineTextAlignment(.center)
-            Text("FreshAlert benachrichtigt dich, bevor etwas abläuft. Wische ein Produkt nach links, sobald du es verbraucht hast.")
+            Text("Fresh Alert benachrichtigt dich, bevor etwas abläuft. Wische ein Produkt nach links, sobald du es verbraucht hast.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

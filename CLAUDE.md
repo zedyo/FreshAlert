@@ -21,7 +21,7 @@ The owner does not merge or push by hand. Agents work like this:
 
 ## Project
 
-**FreshAlert** — native iOS app for tracking food expiry dates. Barcode scanner,
+**Fresh Alert** — native iOS app for tracking food expiry dates. Barcode scanner,
 Open Food Facts lookup, local notifications, home-screen widget. German UI.
 
 - **Min iOS:** 17.0 · **Language:** Swift 5 · **UI:** SwiftUI · **Persistence:** SwiftData
@@ -133,6 +133,15 @@ Tone example:
 - App Group is configured via tracked `.entitlements` files + `CODE_SIGN_ENTITLEMENTS`
   build settings — no manual Xcode capability setup needed.
 - `.gitignore` covers `xcuserdata/`, `*.xcuserstate` etc. Never re-track them.
+
+## App name
+
+The product is called **Fresh Alert** (with a space) everywhere a person reads it: home screen
+(`CFBundleDisplayName`), UI texts, widget gallery, permission texts, App Store Connect, subscription group,
+website, docs prose. Technical identifiers stay `FreshAlert` and must not be renamed: targets, schemes,
+module and file names, bundle ID `com.freshalert.app`, App Group, product IDs, the SwiftData store name
+`ModelConfiguration("FreshAlert")` (renaming it loses user data), the widget `kind` (renaming it removes
+placed widgets), the Open Food Facts User-Agent token (no spaces allowed), domain and mail address.
 
 ## Versioning
 

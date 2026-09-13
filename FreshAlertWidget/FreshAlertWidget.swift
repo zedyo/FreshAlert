@@ -161,7 +161,7 @@ struct FreshAlertWidget: Widget {
         StaticConfiguration(kind: kind, provider: FreshAlertTimelineProvider()) { entry in
             FreshAlertWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("FreshAlert")
+        .configurationDisplayName("Fresh Alert")
         .description("Die nächsten ablaufenden Produkte auf einen Blick.")
         .supportedFamilies([.systemMedium, .systemLarge])
     }

@@ -1,4 +1,4 @@
-# FreshAlert – Session-Handoff
+# Fresh Alert – Session-Handoff
 
 > Arbeitsnotiz für den nahtlosen Übergang zwischen Arbeits-Sessions.
 > **Sobald alle offenen Punkte erledigt sind, kann diese Datei gelöscht werden.**
@@ -7,7 +7,7 @@
 **Stand:** 2026-09-12 · **Version:** 1.6.0 · **Branch:** `main` (PR chore/testflight-readiness)
 
 Erledigt am 12.09.2026: StoreKit-Code kompiliert (Anführungszeichen-Fix), beide
-In-App-Käufe in App Store Connect angelegt (Abo-Gruppe FreshAlert Pro, Jahresabo
+In-App-Käufe in App Store Connect angelegt (Abo-Gruppe Fresh Alert Pro, Jahresabo
 4,99 €, Lifetime 14,99 €), Paid-Apps-Vertrag, Steuer, Bank, DAC7 aktiv. Pipeline
 umgestellt (main = TestFlight, Tag = Store). PrivacyInfo ergänzt.
 

@@ -1,4 +1,4 @@
-# FreshAlert
+# Fresh Alert
 
 Eine native iOS-App zum Verwalten von Lebensmitteln mit Barcode-Scanner, Ablaufdatum-Tracking und Erinnerungen.
 
@@ -123,7 +123,7 @@ Der kostenlose Account hat eine **7-Tage-Signatur** – danach musst du die App 
 1. iPhone: **Einstellungen** → **Allgemein** → **VPN & Geräteverwaltung**
 2. Unter "Entwickler-App": Deinen Apple-ID-Namen tippen
 3. **Vertrauen** drücken
-4. FreshAlert starten → App läuft!
+4. Fresh Alert starten → App läuft!
 
 ---
 

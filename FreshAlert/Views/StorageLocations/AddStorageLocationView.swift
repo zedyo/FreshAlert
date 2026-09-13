@@ -292,7 +292,7 @@ struct AddStorageLocationView: View {
         } header: {
             Text("Eigener Ort")
         } footer: {
-            Text("Icon und Farbe wählt FreshAlert passend zum Namen, du kannst sie unter „Anpassen“ ändern.")
+            Text("Icon und Farbe wählt Fresh Alert passend zum Namen, du kannst sie unter „Anpassen“ ändern.")
         }
     }
 

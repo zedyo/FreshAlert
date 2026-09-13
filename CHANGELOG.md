@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.12.0] – 2026-09-13
+
+- **Neu:** Die App heißt jetzt „Fresh Alert“, mit Leerzeichen. So steht es auf dem Home-Bildschirm, in der App, bei den Widgets und im App Store. Deine Produkte und Einstellungen bleiben unverändert.
+
 ## [1.11.1] – 2026-09-13
 
 - **Verbessert:** Die Kacheln zum Kaufen zeigen jetzt die eigenen Bilder von Jahresabo und Lifetime, dieselben wie im App Store.

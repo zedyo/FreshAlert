@@ -132,7 +132,7 @@ struct DashboardView: View {
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("FreshAlert")
+            .navigationTitle("Fresh Alert")
             .navigationBarTitleDisplayMode(.large)
             // Die Leiste vor `searchable`: schaltet das Suchfeld um, weil das
             // erste Produkt ankommt, verliert die Ansicht sonst das linke Symbol.
@@ -304,7 +304,7 @@ struct DashboardView: View {
                     .foregroundStyle(.secondary)
                 Text("Noch keine Produkte")
                     .font(.title3.weight(.semibold))
-                Text("Scanne den Barcode eines Produkts, FreshAlert erinnert dich, bevor es abläuft.")
+                Text("Scanne den Barcode eines Produkts, Fresh Alert erinnert dich, bevor es abläuft.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
