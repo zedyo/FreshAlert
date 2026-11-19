@@ -94,21 +94,45 @@ Example: cloud sync or an account means the app no longer runs purely on device.
 policy, the App Privacy answers, the website claim "Deine Daten bleiben auf deinem iPhone", the support FAQ
 "Wo werden meine Daten gespeichert?", `PrivacyInfo.xcprivacy` and possibly the age rating all change.
 
-## App Store release notes
+## Changelog and App Store release notes
 
-Every App Store **update** needs release notes ("Neuerungen in dieser Version", field `whatsNew` of the
-`de-DE` app store version localization). The first release has no such field.
+Fresh Alert is **live in the App Store since 19.11.2026** (1.0). From now on every change is logged and every store
+version carries its own release notes (owner, 19.11.2026).
 
-- German, friendly and close to the customer: "du", short sentences, no technical jargon, nothing internal.
-- Grouped as new features, improvements and bug fixes. Derive them from the `CHANGELOG.md` entries since the
-  last App Store release and leave out every "Intern" item.
+**`CHANGELOG.md` is the full log.** Every PR that changes the app adds an entry under its new version, nothing is
+left out, internal items included (marked **Intern:**). These entries may be precise and a bit technical, they are
+for us.
+
+**Release notes are for users** ("Neuerungen in dieser Version", field `whatsNew` of the `de-DE` app store version
+localization). Every store update needs them.
+
+- **Store them in the changelog**, as the last block of the version that goes to the store, so the text the users saw
+  stays documented per version:
+
+  ```
+  ## [1.1] – 2026-12-05
+
+  - **Neu:** ...
+  - **Intern:** ...
+
+  > **App Store:**
+  > Neu: Du kannst ...
+  > Behoben: ...
+  ```
+
+  If several changelog versions go out in one store release, the block sits under the version that ships and covers
+  everything since the last store release.
+- **Tone: relaxed, warm, not technical.** "du", short sentences, a little personality is welcome, an emoji now and
+  then is fine. Explain what the user gets, not how it was built. No version numbers of libraries, no "refactoring",
+  no internal names, nothing from the **Intern** items.
+- Grouped as Neu, Verbessert, Behoben. Small updates may be just two or three lines. Max 4000 characters.
 - The `release` lane runs `deliver` with `skip_metadata`, so set `whatsNew` via the App Store Connect API
-  **before** the store tag is pushed.
+  **before** the store tag is pushed, word for word from the changelog block.
 
 Tone example:
-> Neu: Du kannst das Haltbarkeitsdatum jetzt direkt vom Etikett scannen.
-> Verbessert: Erinnerungen kommen gebündelt einmal am Tag, zu einer Uhrzeit deiner Wahl.
-> Behoben: Die Kamera bleibt beim Datum-Scannen nicht mehr hängen.
+> Neu: Du kannst das Haltbarkeitsdatum jetzt direkt vom Etikett scannen. Kein Abtippen mehr 🙌
+> Verbessert: Erinnerungen kommen gebündelt einmal am Tag, zu einer Uhrzeit, die dir passt.
+> Behoben: Die Kamera hat beim Datum-Scannen manchmal gestreikt. Jetzt nicht mehr.
 
 ## Project file gotchas
 
