@@ -122,9 +122,13 @@ localization). Every store update needs them.
 
   If several changelog versions go out in one store release, the block sits under the version that ships and covers
   everything since the last store release.
+- **Only what the user notices gets its own line** (owner, 19.11.2026): features and fixes that actually tell the user
+  something or bring them something. Everything internal that users do not care about (**Intern** items, pipeline,
+  refactoring, tests, developer menu, tiny invisible tweaks) is **not described**, it collapses into the single line
+  `Verbessert: Allgemeine Optimierungen.` That line appears once per release, only if there were such changes.
+  An update with only internal changes therefore has just that line.
 - **Tone: relaxed, warm, not technical.** "du", short sentences, a little personality is welcome, an emoji now and
-  then is fine. Explain what the user gets, not how it was built. No version numbers of libraries, no "refactoring",
-  no internal names, nothing from the **Intern** items.
+  then is fine. Explain what the user gets, not how it was built. No version numbers of libraries, no internal names.
 - Grouped as Neu, Verbessert, Behoben. Small updates may be just two or three lines. Max 4000 characters.
 - The `release` lane runs `deliver` with `skip_metadata`, so set `whatsNew` via the App Store Connect API
   **before** the store tag is pushed, word for word from the changelog block.
@@ -133,6 +137,7 @@ Tone example:
 > Neu: Du kannst das Haltbarkeitsdatum jetzt direkt vom Etikett scannen. Kein Abtippen mehr 🙌
 > Verbessert: Erinnerungen kommen gebündelt einmal am Tag, zu einer Uhrzeit, die dir passt.
 > Behoben: Die Kamera hat beim Datum-Scannen manchmal gestreikt. Jetzt nicht mehr.
+> Verbessert: Allgemeine Optimierungen.
 
 ## Project file gotchas
 
