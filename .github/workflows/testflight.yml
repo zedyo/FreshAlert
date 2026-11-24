@@ -14,12 +14,15 @@ concurrency:
   group: testflight
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   testflight:
     name: Build & TestFlight
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0 # Build-Nummer = Commit-Anzahl
 
@@ -37,13 +40,13 @@ jobs:
 
       - name: Xcode auswählen
         if: steps.check.outputs.ready == 'true'
-        uses: maxim-lobanov/setup-xcode@v1
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
         with:
           xcode-version: "^26.0"
 
       - name: Ruby und Fastlane
         if: steps.check.outputs.ready == 'true'
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@78c62f2208e480ce3d5ae4dfd9b9e181acf48b63 # v1.344.0
         with:
           ruby-version: "3.3"
           bundler-cache: true
