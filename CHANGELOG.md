@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.1] – 2026-11-27
+
+- **Intern:** Die Pipeline ist gehärtet: Actions auf Commit-SHA festgenagelt, minimale Rechte je Workflow, feste fastlane-Version, Dependabot für Actions und Bundler (Orbit Audit 2026-11-21, Befund 16 und 32).
+- **Intern:** Versionsnummer über 1.0 gehoben, damit TestFlight neue Builds annimmt. Der Zug 1.0 ist seit der Freigabe im App Store für neue Builds geschlossen.
+
 ## [1.0] – 2026-09-13
 
 - **Neu:** Erste Version im App Store. Barcode scannen, Haltbarkeitsdatum eintragen oder vom Etikett scannen, Lagerorte, eine gebündelte Erinnerung am Tag, Statistik und Widget. 20 Produkte kostenlos, unbegrenzt mit Fresh Alert Pro.
